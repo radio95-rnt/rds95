@@ -8,7 +8,6 @@
 
 #include "rds.h"
 #include "modulator.h"
-#include "control_pipe.h"
 #include "udp_server.h"
 #include "lib.h"
 #include "ascii_cmd.h"
@@ -24,17 +23,6 @@ static uint8_t stop_rds;
 static void stop() {
 	printf("Received an stopping signal\n");
 	stop_rds = 1;
-}
-
-static void *control_pipe_worker(void* modulator) {
-	RDSModulator *mod = (RDSModulator*)modulator;
-	while (!stop_rds) {
-		poll_control_pipe(mod);
-		msleep(READ_TIMEOUT_MS);
-	}
-
-	close_control_pipe();
-	pthread_exit(NULL);
 }
 
 static void *udp_server_worker() {
@@ -61,7 +49,6 @@ static inline void show_help(char *name) {
 
 typedef struct
 {
-	char control_pipe[51];
 	uint16_t udp_port;
 	char rds_device_name[48];
 	uint8_t num_streams;
@@ -72,10 +59,7 @@ static int config_handler(void* user, const char* section, const char* name, con
 
     #define MATCH(s, n) (strcmp(section, s) == 0 && strcmp(name, n) == 0)
 
-    if (MATCH("rds95", "control_pipe")) {
-        strncpy(config->control_pipe, value, sizeof(config->control_pipe) - 1);
-        config->control_pipe[sizeof(config->control_pipe) - 1] = '\0';
-    } else if (MATCH("rds95", "udp_port")) {
+    if (MATCH("rds95", "udp_port")) {
         config->udp_port = (uint16_t)atoi(value);
     } else if (MATCH("devices", "rds95")) {
         strncpy(config->rds_device_name, value, sizeof(config->rds_device_name) - 1);
@@ -95,7 +79,6 @@ int main(int argc, char **argv) {
 
 	char config_path[64] = DEFAULT_CONFIG_PATH;
 	RDS95_Config config = {
-		.control_pipe = "\0",
 		.udp_port = 0,
 		.rds_device_name = "\0",
 		.num_streams = DEFAULT_STREAMS
@@ -106,7 +89,6 @@ int main(int argc, char **argv) {
 	pa_buffer_attr buffer;
 
 	pthread_attr_t attr;
-	pthread_t control_pipe_thread;
 	pthread_t udp_server_thread;
 
 	const char	*short_opt = "c:h";
@@ -181,21 +163,6 @@ int main(int argc, char **argv) {
 	init_rds_encoder(&rdsEncoder);
 	init_rds_modulator(&rdsModulator, &rdsEncoder, config.num_streams);
 
-	if (config.control_pipe[0]) {
-		if (open_control_pipe(config.control_pipe) == 0) {
-			fprintf(stderr, "Reading control commands on %s.\n", config.control_pipe);
-			int r = pthread_create(&control_pipe_thread, &attr, control_pipe_worker, (void*)&rdsModulator);
-			if (r < 0) {
-				fprintf(stderr, "Could not create control pipe thread.\n");
-				config.control_pipe[0] = 0;
-				goto exit;
-			} else fprintf(stderr, "Created control pipe thread.\n");
-		} else {
-			fprintf(stderr, "Failed to open control pipe: %s.\n", config.control_pipe);
-			config.control_pipe[0] = 0;
-		}
-	}
-
 	if(config.udp_port) {
 		if(open_udp_server(config.udp_port, &rdsModulator) == 0) {
 			fprintf(stderr, "Reading control commands on UDP:%d.\n", config.udp_port);
@@ -234,11 +201,6 @@ int main(int argc, char **argv) {
 	free(rds_buffer);
 
 exit:
-	if (config.control_pipe[0]) {
-		fprintf(stderr, "Waiting for pipe thread to shut down.\n");
-		pthread_join(control_pipe_thread, NULL);
-	}
-
 	if(config.udp_port) {
 		fprintf(stderr, "Waiting for UDP thread to shut down.\n");
 		pthread_join(udp_server_thread, NULL);

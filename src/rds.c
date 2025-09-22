@@ -25,12 +25,7 @@ void saveToFile(RDSEncoder *enc, const char *option) {
 	} else return;
 	tempEncoder.program = enc->program;
 
-	RDSEncoderFile rdsEncoderfile = {
-		.file_starter = 225,
-		.file_middle = 160,
-		.file_ender = 95,
-		.program = tempEncoder.program,
-	};
+	RDSEncoderFile rdsEncoderfile = {.file_starter = 225, .file_middle = 160, .file_ender = 95, .program = tempEncoder.program};
 	memcpy(&rdsEncoderfile.data[enc->program], &tempEncoder.data[enc->program], sizeof(RDSData));
 	memcpy(&rdsEncoderfile.rtpData[enc->program], &tempEncoder.rtpData[enc->program], sizeof(RDSRTPlusData) * 2);
 	memcpy(&rdsEncoderfile.encoder_data, &tempEncoder.encoder_data, sizeof(RDSEncoderData));
@@ -252,7 +247,7 @@ static void get_rds_oda_af_group(RDSEncoder* enc, RDSGroup *group) {
 	get_next_af_oda(enc, af);
 
 	group->b |= 7 << 12;
-	for (int i = 0; i < 4; i++) group->b |= ((af[i] >> 8) & 1) << i;
+	for (int i = 0; i < 4; i++) group->b |= ((af[i] >> 8) & 1) << i; // set the additional bits
 
 	group->c = af[0] & 0xFF;
 	group->c <<= 8;
