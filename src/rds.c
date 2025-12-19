@@ -503,7 +503,7 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 
 	struct tm *utc;
 	time_t now;
-	localtime(&now);
+	time(&now);
 	utc = gmtime(&now);
 
 	if (utc->tm_min != enc->state[enc->program].last_minute) {
