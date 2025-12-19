@@ -1,85 +1,9 @@
 #include "common.h"
 #include "rds.h"
+#include "rds_fs.h"
 #include "modulator.h"
 #include "lib.h"
 #include <time.h>
-
-void saveToFile(RDSEncoder *enc, const char *option) {
-	char encoderPath[128];
-	snprintf(encoderPath, sizeof(encoderPath), "%s/.rdsEncoder", getenv("HOME"));
-
-	RDSEncoder tempEncoder;
-	FILE *file = fopen(encoderPath, "rb");
-	if (file) {
-		fread(&tempEncoder, sizeof(RDSEncoder), 1, file);
-		fclose(file);
-	} else memcpy(&tempEncoder, enc, sizeof(RDSEncoder));
-
-	if (strcmp(option, "PROGRAM") == 0) {
-		memcpy(&tempEncoder.data[enc->program], &enc->data[enc->program], sizeof(RDSData));
-		memcpy(&tempEncoder.rtpData[enc->program], &enc->rtpData[enc->program], sizeof(RDSRTPlusData) * 2);
-	} else if (strcmp(option, "ALL") == 0) {
-		memcpy(tempEncoder.data, enc->data, sizeof(RDSData) * PROGRAMS);
-		memcpy(tempEncoder.rtpData, enc->rtpData, sizeof(RDSRTPlusData) * PROGRAMS * 2);
-		memcpy(&tempEncoder.encoder_data, &enc->encoder_data, sizeof(RDSEncoderData));
-	} else return;
-	tempEncoder.program = enc->program;
-
-	RDSEncoderFile rdsEncoderfile = {.file_starter = 225, .file_middle = 160, .file_ender = 95, .program = tempEncoder.program};
-	memcpy(&rdsEncoderfile.data[enc->program], &tempEncoder.data[enc->program], sizeof(RDSData));
-	memcpy(&rdsEncoderfile.rtpData[enc->program], &tempEncoder.rtpData[enc->program], sizeof(RDSRTPlusData) * 2);
-	memcpy(&rdsEncoderfile.encoder_data, &tempEncoder.encoder_data, sizeof(RDSEncoderData));
-
-	rdsEncoderfile.crc = crc16_ccitt((char *)&rdsEncoderfile, offsetof(RDSEncoderFile, crc));
-
-	file = fopen(encoderPath, "wb");
-	if (!file) {
-		perror("Error opening file");
-		return;
-	}
-	fwrite(&rdsEncoderfile, sizeof(RDSEncoderFile), 1, file);
-	fclose(file);
-}
-
-void loadFromFile(RDSEncoder *enc) {
-	char encoderPath[128];
-	snprintf(encoderPath, sizeof(encoderPath), "%s/.rdsEncoder", getenv("HOME"));
-
-	RDSEncoderFile rdsEncoderfile;
-	FILE *file = fopen(encoderPath, "rb");
-	if (!file) {
-		perror("Error opening file");
-		return;
-	}
-	fread(&rdsEncoderfile, sizeof(rdsEncoderfile), 1, file);
-	fclose(file);
-	
-	if (rdsEncoderfile.file_starter != 225 || rdsEncoderfile.file_ender != 95 || rdsEncoderfile.file_middle != 160) {
-		fprintf(stderr, "[RDSENCODER-FILE] Invalid file format\n");
-		return;
-	}
-
-	if (crc16_ccitt((char*)&rdsEncoderfile, offsetof(RDSEncoderFile, crc)) != rdsEncoderfile.crc) {
-		fprintf(stderr, "[RDSENCODER-FILE] CRC mismatch! Data may be corrupted\n");
-		return;
-	}
-
-	for (int i = 0; i < PROGRAMS; i++) {
-		memcpy(&(enc->data[i]), &(rdsEncoderfile.data[i]), sizeof(RDSData));
-		memcpy(&(enc->rtpData[i]), &(rdsEncoderfile.rtpData[i]), sizeof(RDSRTPlusData)*2);
-	}
-	memcpy(&(enc->encoder_data), &(rdsEncoderfile.encoder_data), sizeof(RDSEncoderData));
-	enc->program = rdsEncoderfile.program;
-}
-
-int isFileSaved() {
-	char encoderPath[128];
-	snprintf(encoderPath, sizeof(encoderPath), "%s/.rdsEncoder", getenv("HOME"));
-	FILE *file = fopen(encoderPath, "rb");
-	if(!file) return 0;
-	fclose(file);
-	return 1;
-}
 
 static uint16_t get_next_af(RDSEncoder* enc) {
 	uint16_t out;
@@ -784,7 +708,7 @@ void init_rds_encoder(RDSEncoder* enc) {
 	for(int i = 0; i < PROGRAMS; i++) set_rds_defaults(enc, i);
 
 	if (isFileSaved()) loadFromFile(enc);
-	else saveToFile(enc, "ALL");
+	else saveToFile(enc);
 
 	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(enc, i);
 }

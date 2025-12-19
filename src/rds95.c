@@ -7,6 +7,7 @@
 #include "../inih/ini.h"
 
 #include "rds.h"
+#include "rds_fs.h"
 #include "modulator.h"
 #include "udp_server.h"
 #include "lib.h"
@@ -59,18 +60,15 @@ static int config_handler(void* user, const char* section, const char* name, con
 
     #define MATCH(s, n) (strcmp(section, s) == 0 && strcmp(name, n) == 0)
 
-    if (MATCH("rds95", "udp_port")) {
-        config->udp_port = (uint16_t)atoi(value);
-    } else if (MATCH("devices", "rds95")) {
+    if (MATCH("rds95", "udp_port")) config->udp_port = (uint16_t)atoi(value);
+    else if (MATCH("devices", "rds95")) {
         strncpy(config->rds_device_name, value, sizeof(config->rds_device_name) - 1);
         config->rds_device_name[sizeof(config->rds_device_name) - 1] = '\0';
     } else if (MATCH("rds95", "streams")) {
         int streams = atoi(value);
         if (streams > MAX_STREAMS || streams == 0) return 0;
         config->num_streams = (uint8_t)streams;
-    } else {
-        return 0;  // Unknown config key
-    }
+    } else return 0
     return 1;
 }
 
@@ -188,9 +186,7 @@ int main(int argc, char **argv) {
 	}
 
 	while(!stop_rds) {
-		for (uint16_t i = 0; i < NUM_MPX_FRAMES * config.num_streams; i++) {
-			rds_buffer[i] = get_rds_sample(&rdsModulator, i % config.num_streams);
-		}
+		for (uint16_t i = 0; i < NUM_MPX_FRAMES * config.num_streams; i++) rds_buffer[i] = get_rds_sample(&rdsModulator, i % config.num_streams);
 
 		if (pa_simple_write(rds_device, rds_buffer, NUM_MPX_FRAMES * config.num_streams * sizeof(float), &pulse_error) != 0) {
 			fprintf(stderr, "Error: could not play audio. (%s : %d)\n", pa_strerror(pulse_error), pulse_error);
@@ -206,7 +202,10 @@ exit:
 		pthread_join(udp_server_thread, NULL);
 	}
 
-	cleanup_rds_modulator(&rdsModulator);  // Clean up dynamically allocated memory
+	saveToFile(rdsEncoder);
+	Modulator_saveToFile(&rdsModulator.params);
+
+	cleanup_rds_modulator(&rdsModulator);
 	pthread_attr_destroy(&attr);
 	if (rds_device != NULL) pa_simple_free(rds_device);
 

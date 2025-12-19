@@ -234,10 +234,6 @@ typedef struct
 
 #define IS_TYPE_B(b)	(b & 0x0800)
 
-void saveToFile(RDSEncoder *emp, const char *option);
-void loadFromFile(RDSEncoder *emp);
-int isFileSaved();
-
 void reset_rds_state(RDSEncoder* enc, uint8_t program);
 void set_rds_defaults(RDSEncoder* enc, uint8_t program);
 void init_rds_encoder(RDSEncoder* enc);

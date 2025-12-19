@@ -1,6 +1,6 @@
 #include "modulator.h"
 
-void Modulator_saveToFile(RDSModulatorParameters *emp, const char *option) {
+void Modulator_saveToFile(RDSModulatorParameters *emp) {
 	char modulatorPath[128];
 	snprintf(modulatorPath, sizeof(modulatorPath), "%s/.rdsModulator", getenv("HOME"));
 	FILE *file;
@@ -20,12 +20,8 @@ void Modulator_saveToFile(RDSModulatorParameters *emp, const char *option) {
 	}
 	memcpy(&tempMod, &tempFile.params, sizeof(RDSModulatorParameters));
 	
-	if (strcmp(option, "LEVEL") == 0) tempMod.level = emp->level;
-	else if (strcmp(option, "RDSGEN") == 0) tempMod.rdsgen = emp->rdsgen;
-	else if (strcmp(option, "ALL") == 0) {
-		tempMod.level = emp->level;
-		tempMod.rdsgen = emp->rdsgen;
-	} else return;
+	tempMod.level = emp->level;
+	tempMod.rdsgen = emp->rdsgen;
 
 	memcpy(&tempFile.params, &tempMod, sizeof(RDSModulatorParameters));
 	tempFile.check = 160;
@@ -96,7 +92,7 @@ void init_rds_modulator(RDSModulator* rdsMod, RDSEncoder* enc, uint8_t num_strea
 	}
 
 	if(modulatorsaved()) Modulator_loadFromFile(&rdsMod->params);
-	else Modulator_saveToFile(&rdsMod->params, "ALL");
+	else Modulator_saveToFile(&rdsMod->params);
 }
 
 void cleanup_rds_modulator(RDSModulator* rdsMod) {
