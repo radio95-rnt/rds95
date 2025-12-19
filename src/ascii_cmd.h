@@ -1,5 +1,6 @@
 #include "common.h"
 #include "rds.h"
+#include "rds_fs.h"
 #include "modulator.h"
 #include "lib.h"
 #define CMD_BUFFER_SIZE	255
