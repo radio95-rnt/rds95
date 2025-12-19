@@ -39,30 +39,30 @@ Sets the TP flag: `TP=1`
 
 ### TA
 
-Sets the TA flag and triggers Traffic PS: `TA=0`  
+Sets the TA flag and triggers Traffic PS: `TA=0`
 *May be overridden by EON*
 
 ### CT
 
-Toggles the transmission of CT groups: `CT=1`  
+Toggles the transmission of CT groups: `CT=1`
 
 ### AF
 
-Sets the AF frequencies: `AF=95,89.1`  
-Clear the AF: `AF=`  
+Sets the AF frequencies: `AF=95,89.1`
+Clear the AF: `AF=`
 
 ### TPS
 
-Sets the Traffic PS: `TPS=Traffic!` (default not set)  
+Sets the Traffic PS: `TPS=Traffic!` (default not set)
 *TPS is transmitted instead of PS when TA flag is on*
 
 ### RT1
 
-Sets the first radio text: `RT1=Currently Playing: Jessie Ware - Remember Where You Are` or `TEXT=Currently Playing: Jessie Ware - Remember Where You Are`  
+Sets the first radio text: `RT1=Currently Playing: Jessie Ware - Remember Where You Are` or `TEXT=Currently Playing: Jessie Ware - Remember Where You Are`
 
 ### RT2
 
-Sets the second radio text: `RT2=Radio Nova - Best Hits around!`  
+Sets the second radio text: `RT2=Radio Nova - Best Hits around!`
 
 ### PTY
 
@@ -72,7 +72,7 @@ PTY values are diffrent for RDS and RDBS, look for them online
 
 ### ECC
 
-Sets the extended country code: `ECC=E2`  
+Sets the extended country code: `ECC=E2`
 *Note that the ECC is depended on the first letter of the PI, for example PI:3 and ECC:E2 is poland, but PI:1 would be the czech republic*
 
 ### RTP
@@ -81,8 +81,8 @@ TODO: RTP
 
 ### LPS
 
-Sets the LPS: `LPS=NovaFM❤️`  
-*Note that LPS does UTF-8, while PS, RT don't*  
+Sets the LPS: `LPS=NovaFM❤️`
+*Note that LPS does UTF-8, while PS, RT don't*
 
 ### ERT
 
@@ -105,7 +105,7 @@ Sets the programme type name: `PTYN=Football`
 ### DPTY
 
 *Formerly DI*
-Sets the DPTY flag: `DPTY=1`  
+Sets the DPTY flag: `DPTY=1`
 
 ### SLCD
 
@@ -130,11 +130,11 @@ Sends a custom group to the next group available: `G=F100FFFFFFFF` or `G=0000200
 
 ### RT1EN
 
-Enables RT 1: `RT1EN=1`  
+Enables RT 1: `RT1EN=1`
 
 ### RT2EN
 
-Enables RT 2: `RT1EN=2`  
+Enables RT 2: `RT2EN=1`
 
 ### RTPER
 
@@ -253,7 +253,7 @@ Sets the broadcaster data of EON x: `EON1DT=F`
 
 ### UDG1
 
-Sets the user defined group, max 8 groups: `UDG1=6000FFFFFFFF`  
+Sets the user defined group, max 8 groups: `UDG1=6000FFFFFFFF`
 
 ### UDG2
 
