@@ -1,3 +1,4 @@
+#include "common.h"
 #include "rds.h"
 
 void saveToFile(RDSEncoder *emp);
