@@ -146,14 +146,12 @@ static void get_rdsp_rtp_oda_group(RDSGroup *group) {
 
 static void get_rdsp_ertp_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
-
 	group->b |= 13 << 1;
 	group->d = ODA_AID_ERTPLUS;
 }
 
 static void get_rdsp_ert_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
-
 	group->b |= 12 << 1;
 	group->c = 1; // UTF-8
 	group->d = ODA_AID_ERT;
@@ -161,7 +159,6 @@ static void get_rdsp_ert_oda_group(RDSGroup *group) {
 
 static void get_rdsp_oda_af_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
-
 	group->b |= 7 << 1;
 	group->d = ODA_AID_ODAAF;
 }
@@ -191,9 +188,7 @@ static void get_rdsp_ct_group(RDSGroup *group, time_t now) {
 	utc = gmtime(&now);
 
 	l = utc->tm_mon <= 1 ? 1 : 0;
-	mjd = 14956 + utc->tm_mday +
-		(uint32_t)((utc->tm_year - l) * 365.25f) +
-		(uint32_t)((utc->tm_mon + (1+1) + l * 12) * 30.6001f);
+	mjd = 14956 + utc->tm_mday + (uint32_t)((utc->tm_year - l) * 365.25f) + (uint32_t)((utc->tm_mon + (1+1) + l * 12) * 30.6001f);
 
 	group->b |= 4 << 12 | (mjd >> 15);
 	group->c = (mjd << 1) | (utc->tm_hour >> 4);
@@ -508,7 +503,7 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 
 	struct tm *utc;
 	time_t now;
-	time(&now);
+	localtime(&now);
 	utc = gmtime(&now);
 
 	if (utc->tm_min != enc->state[enc->program].last_minute) {
