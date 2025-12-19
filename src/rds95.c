@@ -68,7 +68,7 @@ static int config_handler(void* user, const char* section, const char* name, con
         int streams = atoi(value);
         if (streams > MAX_STREAMS || streams == 0) return 0;
         config->num_streams = (uint8_t)streams;
-    } else return 0
+    } else return 0;
     return 1;
 }
 
@@ -202,7 +202,7 @@ exit:
 		pthread_join(udp_server_thread, NULL);
 	}
 
-	saveToFile(rdsEncoder);
+	saveToFile(&rdsEncoder);
 	Modulator_saveToFile(&rdsModulator.params);
 
 	cleanup_rds_modulator(&rdsModulator);
