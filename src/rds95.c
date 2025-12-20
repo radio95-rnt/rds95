@@ -7,7 +7,7 @@
 #include "../inih/ini.h"
 
 #include "rds.h"
-#include "rds_fs.h"
+#include "fs.h"
 #include "modulator.h"
 #include "udp_server.h"
 #include "lib.h"
@@ -133,12 +133,11 @@ int main(int argc, char **argv) {
 	signal(SIGTERM, stop);
 
 	format.format = PA_SAMPLE_FLOAT32NE;
-	format.channels = config.num_streams;  // Use dynamic stream count
+	format.channels = config.num_streams;
 	format.rate = RDS_SAMPLE_RATE;
 
 	buffer.prebuf = 0;
-	buffer.tlength = NUM_MPX_FRAMES * config.num_streams;
-	buffer.maxlength = NUM_MPX_FRAMES * config.num_streams;
+	buffer.tlength = buffer.maxlength = NUM_MPX_FRAMES * config.num_streams;
 
 	rds_device = pa_simple_new(
 		NULL,
@@ -178,7 +177,6 @@ int main(int argc, char **argv) {
 
 	int pulse_error;
 
-	// Dynamically allocate buffer based on stream count
 	float *rds_buffer = (float*)malloc(NUM_MPX_FRAMES * config.num_streams * sizeof(float));
 	if (rds_buffer == NULL) {
 		fprintf(stderr, "Error: Could not allocate memory for RDS buffer\n");
@@ -202,7 +200,7 @@ exit:
 		pthread_join(udp_server_thread, NULL);
 	}
 
-	saveToFile(&rdsEncoder);
+	encoder_saveToFile(&rdsEncoder);
 	Modulator_saveToFile(&rdsModulator.params);
 
 	cleanup_rds_modulator(&rdsModulator);

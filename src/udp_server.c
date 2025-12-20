@@ -30,7 +30,7 @@ int open_udp_server(int port, RDSModulator* rds_mod) {
     poller.fd = sockfd;
     poller.events = POLLIN;
 
-    mod = rds_mod;  // Save mod pointer
+    mod = rds_mod;
 
     return 0;
 }
@@ -38,7 +38,7 @@ int open_udp_server(int port, RDSModulator* rds_mod) {
 void poll_udp_server() {
     static char buf[BUF_SIZE];
     static char cmd_buf[BUF_SIZE];
-    static char cmd_output[BUF_SIZE];  // Buffer to collect output from process_ascii_cmd
+    static char cmd_output[BUF_SIZE];
     ssize_t bytes_read;
 
     if (poll(&poller, 1, UDP_READ_TIMEOUT_MS) <= 0) return;
@@ -46,8 +46,7 @@ void poll_udp_server() {
 
     memset(buf, 0, BUF_SIZE);
     client_len = sizeof(client_addr);
-	bytes_read = recvfrom(sockfd, buf, BUF_SIZE - 1, 0,
-                      (struct sockaddr *)&client_addr, &client_len);
+	bytes_read = recvfrom(sockfd, buf, BUF_SIZE - 1, 0, (struct sockaddr *)&client_addr, &client_len);
     if (bytes_read <= 0) return;
 
     buf[bytes_read] = '\0';
@@ -60,17 +59,12 @@ void poll_udp_server() {
             strncpy(cmd_buf, token, BUF_SIZE - 1);
 
             memset(cmd_output, 0, BUF_SIZE);
-            // Pass cmd_output buffer to collect output from the command processor
             process_ascii_cmd(mod, cmd_buf, cmd_output);
 
-            // Send cmd_output back to client (even if empty, send it)
             size_t out_len = strlen(cmd_output);
             if (out_len > 0) {
-                ssize_t sent = sendto(sockfd, cmd_output, out_len, 0,
-                                      (struct sockaddr *)&client_addr, client_len);
-                if (sent == -1) {
-                    perror("sendto");
-                }
+                ssize_t sent = sendto(sockfd, cmd_output, out_len, 0, (struct sockaddr *)&client_addr, client_len);
+                if (sent == -1) perror("sendto");
             }
         }
         token = strtok(NULL, "\r\n");

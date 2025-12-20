@@ -1,77 +1,5 @@
 #include "modulator.h"
-
-void Modulator_saveToFile(RDSModulatorParameters *emp) {
-	char modulatorPath[128];
-	snprintf(modulatorPath, sizeof(modulatorPath), "%s/.rdsModulator", getenv("HOME"));
-	FILE *file;
-	
-	RDSModulatorParameters tempMod;
-	RDSModulatorParametersFile tempFile;
-	memset(&tempFile, 0, sizeof(tempFile));
-	file = fopen(modulatorPath, "rb");
-	if (file != NULL) {
-		fread(&tempFile, sizeof(RDSModulatorParametersFile), 1, file);
-		fclose(file);
-	} else {
-		memset(&tempFile, 0, sizeof(RDSModulatorParametersFile));
-		tempFile.check = 160;
-		memcpy(&tempFile.params, emp, sizeof(RDSModulatorParameters));
-		tempFile.crc = crc16_ccitt((char*)&tempFile, offsetof(RDSModulatorParametersFile, crc));
-	}
-	memcpy(&tempMod, &tempFile.params, sizeof(RDSModulatorParameters));
-	
-	tempMod.level = emp->level;
-	tempMod.rdsgen = emp->rdsgen;
-
-	memcpy(&tempFile.params, &tempMod, sizeof(RDSModulatorParameters));
-	tempFile.check = 160;
-	tempFile.crc = crc16_ccitt((char*)&tempFile, offsetof(RDSModulatorParametersFile, crc));
-	
-	file = fopen(modulatorPath, "wb");
-	if (file == NULL) {
-		perror("Error opening file");
-		return;
-	}
-	fwrite(&tempFile, sizeof(RDSModulatorParametersFile), 1, file);
-	fclose(file);
-}
-
-void Modulator_loadFromFile(RDSModulatorParameters *emp) {
-	char modulatorPath[128];
-	snprintf(modulatorPath, sizeof(modulatorPath), "%s/.rdsModulator", getenv("HOME"));
-	FILE *file = fopen(modulatorPath, "rb");
-	if (file == NULL) {
-		perror("Error opening file");
-		return;
-	}
-	RDSModulatorParametersFile tempFile;
-	memset(&tempFile, 0, sizeof(tempFile));
-	fread(&tempFile, sizeof(RDSModulatorParametersFile), 1, file);
-	if (tempFile.check != 160) {
-		fprintf(stderr, "[RDSMODULATOR-FILE] Invalid file format\n");
-		fclose(file);
-		return;
-	}
-	uint16_t calculated_crc = crc16_ccitt((char*)&tempFile, offsetof(RDSModulatorParametersFile, crc));
-	if (calculated_crc != tempFile.crc) {
-		fprintf(stderr, "[RDSMODULATOR-FILE] CRC mismatch! Data may be corrupted\n");
-		fclose(file);
-		return;
-	}
-	memcpy(emp, &tempFile.params, sizeof(RDSModulatorParameters));
-	fclose(file);
-}
-
-int modulatorsaved() {
-	char encoderPath[128];
-	snprintf(encoderPath, sizeof(encoderPath), "%s/.rdsModulator", getenv("HOME"));
-	FILE *file = fopen(encoderPath, "rb");
-	if (file) {
-		fclose(file);
-		return 1;
-	}
-	return 0;
-}
+#include "fs.h"
 
 void init_rds_modulator(RDSModulator* rdsMod, RDSEncoder* enc, uint8_t num_streams) {
 	memset(rdsMod, 0, sizeof(*rdsMod));
@@ -87,9 +15,7 @@ void init_rds_modulator(RDSModulator* rdsMod, RDSEncoder* enc, uint8_t num_strea
 		return;
 	}
 
-	for (uint8_t i = 0; i < num_streams; i++) {
-		rdsMod->data[i].symbol_shift = i * M_PI / 2.0f;
-	}
+	for (uint8_t i = 0; i < num_streams; i++) rdsMod->data[i].symbol_shift = i * M_PI / 2.0f;
 
 	if(modulatorsaved()) Modulator_loadFromFile(&rdsMod->params);
 	else Modulator_saveToFile(&rdsMod->params);

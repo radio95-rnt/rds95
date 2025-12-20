@@ -1,6 +1,6 @@
 #include "common.h"
 #include "rds.h"
-#include "rds_fs.h"
+#include "fs.h"
 #include "modulator.h"
 #include "lib.h"
 #include <time.h>
@@ -138,26 +138,26 @@ static void get_rds_rt_group(RDSEncoder* enc, RDSGroup *group) {
 	enc->state[enc->program].rt_state++;
 	if (enc->state[enc->program].rt_state == segments) enc->state[enc->program].rt_state = 0;
 }
-static void get_rdsp_rtp_oda_group(RDSGroup *group) {
+inline static void get_rdsp_rtp_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
 	group->b |= 11 << 1;
 	group->d = ODA_AID_RTPLUS;
 }
 
-static void get_rdsp_ertp_oda_group(RDSGroup *group) {
+inline static void get_rdsp_ertp_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
 	group->b |= 13 << 1;
 	group->d = ODA_AID_ERTPLUS;
 }
 
-static void get_rdsp_ert_oda_group(RDSGroup *group) {
+inline static void get_rdsp_ert_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
 	group->b |= 12 << 1;
 	group->c = 1; // UTF-8
 	group->d = ODA_AID_ERT;
 }
 
-static void get_rdsp_oda_af_oda_group(RDSGroup *group) {
+inline static void get_rdsp_oda_af_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
 	group->b |= 7 << 1;
 	group->d = ODA_AID_ODAAF;
@@ -234,13 +234,13 @@ static void get_rds_lps_group(RDSEncoder* enc, RDSGroup *group) {
 	if (enc->state[enc->program].lps_state == enc->state[enc->program].lps_segments) enc->state[enc->program].lps_state = 0;
 }
 
-static void get_rds_ecc_group(RDSEncoder* enc, RDSGroup *group) {
+inline static void get_rds_ecc_group(RDSEncoder* enc, RDSGroup *group) {
 	group->b |= 1 << 12;
 	group->c = enc->state[enc->program].eon_linkage << 15;
 	group->c |= enc->data[enc->program].ecc;
 }
 
-static void get_rds_slcdata_group(RDSEncoder* enc, RDSGroup *group) {
+inline static void get_rds_slcdata_group(RDSEncoder* enc, RDSGroup *group) {
 	group->b |= 1 << 12;
 	group->c = enc->state[enc->program].eon_linkage << 15;
 	group->c |= 0x6000;
@@ -702,8 +702,8 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 void init_rds_encoder(RDSEncoder* enc) {
 	for(int i = 0; i < PROGRAMS; i++) set_rds_defaults(enc, i);
 
-	if (isFileSaved()) loadFromFile(enc);
-	else saveToFile(enc);
+	if (encoder_saved()) encoder_loadFromFile(enc);
+	else encoder_saveToFile(enc);
 
 	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(enc, i);
 }

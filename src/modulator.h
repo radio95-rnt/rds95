@@ -34,9 +34,6 @@ typedef struct {
 	uint8_t num_streams;
 } RDSModulator;
 
-void Modulator_saveToFile(RDSModulatorParameters *emp);
-void Modulator_loadFromFile(RDSModulatorParameters *emp);
-int modulatorsaved();
 void init_rds_modulator(RDSModulator* rdsMod, RDSEncoder* enc, uint8_t num_streams);
 void cleanup_rds_modulator(RDSModulator* rdsMod);
 float get_rds_sample(RDSModulator* rdsMod, uint8_t stream);

@@ -13,7 +13,5 @@
 #include "ascii_cmd.h"
 
 int open_udp_server(int port, RDSModulator *rds_mod);
-
 void poll_udp_server();
-
 void close_udp_server();
