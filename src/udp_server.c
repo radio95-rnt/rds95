@@ -8,7 +8,7 @@ static struct pollfd poller;
 static struct sockaddr_in client_addr;
 static socklen_t client_len = sizeof(client_addr);
 
-static RDSModulator* mod = NULL;  // Store modulator pointer globally or pass it somehow
+static RDSModulator* mod = NULL;
 
 int open_udp_server(int port, RDSModulator* rds_mod) {
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);

@@ -101,14 +101,14 @@ static void get_rds_fasttuning_group(RDSEncoder* enc, RDSGroup *group) {
 static void get_rds_rt_group(RDSEncoder* enc, RDSGroup *group) {
 	if (enc->state[enc->program].rt_update && enc->data[enc->program].rt1_enabled && !enc->data[enc->program].current_rt) {
 		memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt1, RT_LENGTH);
-		enc->state[enc->program].rt_ab ^= 1;
+		TOGGLE(enc->state[enc->program].rt_ab);
 		enc->state[enc->program].rt_update = 0;
 		enc->state[enc->program].rt_state = 0;
 		enc->data[enc->program].current_rt = 0;
 	}
 	if(enc->state[enc->program].rt2_update && enc->data[enc->program].rt2_enabled && enc->data[enc->program].current_rt) {
 		memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt2, RT_LENGTH);
-		enc->state[enc->program].rt_ab ^= 1;
+		TOGGLE(enc->state[enc->program].rt_ab);
 		enc->state[enc->program].rt2_update = 0;
 		enc->state[enc->program].rt_state = 0;
 		enc->data[enc->program].current_rt = 1;
@@ -168,14 +168,12 @@ static void get_rds_oda_af_group(RDSEncoder* enc, RDSGroup *group) {
 	get_next_af_oda(enc, af);
 
 	group->b |= 7 << 12;
-	for (int i = 0; i < 4; i++) group->b |= ((af[i] >> 8) & 1) << i; // set the additional bits
+	for (int i = 0; i < 4; i++) group->b |= ((af[i] >> 8) & 1) << i;
 
-	group->c = af[0] & 0xFF;
-	group->c <<= 8;
+	group->c = (af[0] & 0xFF) << 8;
 	group->c |= af[1] & 0xFF;
 
-	group->d = af[2] & 0xFF;
-	group->d <<= 8;
+	group->d = (af[2] & 0xFF) << 8;
 	group->d |= af[3] & 0xFF;
 }
 
@@ -203,7 +201,7 @@ static void get_rdsp_ct_group(RDSGroup *group, time_t now) {
 static void get_rds_ptyn_group(RDSEncoder* enc, RDSGroup *group) {
 	if (enc->state[enc->program].ptyn_state == 0 && enc->state[enc->program].ptyn_update) {
 		memcpy(enc->state[enc->program].ptyn_text, enc->data[enc->program].ptyn, PTYN_LENGTH);
-		enc->state[enc->program].ptyn_ab ^= 1;
+		TOGGLE(enc->state[enc->program].ptyn_ab);
 		enc->state[enc->program].ptyn_update = 0;
 	}
 
@@ -390,7 +388,7 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 		case '1':
 			if(enc->state[enc->program].data_ecc == 0 && enc->data[enc->program].slc_data != 0) get_rds_slcdata_group(enc, group);
 			else get_rds_ecc_group(enc, group);
-			enc->state[enc->program].data_ecc ^= 1;
+			TOGGLE(enc->state[enc->program].data_ecc);
 			break;
 		case '2':
 			get_rds_rt_group(enc, group);
@@ -444,17 +442,17 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 		case 'R':
 			if(enc->state[enc->program].rtp_oda == 0) get_rds_rtplus_group(enc, group);
 			else get_rdsp_rtp_oda_group(group);
-			enc->state[enc->program].rtp_oda ^= 1;
+			TOGGLE(enc->state[enc->program].rtp_oda);
 			break;
 		case 'P':
 			if(enc->state[enc->program].ert_oda == 0) get_rds_ertplus_group(enc, group);
 			else get_rdsp_ertp_oda_group(group);
-			enc->state[enc->program].ert_oda ^= 1;
+			TOGGLE(enc->state[enc->program].ert_oda);
 			break;
 		case 'S':
 			if(enc->state[enc->program].ert_oda == 0) get_rds_ert_group(enc, group);
 			else get_rdsp_ert_oda_group(group);
-			enc->state[enc->program].ert_oda ^= 1;
+			TOGGLE(enc->state[enc->program].ert_oda);
 			break;
 		case 'F':
 			get_rds_lps_group(enc, group);
@@ -465,7 +463,7 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 		case 'U':
 			if(enc->state[enc->program].af_oda == 0) get_rds_oda_af_group(enc, group);
 			else get_rdsp_oda_af_oda_group(group);
-			enc->state[enc->program].af_oda ^= 1;
+			TOGGLE(enc->state[enc->program].af_oda);
 			break;
 	}
 }
@@ -527,7 +525,7 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].rt2_enabled && enc->state[enc->program].rt_switching_period_state) {
 			enc->state[enc->program].rt_switching_period_state--;
 			if(enc->state[enc->program].rt_switching_period_state == 0) {
-				enc->data[enc->program].current_rt ^= 1;
+				TOGGLE(enc->data[enc->program].current_rt);
 				if (enc->data[enc->program].current_rt == 1) memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt2, RT_LENGTH);
 				else memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt1, RT_LENGTH);
 				enc->state[enc->program].rt_state = 0;
@@ -820,7 +818,7 @@ inline void set_rds_rtplus_tags(RDSEncoder* enc, uint8_t *tags) {
 	enc->rtpData[enc->program][0].start[1] = tags[4] & 0x3f;
 	enc->rtpData[enc->program][0].len[1] = tags[5] & 0x1f;
 
-	enc->rtpState[enc->program][0].toggle ^= 1;
+	TOGGLE(enc->rtpState[enc->program][0].toggle);
 	enc->rtpData[enc->program][0].running = 1;
 	enc->rtpData[enc->program][0].enabled = 1;
 }
@@ -833,7 +831,7 @@ inline void set_rds_ertplus_tags(RDSEncoder* enc, uint8_t *tags) {
 	enc->rtpData[enc->program][1].start[1] = tags[4] & 0x3f;
 	enc->rtpData[enc->program][1].len[1] = tags[5] & 0x1f;
 
-	enc->rtpState[enc->program][1].toggle ^= 1;
+	TOGGLE(enc->rtpState[enc->program][1].toggle);
 	enc->rtpData[enc->program][1].running = 1;
 	enc->rtpData[enc->program][1].enabled = 1;
 }

@@ -266,7 +266,7 @@ static void handle_rtprun(char *arg, RDSModulator *mod, char *output) {
 	if (sscanf(arg, "%d,%d", &flag1, &flag2) < 1) flag1 = atoi(arg);
 	mod->enc->rtpData[mod->enc->program][0].enabled = (flag1 == 2);
 	mod->enc->rtpData[mod->enc->program][0].running = flag1 & 1;
-	if (flag2) mod->enc->rtpState[mod->enc->program][0].toggle ^= 1;
+	if (flag2) TOGGLE(mod->enc->rtpState[mod->enc->program][0].toggle);
 	strcpy(output, "+");
 }
 
@@ -275,7 +275,7 @@ static void handle_ertprun(char *arg, RDSModulator* mod, char* output) {
 	if (sscanf(arg, "%d,%d", &flag1, &flag2) < 1) flag1 = atoi(arg);
 	mod->enc->rtpData[mod->enc->program][1].enabled = (flag1 == 2);
 	mod->enc->rtpData[mod->enc->program][1].running = flag1 & 1;
-	if (flag2) mod->enc->rtpState[mod->enc->program][1].toggle ^= 1;
+	if (flag2) TOGGLE(mod->enc->rtpState[mod->enc->program][1].toggle);
 	strcpy(output, "+");
 }
 

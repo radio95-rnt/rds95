@@ -1,5 +1,4 @@
-#ifndef RDS_H
-#define RDS_H
+#pragma once
 
 /* The RDS error-detection code generator polynomial is
  * x^10 + x^8 + x^7 + x^5 + x^4 + x^3 + x^0
@@ -250,5 +249,3 @@ void set_rds_ertplus_tags(RDSEncoder *enc, uint8_t *tags);
 void set_rds_ptyn(RDSEncoder *enc, char *ptyn);
 void set_rds_grpseq(RDSEncoder* enc, char *grpseq);
 void set_rds_grpseq2(RDSEncoder* enc, char *grpseq2);
-
-#endif
