@@ -10,6 +10,15 @@ if type(data) == "string" then
         elseif data == "reset" then
             reset_rds()
             return "+"
+        elseif data == "pi" then return string.format("PI=%s\r\n", string.format("%x", get_rds_pi()))
+        elseif data == "pty" then return string.format("PTY=%s\r\n", string.format("%d", get_rds_pty()))
+        elseif data == "ecc" then return string.format("ECC=%s\r\n", string.format("%x", get_rds_ecc()))
+        elseif data == "slcd" then return string.format("SLCD=%s\r\n", string.format("%x", get_rds_slc_data()))
+        elseif data == "ct" then return string.format("CT=%s\r\n", string.format("%d", get_rds_ct()))
+        elseif data == "dpty" then return string.format("DPTY=%s\r\n", string.format("%d", get_rds_dpty()))
+        elseif data == "tp" then return string.format("TP=%s\r\n", string.format("%d", get_rds_tp()))
+        elseif data == "ta" then return string.format("TA=%s\r\n", string.format("%d", get_rds_ta()))
+        -- TODO: more
         end
     end
     cmd = cmd:lower()
@@ -130,6 +139,12 @@ if type(data) == "string" then
         local timeout = tonumber(value)
         if not timeout then return "-" end
         set_rds_rt_text_timeout(timeout)
+        return "+"
+    elseif cmd == "grpseq" then
+        set_rds_grpseq(value)
+        return "+"
+    elseif cmd == "grpseq2" then
+        set_rds_grpseq2(value)
         return "+"
     else
         return "?"

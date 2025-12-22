@@ -55,3 +55,4 @@ build/
 *.pyc
 __pycache__/
 .vscode/
+.command_prefix.lua

@@ -16,7 +16,7 @@ function set_rds_program_defaults() end
 ---@return nil
 function reset_rds() end
 
----This function is called by the C core after the script is loaded.
+---This function is called by the C core after we reset data, or have no data in general
 ---It should be defined by the user in the script.
 ---@return nil
 function on_init() end

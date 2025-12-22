@@ -199,12 +199,6 @@ static void handle_ertprun(char *arg, RDSModulator* mod, char* output) {
 	strcpy(output, "+");
 }
 
-static void handle_grpseq(char *arg, RDSModulator* mod, char* output) {
-	if (arg[0] == 0) set_rds_grpseq(mod->enc, DEFAULT_GRPSQC);
-	else set_rds_grpseq(mod->enc, arg);
-	strcpy(output, "+");
-}
-
 static void handle_eonen(char *arg, char *pattern, RDSModulator* mod, char* output) {
 	mod->enc->data[mod->enc->program].eon[atoi(pattern)-1].enabled = atoi(arg);
 	strcpy(output, "+");
@@ -307,7 +301,6 @@ static const command_handler_t commands_eq2[] = {
 
 static const command_handler_t commands_eq7[] = {
 	{"RTPRUN", handle_rtprun, 6},
-	{"GRPSEQ", handle_grpseq, 6},
 };
 
 static const command_handler_t commands_eq8[] = {
