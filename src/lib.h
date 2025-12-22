@@ -16,4 +16,4 @@ uint16_t get_block_from_group(RDSGroup *group, uint8_t block);
 void add_checkwords(RDSGroup *group, uint8_t *bits);
 uint8_t add_rds_af_oda(RDSAFsODA *af_list, float freq);
 uint8_t add_rds_af(RDSAFs *af_list, float freq);
-char *convert_to_rdscharset(char *str);
+char *convert_to_rdscharset(const char *str);

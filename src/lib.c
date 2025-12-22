@@ -128,7 +128,7 @@ uint8_t add_rds_af(RDSAFs *af_list, float freq) {
 	return 0;
 }
 
-char *convert_to_rdscharset(char *str) {
+char *convert_to_rdscharset(const char *str) {
 	static char new_str[255];
 	uint8_t i = 0;
 

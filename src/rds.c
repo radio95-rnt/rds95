@@ -706,7 +706,7 @@ void init_rds_encoder(RDSEncoder* enc) {
 	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(enc, i);
 }
 
-void set_rds_rt1(RDSEncoder* enc, char *rt1) {
+void set_rds_rt1(RDSEncoder* enc, const char *rt1) {
 	uint8_t i = 0, len = 0;
 
 	enc->state[enc->program].rt_text_timeout_state = enc->data[enc->program].rt_text_timeout;
@@ -728,7 +728,7 @@ void set_rds_rt1(RDSEncoder* enc, char *rt1) {
 	} else enc->state[enc->program].rt_segments = 16;
 }
 
-void set_rds_rt2(RDSEncoder* enc, char *rt2) {
+void set_rds_rt2(RDSEncoder* enc, const char *rt2) {
 	uint8_t i = 0, len = 0;
 
 	enc->state[enc->program].rt2_update = 1;
@@ -748,7 +748,7 @@ void set_rds_rt2(RDSEncoder* enc, char *rt2) {
 	} else enc->state[enc->program].rt2_segments = 16;
 }
 
-void set_rds_ps(RDSEncoder* enc, char *ps) {
+void set_rds_ps(RDSEncoder* enc, const char *ps) {
 	uint8_t len = 0;
 
 	enc->state[enc->program].ps_update = 1;
@@ -756,7 +756,7 @@ void set_rds_ps(RDSEncoder* enc, char *ps) {
 	while (*ps != 0 && len < PS_LENGTH) enc->data[enc->program].ps[len++] = *ps++;
 }
 
-void set_rds_tps(RDSEncoder* enc, char *tps) {
+void set_rds_tps(RDSEncoder* enc, const char *tps) {
 	uint8_t len = 0;
 
 	enc->state[enc->program].tps_update = 1;
@@ -769,7 +769,7 @@ void set_rds_tps(RDSEncoder* enc, char *tps) {
 	while (*tps != 0 && len < PS_LENGTH) enc->data[enc->program].tps[len++] = *tps++;
 }
 
-void set_rds_lps(RDSEncoder* enc, char *lps) {
+void set_rds_lps(RDSEncoder* enc, const char *lps) {
 	uint8_t i = 0, len = 0;
 
 	enc->state[enc->program].lps_update = 1;
@@ -790,7 +790,7 @@ void set_rds_lps(RDSEncoder* enc, char *lps) {
 	} else enc->state[enc->program].lps_segments = 8;
 }
 
-void set_rds_ert(RDSEncoder* enc, char *ert) {
+void set_rds_ert(RDSEncoder* enc, const char *ert) {
 	uint8_t i = 0, len = 0;
 
 	enc->state[enc->program].ert_update = 1;
@@ -850,7 +850,7 @@ void set_rds_ptyn(RDSEncoder* enc, const char *ptyn) {
 	while (*ptyn != 0 && len < PTYN_LENGTH) enc->data[enc->program].ptyn[len++] = *ptyn++;
 }
 
-void set_rds_grpseq(RDSEncoder* enc, char *grpseq) {
+void set_rds_grpseq(RDSEncoder* enc, const char *grpseq) {
 	uint8_t len = 0;
 
 	if(grpseq[0] == '\0') {
@@ -864,7 +864,7 @@ void set_rds_grpseq(RDSEncoder* enc, char *grpseq) {
 	memset(enc->data[enc->program].grp_sqc, 0, 24);
 	while (*grpseq != 0 && len < 24) enc->data[enc->program].grp_sqc[len++] = *grpseq++;
 }
-void set_rds_grpseq2(RDSEncoder* enc, char *grpseq2) {
+void set_rds_grpseq2(RDSEncoder* enc, const char *grpseq2) {
 	uint8_t len = 0;
 
 	if(grpseq2[0] == '\0') {
