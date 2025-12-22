@@ -74,6 +74,9 @@ if type(cmd) == "string" then
         if not type then return "-" end
         set_rds_rdsgen(type)
         return "+"
+    elseif cmd == "ptyn" then
+        set_rds_ptyn(value)
+        return "+"
     else
         return "?"
     end
