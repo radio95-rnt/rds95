@@ -155,11 +155,12 @@ int main(int argc, char **argv) {
 		goto exit;
 	}
 
-	RDSEncoder rdsEncoder;
 	RDSModulator rdsModulator;
     init_lua(&rdsModulator);
-	init_rds_encoder(&rdsEncoder);
+	
+	RDSEncoder rdsEncoder;
 	init_rds_modulator(&rdsModulator, &rdsEncoder, config.num_streams);
+	init_rds_encoder(&rdsEncoder);
 
 	if(config.udp_port) {
 		if(open_udp_server(config.udp_port, &rdsModulator) == 0) {

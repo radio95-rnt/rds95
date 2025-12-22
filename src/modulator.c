@@ -7,6 +7,7 @@ void init_rds_modulator(RDSModulator* rdsMod, RDSEncoder* enc, uint8_t num_strea
 	rdsMod->params.rdsgen = 1;
 	rdsMod->num_streams = num_streams;
 
+	memset(enc, 0, sizeof(RDSEncoder));
 	rdsMod->enc = enc;
 
 	rdsMod->data = (RDSModulatorModulationData*)calloc(num_streams, sizeof(RDSModulatorModulationData));
