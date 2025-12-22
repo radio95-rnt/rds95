@@ -2,7 +2,7 @@
 #include "fs.h"
 
 void init_rds_modulator(RDSModulator* rdsMod, RDSEncoder* enc, uint8_t num_streams) {
-	memset(rdsMod, 0, sizeof(*rdsMod));
+	memset(rdsMod, 0, sizeof(RDSModulator));
 	rdsMod->params.level = 1.0f;
 	rdsMod->params.rdsgen = 1;
 	rdsMod->num_streams = num_streams;
