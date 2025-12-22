@@ -1,4 +1,4 @@
-if type(data) == "string" then
+if type(data) == "string" and data ~= nil then
     local cmd, value = data:match("([^=]+)=([^=]+)")
     if cmd == nil then
         data = data:lower()
