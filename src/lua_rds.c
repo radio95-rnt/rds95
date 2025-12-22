@@ -10,7 +10,7 @@ int lua_set_rds_##name(lua_State *localL) { \
 }
 #define STR_NONRETURN_HANDLER(name, function) \
 int lua_set_rds_##name(lua_State *localL) { \
-	const char* str = luaL_checklstring(L, 1); \
+	const char* str = luaL_checklstring(localL, 1); \
     function(mod->enc, str); \
     return 0; \
 }
