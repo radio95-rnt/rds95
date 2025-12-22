@@ -203,6 +203,7 @@ exit:
 
 	encoder_saveToFile(&rdsEncoder);
 	Modulator_saveToFile(&rdsModulator.params);
+	printf("Saved to file\n");
 
 	cleanup_rds_modulator(&rdsModulator);
 	pthread_attr_destroy(&attr);
