@@ -3,6 +3,11 @@
 static RDSModulator* mod = NULL;
 static lua_State *L = NULL;
 
+int lua_set_rds_program_defaults(lua_State *localL) {
+	set_rds_defaults(mod->enc, mod->enc->program);
+    return 0;
+}
+
 #define INT_SETTER(name) \
 int lua_set_rds_##name(lua_State *localL) { \
 	mod->enc->data[mod->enc->program].name = luaL_checkinteger(localL, 1); \
@@ -29,7 +34,7 @@ int lua_get_rds_##name(lua_State *localL) { \
 #define STR_RAW_GETTER(name) \
 int lua_get_rds_##name(lua_State *localL) { \
     lua_pushstring(localL, mod->enc->data[mod->enc->program].name); \
-    return 0; \
+    return 1; \
 }
 INT_SETTER(pi)
 INT_GETTER(pi)
@@ -119,6 +124,15 @@ int lua_get_rds_rt_switching_period(lua_State *localL) {
     lua_pushinteger(localL, mod->enc->data[mod->enc->program].rt_switching_period);
     return 1;
 }
+int lua_set_rds_rt_text_timeout(lua_State *localL) {
+	mod->enc->data[mod->enc->program].rt_text_timeout = luaL_checkinteger(localL, 1);
+	mod->enc->state[mod->enc->program].rt_text_timeout_state = mod->enc->data[mod->enc->program].rt_text_timeout;
+    return 0;
+}
+int lua_get_rds_rt_text_timeout(lua_State *localL) {
+    lua_pushinteger(localL, mod->enc->data[mod->enc->program].rt_text_timeout);
+    return 1;
+}
 
 int lua_set_rds_level(lua_State *localL) {
 	mod->params.level = luaL_checknumber(localL, 1);
@@ -127,6 +141,47 @@ int lua_set_rds_level(lua_State *localL) {
 int lua_get_rds_level(lua_State *localL) {
     lua_pushnumber(localL, mod->params.level);
     return 1;
+}
+
+int lua_set_rds_rtplus_tags(lua_State *localL) {
+    uint8_t tags[6];
+	tags[0] = luaL_checkinteger(localL, 1);
+	tags[1] = luaL_checkinteger(localL, 2);
+	tags[2] = luaL_checkinteger(localL, 3);
+	tags[3] = luaL_checkinteger(localL, 4);
+	tags[4] = luaL_checkinteger(localL, 5);
+	tags[5] = luaL_checkinteger(localL, 6);
+    set_rds_rtplus_tags(mod->enc, tags);
+    return 0;
+}
+int lua_get_rds_rtplus_tags(lua_State *localL) {
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].type[0]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].start[0]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].len[0]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].type[1]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].start[1]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].len[1]);
+    return 6;
+}
+int lua_set_rds_ertplus_tags(lua_State *localL) {
+    uint8_t tags[6];
+	tags[0] = luaL_checkinteger(localL, 1);
+	tags[1] = luaL_checkinteger(localL, 2);
+	tags[2] = luaL_checkinteger(localL, 3);
+	tags[3] = luaL_checkinteger(localL, 4);
+	tags[4] = luaL_checkinteger(localL, 5);
+	tags[5] = luaL_checkinteger(localL, 6);
+    set_rds_ertplus_tags(mod->enc, tags);
+    return 0;
+}
+int lua_get_rds_ertplus_tags(lua_State *localL) {
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].type[0]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].start[0]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].len[0]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].type[1]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].start[1]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].len[1]);
+    return 6;
 }
 
 STR_SETTER(ptyn, set_rds_ptyn)
@@ -140,6 +195,12 @@ STR_RAW_GETTER(lps)
 
 STR_RAW_SETTER(ert, set_rds_ert)
 STR_RAW_GETTER(ert)
+
+STR_RAW_SETTER(grpseq2, handle_grpseq2)
+int lua_get_rds_grpseq2(lua_State *localL) {
+    lua_pushstring(localL, mod->enc->data[mod->enc->program].grp_sqc_rds2);
+    return 1;
+}
 
 void init_lua(RDSModulator* rds_mod) {
     mod = rds_mod;
@@ -155,6 +216,8 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_pushstring(L, VERSION);
     lua_setglobal(L, "core_version");
+    
+    lua_register(L, "set_rds_program_defaults", lua_set_rds_program_defaults);
 
     lua_register(L, "set_rds_pi", lua_set_rds_pi);
     lua_register(L, "get_rds_pi", lua_get_rds_pi);
@@ -198,6 +261,9 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "set_rds_rdsgen", lua_set_rds_rdsgen);
     lua_register(L, "get_rds_rdsgen", lua_get_rds_rdsgen);
 
+    lua_register(L, "set_rds_grpseq2", lua_set_rds_grpseq2);
+    lua_register(L, "get_rds_grpseq2", lua_get_rds_grpseq2);
+
     lua_register(L, "set_rds_link", lua_set_rds_link);
     lua_register(L, "get_rds_link", lua_get_rds_link);
 
@@ -206,6 +272,9 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_rt_switching_period", lua_set_rds_rt_switching_period);
     lua_register(L, "get_rds_rt_switching_period", lua_get_rds_rt_switching_period);
+
+    lua_register(L, "set_rds_rt_text_timeout", lua_set_rds_rt_text_timeout);
+    lua_register(L, "get_rds_rt_text_timeout", lua_get_rds_rt_text_timeout);
 
     lua_register(L, "set_rds_level", lua_set_rds_level);
     lua_register(L, "get_rds_level", lua_get_rds_level);
@@ -221,6 +290,9 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_ert", lua_set_rds_ert);
     lua_register(L, "get_rds_ert", lua_get_rds_ert);
+
+    lua_register(L, "set_rds_rtplus_tags", lua_set_rds_rtplus_tags);
+    lua_register(L, "get_rds_rtplus_tags", lua_get_rds_rtplus_tags);
 }
 
 void run_lua(char *str, char *cmd_output) {

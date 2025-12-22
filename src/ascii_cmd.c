@@ -204,29 +204,12 @@ static void handle_grpseq(char *arg, RDSModulator* mod, char* output) {
 	else set_rds_grpseq(mod->enc, arg);
 	strcpy(output, "+");
 }
-static void handle_grpseq2(char *arg, RDSModulator* mod, char* output) {
-	if (arg[0] == 0) set_rds_grpseq2(mod->enc, "\0");
-	else set_rds_grpseq2(mod->enc, arg);
-	strcpy(output, "+");
-}
-
-static void handle_dttmout(char *arg, RDSModulator* mod, char* output) {
-	mod->enc->data[mod->enc->program].rt_text_timeout = atoi(arg);
-	mod->enc->state[mod->enc->program].rt_text_timeout_state = mod->enc->data[mod->enc->program].rt_text_timeout;
-	strcpy(output, "+");
-}
 
 static void handle_reset(char *arg, RDSModulator* mod, char* output) {
 	(void)arg;
 	encoder_loadFromFile(mod->enc);
 	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(mod->enc, i);
 	Modulator_loadFromFile(&mod->params);
-	strcpy(output, "+");
-}
-
-static void handle_init(char *arg, RDSModulator* mod, char* output) {
-	(void)arg;
-	set_rds_defaults(mod->enc, mod->enc->program);
 	strcpy(output, "+");
 }
 
@@ -336,12 +319,9 @@ static const command_handler_t commands_eq7[] = {
 };
 
 static const command_handler_t commands_eq8[] = {
-	{"GRPSEQ2", handle_grpseq2, 7},
-	{"DTTMOUT", handle_dttmout, 7},
 	{"ERTPRUN", handle_ertprun, 7},
 };
 static const command_handler_t commands_exact[] = {
-	{"INIT", handle_init, 4},
 	{"RESET", handle_reset, 5},
 };
 

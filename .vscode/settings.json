@@ -54,6 +54,8 @@
         "set_rds_link",
         "set_rds_rt_switching_period",
         "set_rds_program",
-        "set_rds_level"
+        "set_rds_level",
+        "set_rds_rt_text_timeout",
+        "set_rds_program_defaults"
     ]
 }

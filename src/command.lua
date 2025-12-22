@@ -4,6 +4,9 @@ if type(data) == "string" then
         data = data:lower()
         if data == "ver" then
             return string.format("rds95 v. %s - (C) 2025 radio95 - lua parser", core_version)
+        elseif data == "init" then
+            set_rds_program_defaults()
+            return "+"
         end
     end
     cmd = cmd:lower()
@@ -112,12 +115,18 @@ if type(data) == "string" then
     elseif cmd == "program" then
         local program = tonumber(value)
         if not program then return "-" end
+        if program < 1 then return "-" end
         set_rds_program(program-1)
         return "+"
     elseif cmd == "level" then
         local level = tonumber(value)
         if not level then return "-" end
         set_rds_level(level/255)
+        return "+"
+    elseif cmd == "dttmout" then
+        local timeout = tonumber(value)
+        if not timeout then return "-" end
+        set_rds_rt_text_timeout(timeout)
         return "+"
     else
         return "?"
