@@ -264,44 +264,44 @@ int lua_get_rds_grpseq(lua_State *localL) {
 }
 
 int lua_set_rds_af_group0(lua_State *localL) {
-    luaL_checktype(L, 1, LUA_TTABLE);
+    luaL_checktype(localL, 1, LUA_TTABLE);
 
-    int n = lua_rawlen(L, 1);
+    int n = lua_rawlen(localL, 1);
     if (n == 0) {
         memset(&(mod->enc->data[mod->enc->program].af), 0, sizeof(RDSAFs));
         return 0;
     }
-    if(n > 25) return luaL_error(L, "table length over 25");
+    if(n > 25) return luaL_error(localL, "table length over 25");
 
     RDSAFs new_af;
     memset(&new_af, 0, sizeof(RDSAFs));
 
     for (int i = 1; i <= n; i++) {
-        lua_rawgeti(L, 1, i);
-        if (lua_isnumber(L, -1)) add_rds_af(&new_af, lua_tonumber(L, -1));
-        lua_pop(L, 1);
+        lua_rawgeti(localL, 1, i);
+        if (lua_isnumber(localL, -1)) add_rds_af(&new_af, lua_tonumber(localL, -1));
+        lua_pop(localL, 1);
     }
 	memcpy(&(mod->enc->data[mod->enc->program].af), &new_af, sizeof(new_af));
 
     return 0;
 }
 int lua_set_rds_af_oda(lua_State *localL) {
-    luaL_checktype(L, 1, LUA_TTABLE);
+    luaL_checktype(localL, 1, LUA_TTABLE);
 
-    int n = lua_rawlen(L, 1);
+    int n = lua_rawlen(localL, 1);
     if (n == 0) {
         memset(&(mod->enc->data[mod->enc->program].af_oda), 0, sizeof(RDSAFsODA));
         return 0;
     }
-    if(n > 25) return luaL_error(L, "table length over 25");
+    if(n > 25) return luaL_error(localL, "table length over 25");
 
     RDSAFsODA new_af;
     memset(&new_af, 0, sizeof(RDSAFsODA));
 
     for (int i = 1; i <= n; i++) {
-        lua_rawgeti(L, 1, i);
-        if (lua_isnumber(L, -1)) add_rds_af_oda(&new_af, lua_tonumber(L, -1));
-        lua_pop(L, 1);
+        lua_rawgeti(localL, 1, i);
+        if (lua_isnumber(localL, -1)) add_rds_af_oda(&new_af, lua_tonumber(localL, -1));
+        lua_pop(localL, 1);
     }
 	memcpy(&(mod->enc->data[mod->enc->program].af_oda), &new_af, sizeof(new_af));
 
