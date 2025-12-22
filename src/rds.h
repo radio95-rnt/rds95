@@ -173,7 +173,7 @@ typedef struct {
 	uint16_t last_stream0_group[3];
 	uint8_t last_stream0_group_type_b : 1;
 
-	uint8_t first_init_done : 1;
+	uint8_t call_lua : 1;
 } RDSState;
 
 typedef struct {
