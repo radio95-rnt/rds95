@@ -207,6 +207,42 @@ if type(data) == "string" and data ~= nil then
         set_rds_rtp_meta(is_ertp, enabled, running)
         if f2 ~= 0 then toggle_rds_rtp(is_ertp) end
         return "+"
+    elseif cmd == "af" then
+        local af_table = {}
+
+        if value == "" or value == "0" then
+            set_rds_af_group0({})
+            return "+"
+        end
+
+        for freq_str in value:gmatch("([^,]+)") do
+            local f = tonumber(freq_str)
+            if f then table.insert(af_table, f)
+            else return "-" end
+        end
+
+        if #af_table > 25 then return "-" end
+
+        set_rds_af_group0(af_table)
+        return "+"
+    elseif cmd == "afo" then
+        local af_table = {}
+
+        if value == "" or value == "0" then
+            set_rds_af_oda({})
+            return "+"
+        end
+
+        for freq_str in value:gmatch("([^,]+)") do
+            local f = tonumber(freq_str)
+            if f then table.insert(af_table, f)
+            else return "-" end
+        end
+
+        if #af_table > 25 then return "-" end
+
+        set_rds_af_oda(af_table)
+        return "+"
     else
         return "?"
     end

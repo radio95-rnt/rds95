@@ -194,3 +194,10 @@ function set_rds_rtp_meta(ertp, enabled, running) end
 ---@param ertp boolean
 ---@return boolean enabled, boolean running
 function get_rds_rtp_meta(ertp) end
+
+---Sets the AFs included in group 0
+---@param afs table
+function set_rds_af_group0(afs) end
+---Sets the AFs included in the ODA
+---@param afs table
+function set_rds_af_oda(afs) end

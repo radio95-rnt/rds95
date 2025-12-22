@@ -12,45 +12,6 @@ typedef struct {
 	void (*handler)(char *arg, char *pattern, RDSModulator* mod, char* output);
 } pattern_command_handler_t;
 
-#define AF_HANDLER(name, af_struct, af_entry, add_func) \
-static void handle_##name(char *arg, RDSModulator* mod, char* output) { \
-	if (arg[0] == 0) { \
-		memset(&(mod->enc->data[mod->enc->program].af_entry), 0, sizeof(mod->enc->data[mod->enc->program].af_entry)); \
-		return; \
-	} \
-	\
-	uint8_t arg_count; \
-	af_struct new_af; \
-	float af[MAX_AFS], *af_iter; \
-	\
-	arg_count = sscanf(arg, \
-		"%f,%f,%f,%f,%f," \
-		"%f,%f,%f,%f,%f," \
-		"%f,%f,%f,%f,%f," \
-		"%f,%f,%f,%f,%f," \
-		"%f,%f,%f,%f,%f", \
-		&af[0],  &af[1],  &af[2],  &af[3],  &af[4], \
-		&af[5],  &af[6],  &af[7],  &af[8],  &af[9], \
-		&af[10], &af[11], &af[12], &af[13], &af[14], \
-		&af[15], &af[16], &af[17], &af[18], &af[19], \
-		&af[20], &af[21], &af[22], &af[23], &af[24]); \
-	\
-	if (arg_count <= 0 || arg_count > MAX_AFS) { \
-		strcpy(output, "-"); \
-		return; \
-	} \
-	\
-	memset(&new_af, 0, sizeof(af_struct)); \
-	af_iter = af; \
-	while (arg_count-- != 0) add_func(&new_af, *af_iter++); \
-	\
-	memcpy(&(mod->enc->data[mod->enc->program].af_entry), &new_af, sizeof(new_af)); \
-	strcpy(output, "+"); \
-}
-
-AF_HANDLER(af, RDSAFs, af, add_rds_af)
-AF_HANDLER(afo, RDSAFsODA, af_oda, add_rds_af_oda)
-
 static void handle_udg(char *arg, char *pattern, RDSModulator* mod, char* output) {
 	uint8_t all_scanned = 1, bad_format = 0;
 	uint16_t blocks[8][3];
@@ -226,12 +187,7 @@ static void handle_eondt(char *arg, char *pattern, RDSModulator* mod, char* outp
 	strcpy(output, "+");
 }
 
-static const command_handler_t commands_eq3[] = {
-	{"AF", handle_af, 2}
-};
-
 static const command_handler_t commands_eq4[] = {
-	{"AFO", handle_afo, 3},
 	{"ADR", handle_adr, 3}
 };
 
@@ -340,10 +296,6 @@ void process_ascii_cmd(RDSModulator* mod, char *str, char *cmd_output) {
 			size_t table_size = 0;
 
 			switch (eq_pos) {
-				case 2:
-					table = commands_eq3;
-					table_size = sizeof(commands_eq3) / sizeof(command_handler_t);
-					break;
 				case 3:
 					table = commands_eq4;
 					table_size = sizeof(commands_eq4) / sizeof(command_handler_t);
