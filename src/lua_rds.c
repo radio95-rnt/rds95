@@ -23,7 +23,7 @@ void run_lua(char *str, char *cmd_output) {
     int top = lua_gettop(L);
 
     char path[128];
-	snprintf(path, sizeof(path), "%s/.command95.lua", getenv("HOME"));
+	snprintf(path, sizeof(path), "%s/.rds95.command.lua", getenv("HOME"));
     if (luaL_dofile(L, path) != LUA_OK) {
         const char *err = lua_tostring(L, -1);
         fprintf(stderr, "Lua error: %s\n", err);
