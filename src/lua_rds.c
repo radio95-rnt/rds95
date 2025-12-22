@@ -238,7 +238,7 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_pushstring(L, VERSION);
     lua_setglobal(L, "core_version");
-    lua_pushinteger(L, PROGRAMS)
+    lua_pushinteger(L, PROGRAMS);
     lua_setglobal(L, "max_programs");
 
     lua_register(L, "set_rds_program_defaults", lua_set_rds_program_defaults);
@@ -359,8 +359,8 @@ void lua_on_init() {
         return;
     }
 
-    lua_pushnil();
-    lua_setglobal(L, "data")
+    lua_pushnil(L);
+    lua_setglobal(L, "data");
 
     if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
         const char *err = lua_tostring(L, -1);
