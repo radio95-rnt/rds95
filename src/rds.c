@@ -696,14 +696,10 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 	reset_rds_state(enc, program);
 
 	enc->encoder_data.ascii_data.expected_encoder_addr = 255; // Unknown
-
-	if(enc->state[0].call_lua != 0) lua_on_init();
 }
 
 void init_rds_encoder(RDSEncoder* enc) {
-	enc->state[0].call_lua = 0;
 	for(int i = 0; i < PROGRAMS; i++) set_rds_defaults(enc, i);
-	enc->state[0].call_lua = 1;
 
 	if (encoder_saved()) encoder_loadFromFile(enc);
 	else {
