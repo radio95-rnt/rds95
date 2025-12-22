@@ -6,7 +6,7 @@ static lua_State *L = NULL;
 int lua_set_rds_program_defaults(lua_State *localL) {
     (void)localL;
 	set_rds_defaults(mod->enc, mod->enc->program);
-    lua_on_init()
+    lua_on_init();
     return 0;
 }
 
