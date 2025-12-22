@@ -577,6 +577,6 @@ void process_ascii_cmd(RDSModulator* mod, char *str, char *cmd_output) {
 		}
 	}
 
-	if (cmd_output != NULL && cmd_reached) strcpy(cmd_output, output);
 	if (!cmd_reached) strcpy(output, "?");
+	if (cmd_output != NULL && cmd_reached) strcpy(cmd_output, output);
 }
