@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include "modulator.h"
 #include "ascii_cmd.h"
+#include "lua_rds.h"
 
 int open_udp_server(int port, RDSModulator *rds_mod);
 void poll_udp_server();

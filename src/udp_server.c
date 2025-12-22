@@ -31,6 +31,7 @@ int open_udp_server(int port, RDSModulator* rds_mod) {
     poller.events = POLLIN;
 
     mod = rds_mod;
+    init_lua(rds_mod);
 
     return 0;
 }
@@ -60,6 +61,7 @@ void poll_udp_server() {
 
             memset(cmd_output, 0, BUF_SIZE);
             process_ascii_cmd(mod, cmd_buf, cmd_output);
+            run_lua(cmd_buf, NULL);
 
             size_t out_len = strlen(cmd_output);
             if (out_len > 0) {
@@ -74,4 +76,5 @@ void poll_udp_server() {
 void close_udp_server() {
     if (sockfd >= 0) close(sockfd);
     sockfd = -1;
+    destroy_lua();
 }
