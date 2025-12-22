@@ -18,6 +18,12 @@ if type(data) == "string" and data ~= nil then
         elseif data == "dpty" then return string.format("DPTY=%s\r\n", string.format("%d", get_rds_dpty()))
         elseif data == "tp" then return string.format("TP=%s\r\n", string.format("%d", get_rds_tp()))
         elseif data == "ta" then return string.format("TA=%s\r\n", string.format("%d", get_rds_ta()))
+        elseif data == "rtp" then 
+            local t1, s1, l1, t2, s2, l2 = get_rds_rtplus_tags()
+            return string.format("RTP=%d,%d,%d,%d,%d,%d\r\n", t1, s1, l1, t2, s2, l2)
+        elseif data == "ertp" then 
+            local t1, s1, l1, t2, s2, l2 = get_rds_ertplus_tags()
+            return string.format("ERTP=%d,%d,%d,%d,%d,%d\r\n", t1, s1, l1, t2, s2, l2)
         else return "?" end
         -- TODO: more
     end
@@ -146,6 +152,33 @@ if type(data) == "string" and data ~= nil then
     elseif cmd == "grpseq2" then
         set_rds_grpseq2(value)
         return "+"
+    elseif cmd == "rtp" then
+        local t1, s1, l1, t2, s2, l2 = value:match("(%d+),(%d+),(%d+),(%d+),(%d+),(%d+)")
+        if not t1 or not l2 then return "-" end
+---@diagnostic disable-next-line: param-type-mismatch
+        set_rds_rtplus_tags(tonumber(t1), tonumber(s1), tonumber(l1), tonumber(t2), tonumber(s2), tonumber(l2))
+        return "+"
+
+    elseif cmd == "ertp" then
+        local t1, s1, l1, t2, s2, l2 = value:match("(%d+),(%d+),(%d+),(%d+),(%d+),(%d+)")
+        if not t1 or not l2 then return "-" end
+---@diagnostic disable-next-line: param-type-mismatch
+        set_rds_ertplus_tags(tonumber(t1), tonumber(s1), tonumber(l1), tonumber(t2), tonumber(s2), tonumber(l2))
+        return "+"
+    elseif cmd == "g" then
+        local a, b, c, d = value:match("^(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)$")
+        if a and b and c and d then
+            put_rds2_custom_group(tonumber(a, 16), tonumber(b, 16), tonumber(c, 16), tonumber(d, 16))
+            return "+"
+        end
+
+        local b1, c1, d1 = value:match("^(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)$")
+        if b1 and c1 and d1 then
+            put_rds_custom_group(tonumber(b1, 16), tonumber(c1, 16), tonumber(d1, 16))
+            return "+"
+        end
+
+        return "-"
     else
         return "?"
     end

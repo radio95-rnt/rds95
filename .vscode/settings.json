@@ -22,9 +22,6 @@
         "ranges": "c",
         "span": "c"
     },
-    "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
-        "clang-diagnostic-error"
-    ],
     "Lua.diagnostics.globals": [
         "set_rds_pi",
         "set_rds_ecc",
@@ -69,5 +66,13 @@
         "get_rds_tp",
         "get_rds_ta"
     ],
-    "Lua.runtime.plugin": "plugin.lua"
+    "Lua.runtime.plugin": "plugin.lua",
+    "Lua.runtime.builtin": {
+        "io": "disable",
+        "debug": "disable",
+        "os": "disable",
+        "jit": "disable",
+        "ffi": "disable",
+        "package": "disable"
+    }
 }

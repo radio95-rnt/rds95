@@ -176,3 +176,16 @@ function set_rds_ertplus_tags(t1, s1, l1, t2, s2, l2) end
 ---Gets eRT+ tags: type1, start1, len1, type2, start2, len2
 ---@return integer, integer, integer, integer, integer, integer
 function get_rds_ertplus_tags() end
+
+---Puts in a RDS1 group in the buffer, note that block A is filled in always
+---@param b integer
+---@param c integer
+---@param d integer
+function put_rds_custom_group(b, c, d) end
+
+---Puts in a RDS2 group in the buffer
+---@param a integer
+---@param b integer
+---@param c integer
+---@param d integer
+function put_rds2_custom_group(a, b, c, d) end

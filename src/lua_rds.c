@@ -196,6 +196,22 @@ int lua_get_rds_ertplus_tags(lua_State *localL) {
     return 6;
 }
 
+int lua_put_rds_custom_group(lua_State *localL) {
+	mod->enc->state[mod->enc->program].custom_group[0] = 1;
+	mod->enc->state[mod->enc->program].custom_group[1] = luaL_checkinteger(localL, 1);
+	mod->enc->state[mod->enc->program].custom_group[2] = luaL_checkinteger(localL, 2);
+	mod->enc->state[mod->enc->program].custom_group[3] = luaL_checkinteger(localL, 3);
+    return 0;
+}
+int lua_put_rds2_custom_group(lua_State *localL) {
+	mod->enc->state[mod->enc->program].custom_group2[0] = 1;
+	mod->enc->state[mod->enc->program].custom_group2[1] = luaL_checkinteger(localL, 1);
+	mod->enc->state[mod->enc->program].custom_group2[2] = luaL_checkinteger(localL, 2);
+	mod->enc->state[mod->enc->program].custom_group2[3] = luaL_checkinteger(localL, 3);
+	mod->enc->state[mod->enc->program].custom_group2[4] = luaL_checkinteger(localL, 4);
+    return 0;
+}
+
 STR_SETTER(ptyn, set_rds_ptyn)
 STR_SETTER(ps, set_rds_ps)
 STR_SETTER(tps, set_rds_tps)
@@ -325,6 +341,9 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_ertplus_tags", lua_set_rds_ertplus_tags);
     lua_register(L, "get_rds_ertplus_tags", lua_get_rds_ertplus_tags);
+
+    lua_register(L, "put_rds_custom_group", lua_put_rds_custom_group);
+    lua_register(L, "put_rds2_custom_group", lua_put_rds2_custom_group);
 }
 
 void run_lua(char *str, char *cmd_output) {

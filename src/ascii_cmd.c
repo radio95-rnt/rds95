@@ -117,24 +117,6 @@ static void handle_udg2(char *arg, char *pattern, RDSModulator* mod, char* outpu
 	else strcpy(output, "/");
 }
 
-static void handle_rtp(char *arg, RDSModulator* mod, char* output) {
-	uint8_t tags[6];
-
-	if (sscanf(arg, "%hhu,%hhu,%hhu,%hhu,%hhu,%hhu", &tags[0], &tags[1], &tags[2], &tags[3], &tags[4], &tags[5]) == 6) {
-		set_rds_rtplus_tags(mod->enc, tags);
-		strcpy(output, "+");
-	} else strcpy(output, "-");
-}
-
-static void handle_ertp(char *arg, RDSModulator* mod, char* output) {
-	uint8_t tags[6];
-
-	if (sscanf(arg, "%hhu,%hhu,%hhu,%hhu,%hhu,%hhu", &tags[0], &tags[1], &tags[2], &tags[3], &tags[4], &tags[5]) == 6) {
-		set_rds_ertplus_tags(mod->enc, tags);
-		strcpy(output, "+");
-	} else strcpy(output, "-");
-}
-
 static void handle_adr(char *arg, RDSModulator* mod, char* output) {
 	uint16_t ids[2];
 	int count = sscanf(arg, "%4hu,%4hu", &ids[0], &ids[1]);
@@ -160,24 +142,6 @@ static void handle_site(char *arg, RDSModulator* mod, char* output) {
 		strcpy(output, "-");
 		return;
 	}
-	strcpy(output, "+");
-}
-
-static void handle_g(char *arg, RDSModulator* mod, char* output) {
-	uint16_t blocks[4];
-	int count = sscanf(arg, "%4hx%4hx%4hx%4hx", &blocks[0], &blocks[1], &blocks[2], &blocks[3]);
-	if (count == 3) {
-		mod->enc->state[mod->enc->program].custom_group[0] = 1;
-		mod->enc->state[mod->enc->program].custom_group[1] = blocks[0];
-		mod->enc->state[mod->enc->program].custom_group[2] = blocks[1];
-		mod->enc->state[mod->enc->program].custom_group[3] = blocks[2];
-	} else if(count == 4) {
-		mod->enc->state[mod->enc->program].custom_group2[0] = 1;
-		mod->enc->state[mod->enc->program].custom_group2[1] = blocks[0];
-		mod->enc->state[mod->enc->program].custom_group2[2] = blocks[1];
-		mod->enc->state[mod->enc->program].custom_group2[3] = blocks[2];
-		mod->enc->state[mod->enc->program].custom_group2[4] = blocks[3];
-	} else strcpy(output, "-");
 	strcpy(output, "+");
 }
 
@@ -285,18 +249,12 @@ static const command_handler_t commands_eq3[] = {
 };
 
 static const command_handler_t commands_eq4[] = {
-	{"RTP", handle_rtp, 3},
 	{"AFO", handle_afo, 3},
 	{"ADR", handle_adr, 3}
 };
 
 static const command_handler_t commands_eq5[] = {
-	{"ERTP", handle_ertp, 4},
 	{"SITE", handle_site, 4}
-};
-
-static const command_handler_t commands_eq2[] = {
-	{"G", handle_g, 1}
 };
 
 static const command_handler_t commands_eq7[] = {
@@ -408,10 +366,6 @@ void process_ascii_cmd(RDSModulator* mod, char *str, char *cmd_output) {
 			size_t table_size = 0;
 
 			switch (eq_pos) {
-				case 1:
-					table = commands_eq2;
-					table_size = sizeof(commands_eq2) / sizeof(command_handler_t);
-					break;
 				case 2:
 					table = commands_eq3;
 					table_size = sizeof(commands_eq3) / sizeof(command_handler_t);
