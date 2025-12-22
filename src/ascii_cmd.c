@@ -193,6 +193,7 @@ static bool process_pattern_commands(char *cmd, char *arg, char *output, RDSModu
 }
 
 void process_ascii_cmd(RDSModulator* mod, char *str, char *cmd_output) {
+	(void)cmd_output;
 	char *cmd, *arg;
 
 	char output[255];
