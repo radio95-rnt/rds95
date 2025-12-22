@@ -18,8 +18,8 @@ if type(data) == "string" and data ~= nil then
         elseif data == "dpty" then return string.format("DPTY=%s\r\n", string.format("%d", get_rds_dpty()))
         elseif data == "tp" then return string.format("TP=%s\r\n", string.format("%d", get_rds_tp()))
         elseif data == "ta" then return string.format("TA=%s\r\n", string.format("%d", get_rds_ta()))
+        else return "?" end
         -- TODO: more
-        end
     end
     cmd = cmd:lower()
     if cmd == "pi" then
