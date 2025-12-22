@@ -74,26 +74,6 @@ static void handle_##name(char *arg, RDSModulator* mod, char* output) { \
 AF_HANDLER(af, RDSAFs, af, add_rds_af)
 AF_HANDLER(afo, RDSAFsODA, af_oda, add_rds_af_oda)
 
-SIMPLE_INT_HANDLER(pty, pty)
-SIMPLE_INT_HANDLER(ct, ct)
-SIMPLE_INT_HANDLER(dpty, dpty)
-SIMPLE_INT_HANDLER(tp, tp)
-SIMPLE_INT_HANDLER(ta, ta)
-SIMPLE_INT_HANDLER(rt1en, rt1_enabled)
-SIMPLE_INT_HANDLER(rt2en, rt2_enabled)
-SIMPLE_INT_HANDLER(ptynen, ptyn_enabled)
-SIMPLE_INT_HANDLER(rttype, rt_type)
-
-static void handle_rds2mod(char *arg, RDSModulator* mod, char* output) {
-	mod->enc->encoder_data.rds2_mode = atoi(arg);
-	strcpy(output, "+");
-}
-static void handle_rdsgen(char *arg, RDSModulator* mod, char* output) {
-	mod->params.rdsgen = atoi(arg);
-	strcpy(output, "+");
-}
-
-STRING_HANDLER(ptyn, PTYN_LENGTH, set_rds_ptyn)
 STRING_HANDLER(ps, PS_LENGTH, set_rds_ps)
 STRING_HANDLER(tps, PS_LENGTH, set_rds_tps)
 STRING_HANDLER(rt1, RT_LENGTH, set_rds_rt1)
@@ -101,9 +81,6 @@ STRING_HANDLER(rt2, RT_LENGTH, set_rds_rt2)
 
 RAW_STRING_HANDLER(lps, LPS_LENGTH, set_rds_lps)
 RAW_STRING_HANDLER(ert, ERT_LENGTH, set_rds_ert)
-
-HEX_HANDLER(ecc, ecc)
-HEX_HANDLER(slcd, slc_data)
 
 static void handle_udg(char *arg, char *pattern, RDSModulator* mod, char* output) {
 	uint8_t all_scanned = 1, bad_format = 0;
@@ -196,16 +173,6 @@ static void handle_link(char *arg, RDSModulator* mod, char* output) {
 	}
 
 	mod->enc->state[mod->enc->program].eon_linkage = atoi(arg);
-	strcpy(output, "+");
-}
-
-static void handle_pi(char *arg, RDSModulator* mod, char* output) {
-	uint16_t pi_value = strtoul(arg, NULL, 16);
-	if ((pi_value & 0xF000) == 0) {
-		strcpy(output, "-");
-		return;
-	}
-	mod->enc->data[mod->enc->program].pi = pi_value;
 	strcpy(output, "+");
 }
 
@@ -418,10 +385,6 @@ static void handle_eondt(char *arg, char *pattern, RDSModulator* mod, char* outp
 
 static const command_handler_t commands_eq3[] = {
 	{"PS", handle_ps, 2},
-	{"PI", handle_pi, 2},
-	{"TP", handle_tp, 2},
-	{"TA", handle_ta, 2},
-	{"CT", handle_ct, 2},
 	{"AF", handle_af, 2}
 };
 
@@ -429,8 +392,6 @@ static const command_handler_t commands_eq4[] = {
 	{"TPS", handle_tps, 3},
 	{"RT1", handle_rt1, 3},
 	{"RT2", handle_rt2, 3},
-	{"PTY", handle_pty, 3},
-	{"ECC", handle_ecc, 3},
 	{"RTP", handle_rtp, 3},
 	{"LPS", handle_lps, 3},
 	{"ERT", handle_ert, 3},
@@ -440,9 +401,6 @@ static const command_handler_t commands_eq4[] = {
 
 static const command_handler_t commands_eq5[] = {
 	{"TEXT", handle_rt1, 4},
-	{"PTYN", handle_ptyn, 4},
-	{"DPTY", handle_dpty, 4},
-	{"SLCD", handle_slcd, 4},
 	{"ERTP", handle_ertp, 4},
 	{"LINK", handle_link, 4},
 	{"SITE", handle_site, 4}
@@ -453,23 +411,17 @@ static const command_handler_t commands_eq2[] = {
 };
 
 static const command_handler_t commands_eq6[] = {
-	{"RT1EN", handle_rt1en, 5},
-	{"RT2EN", handle_rt2en, 5},
 	{"RTPER", handle_rtper, 5},
 	{"LEVEL", handle_level, 5},
 };
 
 static const command_handler_t commands_eq7[] = {
-	{"PTYNEN", handle_ptynen, 6},
 	{"RTPRUN", handle_rtprun, 6},
 	{"GRPSEQ", handle_grpseq, 6},
-	{"RDSGEN", handle_rdsgen, 6},
-	{"RTTYPE", handle_rttype, 6},
 };
 
 static const command_handler_t commands_eq8[] = {
 	{"PROGRAM", handle_program, 7},
-	{"RDS2MOD", handle_rds2mod, 7},
 	{"GRPSEQ2", handle_grpseq2, 7},
 	{"DTTMOUT", handle_dttmout, 7},
 	{"ERTPRUN", handle_ertprun, 7},

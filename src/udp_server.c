@@ -61,7 +61,7 @@ void poll_udp_server() {
 
             memset(cmd_output, 0, BUF_SIZE);
             process_ascii_cmd(mod, cmd_buf, cmd_output);
-            run_lua(cmd_buf, NULL);
+            run_lua(cmd, NULL);
 
             size_t out_len = strlen(cmd_output);
             if (out_len > 0) {

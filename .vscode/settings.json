@@ -24,5 +24,23 @@
     },
     "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
         "clang-diagnostic-error"
+    ],
+    "Lua.diagnostics.globals": [
+        "set_rds_pi",
+        "set_rds_ecc",
+        "str",
+        "cmd",
+        "set_rds_pty",
+        "set_rds_slc_data",
+        "set_rds_ct",
+        "set_rds_dpty",
+        "set_rds_tp",
+        "set_rds_ta",
+        "set_rds_rt1_enabled",
+        "set_rds_rt2_enabled",
+        "set_rds_ptyn_enabled",
+        "set_rds_rt_type",
+        "set_rds_rds2mod",
+        "set_rds_rdsgen"
     ]
 }
