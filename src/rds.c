@@ -694,8 +694,8 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 }
 
 void init_rds_encoder(RDSEncoder* enc) {
+	memset(enc, 0, sizeof(RDSEncoder));
 	for(int i = 0; i < PROGRAMS; i++) set_rds_defaults(enc, i);
-	enc->program = 0;
 
 	if (encoder_loadFromFile(enc)) {
 		printf("Encoder file will be reinitialized.\n");
