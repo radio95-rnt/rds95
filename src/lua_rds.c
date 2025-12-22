@@ -9,6 +9,16 @@ int lua_set_rds_program_defaults(lua_State *localL) {
     return 0;
 }
 
+int lua_reset_rds(lua_State *localL) {
+    (void)localL;
+    encoder_saveToFile(mod->enc);
+	encoder_loadFromFile(mod->enc);
+	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(mod->enc, i);
+    Modulator_saveToFile(&mod->params);
+	Modulator_loadFromFile(&mod->params);
+    return 0;
+}
+
 #define INT_SETTER(name) \
 int lua_set_rds_##name(lua_State *localL) { \
 	mod->enc->data[mod->enc->program].name = luaL_checkinteger(localL, 1); \
@@ -203,6 +213,17 @@ int lua_get_rds_grpseq2(lua_State *localL) {
     return 1;
 }
 
+int lua_set_rds_grpseq(lua_State *localL) {
+	const char* str = luaL_checklstring(localL, 1, NULL);
+    if(_strnlen(str, 2) < 1) set_rds_grpseq(mod->enc, DEFAULT_GRPSQC);
+    else set_rds_grpseq(mod->enc, str);
+    return 0;
+}
+int lua_get_rds_grpseq(lua_State *localL) {
+    lua_pushstring(localL, mod->enc->data[mod->enc->program].grp_sqc);
+    return 1;
+}
+
 void init_lua(RDSModulator* rds_mod) {
     mod = rds_mod;
     L = luaL_newstate();
@@ -217,8 +238,11 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_pushstring(L, VERSION);
     lua_setglobal(L, "core_version");
+    lua_pushinteger(L, PROGRAMS)
+    lua_setglobal(L, "max_programs");
 
     lua_register(L, "set_rds_program_defaults", lua_set_rds_program_defaults);
+    lua_register(L, "reset_rds", lua_reset_rds);
 
     lua_register(L, "set_rds_pi", lua_set_rds_pi);
     lua_register(L, "get_rds_pi", lua_get_rds_pi);
@@ -262,6 +286,9 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "set_rds_rdsgen", lua_set_rds_rdsgen);
     lua_register(L, "get_rds_rdsgen", lua_get_rds_rdsgen);
 
+    lua_register(L, "set_rds_grpseq", lua_set_rds_grpseq);
+    lua_register(L, "get_rds_grpseq", lua_get_rds_grpseq);
+
     lua_register(L, "set_rds_grpseq2", lua_set_rds_grpseq2);
     lua_register(L, "get_rds_grpseq2", lua_get_rds_grpseq2);
 
@@ -294,6 +321,9 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_rtplus_tags", lua_set_rds_rtplus_tags);
     lua_register(L, "get_rds_rtplus_tags", lua_get_rds_rtplus_tags);
+
+    lua_register(L, "set_rds_ertplus_tags", lua_set_rds_ertplus_tags);
+    lua_register(L, "get_rds_ertplus_tags", lua_get_rds_ertplus_tags);
 }
 
 void run_lua(char *str, char *cmd_output) {
@@ -315,6 +345,40 @@ void run_lua(char *str, char *cmd_output) {
         fprintf(stderr, "Lua error: %s\n", err);
         lua_pop(L, 1);
         lua_settop(L, top);
+    }
+}
+
+void lua_on_init() {
+    char path[128];
+    snprintf(path, sizeof(path), "%s/.rds95.command.lua", getenv("HOME"));
+
+    if (luaL_loadfilex(L, path, NULL) != LUA_OK) {
+        const char *err = lua_tostring(L, -1);
+        fprintf(stderr, "Lua error loading file: %s\n", err);
+        lua_pop(L, 1);
+        return;
+    }
+
+    lua_pushnil();
+    lua_setglobal(L, "data")
+
+    if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+        const char *err = lua_tostring(L, -1);
+        fprintf(stderr, "Lua error running script: %s\n", err);
+        lua_pop(L, 1);
+        return;
+    }
+
+    lua_getglobal(L, "on_init");
+
+    if (lua_isfunction(L, -1)) {
+        if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+            fprintf(stderr, "Lua error running 'on_init': %s\n", lua_tostring(L, -1));
+            lua_pop(L, 1);
+        }
+    } else {
+        // printf("Note: 'on_init' function not found in Lua script. Skipping.\n");
+        lua_pop(L, 1);
     }
 }
 

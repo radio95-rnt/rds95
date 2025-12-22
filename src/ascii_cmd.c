@@ -205,14 +205,6 @@ static void handle_grpseq(char *arg, RDSModulator* mod, char* output) {
 	strcpy(output, "+");
 }
 
-static void handle_reset(char *arg, RDSModulator* mod, char* output) {
-	(void)arg;
-	encoder_loadFromFile(mod->enc);
-	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(mod->enc, i);
-	Modulator_loadFromFile(&mod->params);
-	strcpy(output, "+");
-}
-
 static void handle_eonen(char *arg, char *pattern, RDSModulator* mod, char* output) {
 	mod->enc->data[mod->enc->program].eon[atoi(pattern)-1].enabled = atoi(arg);
 	strcpy(output, "+");
@@ -321,9 +313,6 @@ static const command_handler_t commands_eq7[] = {
 static const command_handler_t commands_eq8[] = {
 	{"ERTPRUN", handle_ertprun, 7},
 };
-static const command_handler_t commands_exact[] = {
-	{"RESET", handle_reset, 5},
-};
 
 static const pattern_command_handler_t pattern_commands[] = {
 	{"EON", "EN", handle_eonen},
@@ -404,14 +393,6 @@ void process_ascii_cmd(RDSModulator* mod, char *str, char *cmd_output) {
 
 	for(uint16_t i = 0; i < cmd_len && upper_str[i] != '='; i++) {
 		if(upper_str[i] >= 'a' && upper_str[i] <= 'z') upper_str[i] = upper_str[i] - 'a' + 'A';
-	}
-
-	for (size_t i = 0; i < sizeof(commands_exact) / sizeof(command_handler_t); i++) {
-		const command_handler_t *handler = &commands_exact[i];
-		if (cmd_len == handler->cmd_length && strcmp(upper_str, handler->cmd) == 0) {
-			handler->handler(NULL, mod, output);
-			return;
-		}
 	}
 
 	char *equals_pos = strchr(upper_str, '=');

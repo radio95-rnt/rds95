@@ -7,6 +7,9 @@ if type(data) == "string" then
         elseif data == "init" then
             set_rds_program_defaults()
             return "+"
+        elseif data == "reset" then
+            reset_rds()
+            return "+"
         end
     end
     cmd = cmd:lower()
@@ -115,7 +118,7 @@ if type(data) == "string" then
     elseif cmd == "program" then
         local program = tonumber(value)
         if not program then return "-" end
-        if program < 1 then return "-" end
+        if program < 1 or program > max_programs then return "-" end
         set_rds_program(program-1)
         return "+"
     elseif cmd == "level" then

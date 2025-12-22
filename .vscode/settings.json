@@ -56,6 +56,18 @@
         "set_rds_program",
         "set_rds_level",
         "set_rds_rt_text_timeout",
-        "set_rds_program_defaults"
-    ]
+        "set_rds_program_defaults",
+        "reset_rds",
+        "max_programs",
+        "on_init",
+        "get_rds_pi",
+        "get_rds_ecc",
+        "get_rds_pty",
+        "get_rds_slc_data",
+        "get_rds_ct",
+        "get_rds_dpty",
+        "get_rds_tp",
+        "get_rds_ta"
+    ],
+    "Lua.runtime.plugin": "plugin.lua"
 }

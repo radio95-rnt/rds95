@@ -3,6 +3,7 @@
 #include "fs.h"
 #include "modulator.h"
 #include "lib.h"
+#include "lua_rds.h"
 #include <time.h>
 
 static uint16_t get_next_af(RDSEncoder* enc) {
@@ -695,6 +696,8 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 	reset_rds_state(enc, program);
 
 	enc->encoder_data.ascii_data.expected_encoder_addr = 255; // Unknown
+
+	lua_on_init();
 }
 
 void init_rds_encoder(RDSEncoder* enc) {
