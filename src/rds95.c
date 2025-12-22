@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
 
 	RDSEncoder rdsEncoder;
 	RDSModulator rdsModulator;
-    init_lua(rdsModulator);
+    init_lua(&rdsModulator);
 	init_rds_encoder(&rdsEncoder);
 	init_rds_modulator(&rdsModulator, &rdsEncoder, config.num_streams);
 
