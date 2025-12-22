@@ -185,20 +185,7 @@ typedef struct {
 	uint8_t toggle : 1;
 } RDSRTPlusState;
 
-typedef struct
-{
-	uint8_t expected_encoder_addr;
-	uint16_t expected_site_addr : 10;
-} RDSEncoderASCIIData;
-typedef struct
-{
-	uint8_t uecp_enabled : 1;
-} RDSEncoderUECPData;
 typedef struct {
-	uint8_t encoder_addr[2];
-	uint16_t site_addr[2];
-	RDSEncoderASCIIData ascii_data;
-	RDSEncoderUECPData uecp_data;
 	uint16_t special_features;
 	uint8_t rds2_mode : 1;
 	// uint8_t rds2_buffer[16384];
