@@ -24,20 +24,17 @@ void run_lua(char *str, char *cmd_output) {
 
     char path[128];
 	snprintf(path, sizeof(path), "%s/.rds95.command.lua", getenv("HOME"));
-    if (luaL_dofile(L, path) != LUA_OK) {
+    if (luaL_loadfilex(L, path, NULL) == LUA_OK && lua_pcall(L, 0, 1, 0) == LUA_OK) {
+        if (lua_isstring(L, -1)) {
+            const char * message = lua_tostring(L, -1);
+            if(cmd_output) strcpy(cmd_output, message);
+        }
+        lua_pop(L, 1);
+    } else {
         const char *err = lua_tostring(L, -1);
         fprintf(stderr, "Lua error: %s\n", err);
         lua_pop(L, 1);
         lua_settop(L, top);
-        return;
-    }
-
-    lua_getglobal(L, "cmd_output");
-
-    if (lua_isstring(L, -1)) {
-        const char * message = lua_tostring(L, -1);
-        lua_pop(L, 1);
-        if(cmd_output) strcpy(cmd_output, message);
     }
 }
 
