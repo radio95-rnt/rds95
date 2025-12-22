@@ -279,6 +279,9 @@ Sets the rds generator level:
 
 `RDSGEN=1`
 
+### Don't like the commands?
+Implement them yourself then smartass, go on, look into the command.lua file
+
 ## Disclaimer
 
 RDS95 is based on [Anthony96922](https://github.com/Anthony96922/)'s [MiniRDS](https://github.com/Anthony96922/MiniRDS)

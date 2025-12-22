@@ -135,16 +135,6 @@ static void handle_ertp(char *arg, RDSModulator* mod, char* output) {
 	} else strcpy(output, "-");
 }
 
-static void handle_link(char *arg, RDSModulator* mod, char* output) {
-	if(arg[0] == 0) {
-		mod->enc->state[mod->enc->program].eon_linkage = 0;
-		return;
-	}
-
-	mod->enc->state[mod->enc->program].eon_linkage = atoi(arg);
-	strcpy(output, "+");
-}
-
 static void handle_adr(char *arg, RDSModulator* mod, char* output) {
 	uint16_t ids[2];
 	int count = sscanf(arg, "%4hu,%4hu", &ids[0], &ids[1]);
@@ -191,12 +181,6 @@ static void handle_g(char *arg, RDSModulator* mod, char* output) {
 	strcpy(output, "+");
 }
 
-static void handle_rtper(char *arg, RDSModulator* mod, char* output) {
-	mod->enc->data[mod->enc->program].rt_switching_period = atoi(arg);
-	mod->enc->state[mod->enc->program].rt_switching_period_state = mod->enc->data[mod->enc->program].rt_switching_period;
-	strcpy(output, "+");
-}
-
 static void handle_rtprun(char *arg, RDSModulator *mod, char *output) {
 	int flag1 = 0, flag2 = 0;
 	if (sscanf(arg, "%d,%d", &flag1, &flag2) < 1) flag1 = atoi(arg);
@@ -215,20 +199,6 @@ static void handle_ertprun(char *arg, RDSModulator* mod, char* output) {
 	strcpy(output, "+");
 }
 
-static void handle_program(char *arg, RDSModulator* mod, char* output) {
-	int16_t program = atoi(arg)-1;
-	if(program == 0) {
-		strcpy(output, "-");
-		return;
-	}
-	if(program >= PROGRAMS) program = (PROGRAMS-1);
-	if(program < 0) program = 0;
-	mod->enc->data[mod->enc->program].ta = 0;
-	mod->enc->data[(uint8_t)program].ta = 0;
-	mod->enc->program = (uint8_t)program;
-	strcpy(output, "+");
-}
-
 static void handle_grpseq(char *arg, RDSModulator* mod, char* output) {
 	if (arg[0] == 0) set_rds_grpseq(mod->enc, DEFAULT_GRPSQC);
 	else set_rds_grpseq(mod->enc, arg);
@@ -243,11 +213,6 @@ static void handle_grpseq2(char *arg, RDSModulator* mod, char* output) {
 static void handle_dttmout(char *arg, RDSModulator* mod, char* output) {
 	mod->enc->data[mod->enc->program].rt_text_timeout = atoi(arg);
 	mod->enc->state[mod->enc->program].rt_text_timeout_state = mod->enc->data[mod->enc->program].rt_text_timeout;
-	strcpy(output, "+");
-}
-
-static void handle_level(char *arg, RDSModulator* mod, char* output) {
-	mod->params.level = atoi(arg)/255.0f;
 	strcpy(output, "+");
 }
 
@@ -358,17 +323,11 @@ static const command_handler_t commands_eq4[] = {
 
 static const command_handler_t commands_eq5[] = {
 	{"ERTP", handle_ertp, 4},
-	{"LINK", handle_link, 4},
 	{"SITE", handle_site, 4}
 };
 
 static const command_handler_t commands_eq2[] = {
 	{"G", handle_g, 1}
-};
-
-static const command_handler_t commands_eq6[] = {
-	{"RTPER", handle_rtper, 5},
-	{"LEVEL", handle_level, 5},
 };
 
 static const command_handler_t commands_eq7[] = {
@@ -377,7 +336,6 @@ static const command_handler_t commands_eq7[] = {
 };
 
 static const command_handler_t commands_eq8[] = {
-	{"PROGRAM", handle_program, 7},
 	{"GRPSEQ2", handle_grpseq2, 7},
 	{"DTTMOUT", handle_dttmout, 7},
 	{"ERTPRUN", handle_ertprun, 7},
@@ -511,10 +469,6 @@ void process_ascii_cmd(RDSModulator* mod, char *str, char *cmd_output) {
 				case 4:
 					table = commands_eq5;
 					table_size = sizeof(commands_eq5) / sizeof(command_handler_t);
-					break;
-				case 5:
-					table = commands_eq6;
-					table_size = sizeof(commands_eq6) / sizeof(command_handler_t);
 					break;
 				case 6:
 					table = commands_eq7;

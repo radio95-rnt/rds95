@@ -3,7 +3,7 @@ if type(data) == "string" then
     if cmd == nil then
         data = data:lower()
         if data == "ver" then
-            return string.format("rds95 v. %s - (C) 2025 radio95", core_version)
+            return string.format("rds95 v. %s - (C) 2025 radio95 - lua parser", core_version)
         end
     end
     cmd = cmd:lower()
@@ -98,6 +98,26 @@ if type(data) == "string" then
         return "+"
     elseif cmd == "ert" then
         set_rds_ert(value)
+        return "+"
+    elseif cmd == "link" then
+        local link = tonumber(value)
+        if not link then return "-" end
+        set_rds_link(link)
+        return "+"
+    elseif cmd == "rtper" then
+        local period = tonumber(value)
+        if not period then return "-" end
+        set_rds_rt_switching_period(period)
+        return "+"
+    elseif cmd == "program" then
+        local program = tonumber(value)
+        if not program then return "-" end
+        set_rds_program(program-1)
+        return "+"
+    elseif cmd == "level" then
+        local level = tonumber(value)
+        if not level then return "-" end
+        set_rds_level(level/255)
         return "+"
     else
         return "?"
