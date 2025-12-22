@@ -246,6 +246,6 @@ void set_rds_lps(RDSEncoder* enc, char *lps);
 void set_rds_ert(RDSEncoder *enc, char *ert);
 void set_rds_rtplus_tags(RDSEncoder *enc, uint8_t *tags);
 void set_rds_ertplus_tags(RDSEncoder *enc, uint8_t *tags);
-void set_rds_ptyn(RDSEncoder *enc, char *ptyn);
+void set_rds_ptyn(RDSEncoder *enc, const char *ptyn);
 void set_rds_grpseq(RDSEncoder* enc, char *grpseq);
 void set_rds_grpseq2(RDSEncoder* enc, char *grpseq2);

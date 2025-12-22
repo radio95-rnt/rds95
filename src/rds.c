@@ -836,7 +836,7 @@ inline void set_rds_ertplus_tags(RDSEncoder* enc, uint8_t *tags) {
 	enc->rtpData[enc->program][1].enabled = 1;
 }
 
-void set_rds_ptyn(RDSEncoder* enc, char *ptyn) {
+void set_rds_ptyn(RDSEncoder* enc, const char *ptyn) {
 	uint8_t len = 0;
 
 	enc->state[enc->program].ptyn_update = 1;
