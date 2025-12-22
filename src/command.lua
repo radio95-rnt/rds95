@@ -1,7 +1,11 @@
-do return "" end
-
-if type(cmd) == "string" then
-    local cmd, value = cmd:match("([^=]+)=([^=]+)")
+if type(data) == "string" then
+    local cmd, value = data:match("([^=]+)=([^=]+)")
+    if cmd == nil then
+        data = data:lower()
+        if data == "ver" then
+            return string.format("rds95 v. %s - (C) 2025 radio95", core_version)
+        end
+    end
     cmd = cmd:lower()
     if cmd == "pi" then
         local pi = tonumber(value, 16)
@@ -76,6 +80,24 @@ if type(cmd) == "string" then
         return "+"
     elseif cmd == "ptyn" then
         set_rds_ptyn(value)
+        return "+"
+    elseif cmd == "ps" then
+        set_rds_ps(value)
+        return "+"
+    elseif cmd == "tps" then
+        set_rds_tps(value)
+        return "+"
+    elseif cmd == "rt1" or cmd == "text" then
+        set_rds_rt1(value)
+        return "+"
+    elseif cmd == "rt2" then
+        set_rds_rt2(value)
+        return "+"
+    elseif cmd == "lps" then
+        set_rds_lps(value)
+        return "+"
+    elseif cmd == "ert" then
+        set_rds_ert(value)
         return "+"
     else
         return "?"

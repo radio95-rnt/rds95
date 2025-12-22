@@ -12,29 +12,6 @@ typedef struct {
 	void (*handler)(char *arg, char *pattern, RDSModulator* mod, char* output);
 } pattern_command_handler_t;
 
-#define SIMPLE_INT_HANDLER(name, field) \
-static void handle_##name(char *arg, RDSModulator* mod, char* output) { \
-    mod->enc->data[mod->enc->program].field = atoi(arg); \
-    strcpy(output, "+"); \
-}
-#define STRING_HANDLER(name, length, function) \
-static void handle_##name(char *arg, RDSModulator* mod, char* output) { \
-    arg[length*2] = 0; \
-    function(mod->enc, convert_to_rdscharset(arg)); \
-    strcpy(output, "+"); \
-}
-#define RAW_STRING_HANDLER(name, length, function) \
-static void handle_##name(char *arg, RDSModulator* mod, char* output) { \
-    arg[length*2] = 0; \
-    function(mod->enc, arg); \
-    strcpy(output, "+"); \
-}
-#define HEX_HANDLER(name, field) \
-static void handle_##name(char *arg, RDSModulator* mod, char* output) { \
-	mod->enc->data[mod->enc->program].field = strtoul(arg, NULL, 16); \
-	strcpy(output, "+"); \
-}
-
 #define AF_HANDLER(name, af_struct, af_entry, add_func) \
 static void handle_##name(char *arg, RDSModulator* mod, char* output) { \
 	if (arg[0] == 0) { \
@@ -73,14 +50,6 @@ static void handle_##name(char *arg, RDSModulator* mod, char* output) { \
 
 AF_HANDLER(af, RDSAFs, af, add_rds_af)
 AF_HANDLER(afo, RDSAFsODA, af_oda, add_rds_af_oda)
-
-STRING_HANDLER(ps, PS_LENGTH, set_rds_ps)
-STRING_HANDLER(tps, PS_LENGTH, set_rds_tps)
-STRING_HANDLER(rt1, RT_LENGTH, set_rds_rt1)
-STRING_HANDLER(rt2, RT_LENGTH, set_rds_rt2)
-
-RAW_STRING_HANDLER(lps, LPS_LENGTH, set_rds_lps)
-RAW_STRING_HANDLER(ert, ERT_LENGTH, set_rds_ert)
 
 static void handle_udg(char *arg, char *pattern, RDSModulator* mod, char* output) {
 	uint8_t all_scanned = 1, bad_format = 0;
@@ -296,12 +265,6 @@ static void handle_init(char *arg, RDSModulator* mod, char* output) {
 	strcpy(output, "+");
 }
 
-static void handle_ver(char *arg, RDSModulator* mod, char* output) {
-	(void)arg;
-	(void)mod;
-	sprintf(output, "rds95 v. %s - (C) 2025 radio95", VERSION);
-}
-
 static void handle_eonen(char *arg, char *pattern, RDSModulator* mod, char* output) {
 	mod->enc->data[mod->enc->program].eon[atoi(pattern)-1].enabled = atoi(arg);
 	strcpy(output, "+");
@@ -384,23 +347,16 @@ static void handle_eondt(char *arg, char *pattern, RDSModulator* mod, char* outp
 }
 
 static const command_handler_t commands_eq3[] = {
-	{"PS", handle_ps, 2},
 	{"AF", handle_af, 2}
 };
 
 static const command_handler_t commands_eq4[] = {
-	{"TPS", handle_tps, 3},
-	{"RT1", handle_rt1, 3},
-	{"RT2", handle_rt2, 3},
 	{"RTP", handle_rtp, 3},
-	{"LPS", handle_lps, 3},
-	{"ERT", handle_ert, 3},
 	{"AFO", handle_afo, 3},
 	{"ADR", handle_adr, 3}
 };
 
 static const command_handler_t commands_eq5[] = {
-	{"TEXT", handle_rt1, 4},
 	{"ERTP", handle_ertp, 4},
 	{"LINK", handle_link, 4},
 	{"SITE", handle_site, 4}
@@ -428,7 +384,6 @@ static const command_handler_t commands_eq8[] = {
 };
 static const command_handler_t commands_exact[] = {
 	{"INIT", handle_init, 4},
-	{"VER", handle_ver, 3},
 	{"RESET", handle_reset, 5},
 };
 

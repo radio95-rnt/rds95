@@ -11,6 +11,12 @@ int lua_set_rds_##name(lua_State *localL) { \
 #define STR_NONRETURN_HANDLER(name, function) \
 int lua_set_rds_##name(lua_State *localL) { \
 	const char* str = luaL_checklstring(localL, 1, NULL); \
+    function(mod->enc, convert_to_rdscharset(str)); \
+    return 0; \
+}
+#define STR_RAW_NONRETURN_HANDLER(name, function) \
+int lua_set_rds_##name(lua_State *localL) { \
+	const char* str = luaL_checklstring(localL, 1, NULL); \
     function(mod->enc, str); \
     return 0; \
 }
@@ -38,6 +44,13 @@ int lua_set_rds_rdsgen(lua_State *localL) {
 }
 
 STR_NONRETURN_HANDLER(ptyn, set_rds_ptyn)
+STR_NONRETURN_HANDLER(ps, set_rds_ps)
+STR_NONRETURN_HANDLER(tps, set_rds_tps)
+STR_NONRETURN_HANDLER(rt1, set_rds_rt1)
+STR_NONRETURN_HANDLER(rt2, set_rds_rt2)
+
+STR_RAW_NONRETURN_HANDLER(lps, set_rds_lps)
+STR_RAW_NONRETURN_HANDLER(ert, set_rds_ert)
 
 void init_lua(RDSModulator* rds_mod) {
     mod = rds_mod;
@@ -50,6 +63,9 @@ void init_lua(RDSModulator* rds_mod) {
     luaL_requiref(L, LUA_COLIBNAME, luaopen_coroutine, 1);
     luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1);
     lua_pop(L, 6);
+
+    lua_pushstring(L, VERSION);
+    lua_setglobal(L, "core_version");
 
     lua_register(L, "set_rds_pi", lua_set_rds_pi);
     lua_register(L, "set_rds_pty", lua_set_rds_pty);
@@ -66,11 +82,17 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "set_rds_rds2mod", lua_set_rds_rds2mod);
     lua_register(L, "set_rds_rdsgen", lua_set_rds_rdsgen);
     lua_register(L, "set_rds_ptyn", lua_set_rds_ptyn);
+    lua_register(L, "set_rds_ps", lua_set_rds_ps);
+    lua_register(L, "set_rds_tps", lua_set_rds_tps);
+    lua_register(L, "set_rds_rt1", lua_set_rds_rt1);
+    lua_register(L, "set_rds_rt2", lua_set_rds_rt2);
+    lua_register(L, "set_rds_lps", lua_set_rds_lps);
+    lua_register(L, "set_rds_ert", lua_set_rds_ert);
 }
 
 void run_lua(char *str, char *cmd_output) {
     lua_pushstring(L, str);
-    lua_setglobal(L, "cmd");
+    lua_setglobal(L, "data");
 
     int top = lua_gettop(L);
 
