@@ -4,6 +4,7 @@ static RDSModulator* mod = NULL;
 static lua_State *L = NULL;
 
 int lua_set_rds_program_defaults(lua_State *localL) {
+    (void)localL;
 	set_rds_defaults(mod->enc, mod->enc->program);
     return 0;
 }
