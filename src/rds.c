@@ -697,7 +697,7 @@ void init_rds_encoder(RDSEncoder* enc) {
 	for(int i = 0; i < PROGRAMS; i++) set_rds_defaults(enc, i);
 
 	if (encoder_loadFromFile(enc)) {
-		printf("Encoder file will be reinitialized.");
+		printf("Encoder file will be reinitialized.\n");
 		lua_on_init();
 	}
 	encoder_saveToFile(enc);
