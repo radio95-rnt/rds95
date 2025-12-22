@@ -78,34 +78,6 @@ static void handle_udg2(char *arg, char *pattern, RDSModulator* mod, char* outpu
 	else strcpy(output, "/");
 }
 
-static void handle_adr(char *arg, RDSModulator* mod, char* output) {
-	uint16_t ids[2];
-	int count = sscanf(arg, "%4hu,%4hu", &ids[0], &ids[1]);
-	if(count == 1) mod->enc->encoder_data.encoder_addr[0] = ids[0];
-	else if(count == 2) {
-		mod->enc->encoder_data.encoder_addr[0] = ids[0];
-		mod->enc->encoder_data.encoder_addr[1] = ids[1];
-	} else {
-		strcpy(output, "-");
-		return;
-	}
-	strcpy(output, "+");
-}
-
-static void handle_site(char *arg, RDSModulator* mod, char* output) {
-	uint16_t ids[2];
-	int count = sscanf(arg, "%4hu,%4hu", &ids[0], &ids[1]);
-	if(count == 1) mod->enc->encoder_data.site_addr[0] = ids[0];
-	else if(count == 2) {
-		mod->enc->encoder_data.site_addr[0] = ids[0];
-		mod->enc->encoder_data.site_addr[1] = ids[1];
-	} else {
-		strcpy(output, "-");
-		return;
-	}
-	strcpy(output, "+");
-}
-
 static void handle_eonen(char *arg, char *pattern, RDSModulator* mod, char* output) {
 	mod->enc->data[mod->enc->program].eon[atoi(pattern)-1].enabled = atoi(arg);
 	strcpy(output, "+");
@@ -187,14 +159,6 @@ static void handle_eondt(char *arg, char *pattern, RDSModulator* mod, char* outp
 	strcpy(output, "+");
 }
 
-static const command_handler_t commands_eq4[] = {
-	{"ADR", handle_adr, 3}
-};
-
-static const command_handler_t commands_eq5[] = {
-	{"SITE", handle_site, 4}
-};
-
 static const pattern_command_handler_t pattern_commands[] = {
 	{"EON", "EN", handle_eonen},
 	{"EON", "PI", handle_eonpi},
@@ -207,16 +171,6 @@ static const pattern_command_handler_t pattern_commands[] = {
 	{"UDG", "", handle_udg},
 	{"2UDG", "", handle_udg2},
 };
-
-static bool process_command_table(const command_handler_t *table, int table_size, char *cmd, char *arg, char *output, RDSModulator* mod) {
-	for (int i = 0; i < table_size; i++) {
-		if (strcmp(cmd, table[i].cmd) == 0) {
-			table[i].handler(arg, mod, output);
-			return true;
-		}
-	}
-	return false;
-}
 
 static bool process_pattern_commands(char *cmd, char *arg, char *output, RDSModulator* mod) {
 	size_t cmd_len = strlen(cmd);
@@ -239,27 +193,6 @@ static bool process_pattern_commands(char *cmd, char *arg, char *output, RDSModu
 }
 
 void process_ascii_cmd(RDSModulator* mod, char *str, char *cmd_output) {
-	if(mod->enc->encoder_data.ascii_data.expected_encoder_addr != 0 && mod->enc->encoder_data.ascii_data.expected_encoder_addr != 255) {
-		uint8_t reached = 0;
-		for(int i = 0; i < 2; i++) {
-			if(mod->enc->encoder_data.encoder_addr[i] == mod->enc->encoder_data.ascii_data.expected_encoder_addr) {
-				reached = 1;
-				break;
-			}
-		}
-		if(!reached) return;
-	}
-	if(mod->enc->encoder_data.ascii_data.expected_site_addr != 0) {
-		uint8_t reached = 0;
-		for(int i = 0; i < 2; i++) {
-			if(mod->enc->encoder_data.site_addr[i] == mod->enc->encoder_data.ascii_data.expected_site_addr) {
-				reached = 1;
-				break;
-			}
-		}
-		if(!reached) return;
-	}
-
 	char *cmd, *arg;
 
 	char output[255];
@@ -283,35 +216,4 @@ void process_ascii_cmd(RDSModulator* mod, char *str, char *cmd_output) {
 		arg = equals_pos + 1;
 		process_pattern_commands(cmd, arg, output, mod);
 	}
-
-	uint8_t cmd_reached = 0;
-
-	for (int eq_pos = 1; eq_pos <= 7; ++eq_pos) {
-		if (cmd_len > eq_pos && str[eq_pos] == '=') {
-			cmd = upper_str;
-			cmd[eq_pos] = 0;
-			arg = str + eq_pos + 1;
-
-			const command_handler_t* table = NULL;
-			size_t table_size = 0;
-
-			switch (eq_pos) {
-				case 3:
-					table = commands_eq4;
-					table_size = sizeof(commands_eq4) / sizeof(command_handler_t);
-					break;
-				case 4:
-					table = commands_eq5;
-					table_size = sizeof(commands_eq5) / sizeof(command_handler_t);
-					break;
-			}
-
-			process_command_table(table, table_size, cmd, arg, output, mod);
-			cmd_reached = 1;
-			break;
-		}
-	}
-
-	if (!cmd_reached) strcpy(output, "?");
-	if (cmd_output != NULL && cmd_reached) strcpy(cmd_output, output);
 }
