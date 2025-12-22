@@ -20,6 +20,12 @@ int lua_reset_rds(lua_State *localL) {
     return 0;
 }
 
+#define BOOL_SETTER(name) \
+int lua_set_rds_##name(lua_State *localL) { \
+    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1)); \
+	mod->enc->data[mod->enc->program].name = lua_toboolean(localL, 1); \
+    return 0; \
+}
 #define INT_SETTER(name) \
 int lua_set_rds_##name(lua_State *localL) { \
 	mod->enc->data[mod->enc->program].name = luaL_checkinteger(localL, 1); \
@@ -43,6 +49,11 @@ int lua_get_rds_##name(lua_State *localL) { \
     lua_pushinteger(localL, mod->enc->data[mod->enc->program].name); \
     return 1; \
 }
+#define BOOL_GETTER(name) \
+int lua_get_rds_##name(lua_State *localL) { \
+    lua_pushboolean(localL, mod->enc->data[mod->enc->program].name); \
+    return 1; \
+}
 #define STR_RAW_GETTER(name) \
 int lua_get_rds_##name(lua_State *localL) { \
     lua_pushstring(localL, mod->enc->data[mod->enc->program].name); \
@@ -60,36 +71,37 @@ INT_GETTER(ecc)
 INT_SETTER(slc_data)
 INT_GETTER(slc_data)
 
-INT_SETTER(ct)
-INT_GETTER(ct)
+BOOL_SETTER(ct)
+BOOL_GETTER(ct)
 
-INT_SETTER(dpty)
-INT_GETTER(dpty)
+BOOL_SETTER(dpty)
+BOOL_GETTER(dpty)
 
-INT_SETTER(tp)
-INT_GETTER(tp)
+BOOL_SETTER(tp)
+BOOL_GETTER(tp)
 
-INT_SETTER(ta)
-INT_GETTER(ta)
+BOOL_SETTER(ta)
+BOOL_GETTER(ta)
 
-INT_SETTER(rt1_enabled)
-INT_GETTER(rt1_enabled)
+BOOL_SETTER(rt1_enabled)
+BOOL_GETTER(rt1_enabled)
 
-INT_SETTER(rt2_enabled)
-INT_GETTER(rt2_enabled)
+BOOL_SETTER(rt2_enabled)
+BOOL_GETTER(rt2_enabled)
 
-INT_SETTER(ptyn_enabled)
-INT_GETTER(ptyn_enabled)
+BOOL_SETTER(ptyn_enabled)
+BOOL_GETTER(ptyn_enabled)
 
-INT_SETTER(rt_type)
-INT_GETTER(rt_type)
+BOOL_SETTER(rt_type)
+BOOL_GETTER(rt_type)
 
 int lua_set_rds_rds2mod(lua_State *localL) {
-	mod->enc->encoder_data.rds2_mode = luaL_checkinteger(localL, 1);
+    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
+	mod->enc->encoder_data.rds2_mode = lua_toboolean(localL, 1);
     return 0;
 }
 int lua_get_rds_rds2mod(lua_State *localL) {
-    lua_pushinteger(localL, mod->enc->encoder_data.rds2_mode);
+    lua_pushboolean(localL, mod->enc->encoder_data.rds2_mode);
     return 1;
 }
 int lua_set_rds_rdsgen(lua_State *localL) {
@@ -102,11 +114,12 @@ int lua_get_rds_rdsgen(lua_State *localL) {
 }
 
 int lua_set_rds_link(lua_State *localL) {
-	mod->enc->state[mod->enc->program].eon_linkage = luaL_checkinteger(localL, 1);
+    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
+	mod->enc->state[mod->enc->program].eon_linkage = lua_toboolean(localL, 1);
     return 0;
 }
 int lua_get_rds_link(lua_State *localL) {
-    lua_pushinteger(localL, mod->enc->state[mod->enc->program].eon_linkage);
+    lua_pushboolean(localL, mod->enc->state[mod->enc->program].eon_linkage);
     return 1;
 }
 
@@ -157,42 +170,27 @@ int lua_get_rds_level(lua_State *localL) {
 
 int lua_set_rds_rtplus_tags(lua_State *localL) {
     uint8_t tags[6];
-	tags[0] = luaL_checkinteger(localL, 1);
-	tags[1] = luaL_checkinteger(localL, 2);
-	tags[2] = luaL_checkinteger(localL, 3);
-	tags[3] = luaL_checkinteger(localL, 4);
-	tags[4] = luaL_checkinteger(localL, 5);
-	tags[5] = luaL_checkinteger(localL, 6);
-    set_rds_rtplus_tags(mod->enc, tags);
+    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
+	int ertp = lua_toboolean(localL, 1);
+	tags[0] = luaL_checkinteger(localL, 2);
+	tags[1] = luaL_checkinteger(localL, 3);
+	tags[2] = luaL_checkinteger(localL, 4);
+	tags[3] = luaL_checkinteger(localL, 5);
+	tags[4] = luaL_checkinteger(localL, 6);
+	tags[5] = luaL_checkinteger(localL, 7);
+    if(ertp == 1) set_rds_ertplus_tags(mod->enc, tags);
+    else set_rds_rtplus_tags(mod->enc, tags);
     return 0;
 }
 int lua_get_rds_rtplus_tags(lua_State *localL) {
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].type[0]);
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].start[0]);
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].len[0]);
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].type[1]);
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].start[1]);
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][0].len[1]);
-    return 6;
-}
-int lua_set_rds_ertplus_tags(lua_State *localL) {
-    uint8_t tags[6];
-	tags[0] = luaL_checkinteger(localL, 1);
-	tags[1] = luaL_checkinteger(localL, 2);
-	tags[2] = luaL_checkinteger(localL, 3);
-	tags[3] = luaL_checkinteger(localL, 4);
-	tags[4] = luaL_checkinteger(localL, 5);
-	tags[5] = luaL_checkinteger(localL, 6);
-    set_rds_ertplus_tags(mod->enc, tags);
-    return 0;
-}
-int lua_get_rds_ertplus_tags(lua_State *localL) {
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].type[0]);
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].start[0]);
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].len[0]);
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].type[1]);
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].start[1]);
-    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][1].len[1]);
+    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
+	int ertp = lua_toboolean(localL, 1);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][ertp].type[0]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][ertp].start[0]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][ertp].len[0]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][ertp].type[1]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][ertp].start[1]);
+    lua_pushinteger(localL, mod->enc->rtpData[mod->enc->program][ertp].len[1]);
     return 6;
 }
 
@@ -210,6 +208,30 @@ int lua_put_rds2_custom_group(lua_State *localL) {
 	mod->enc->state[mod->enc->program].custom_group2[3] = luaL_checkinteger(localL, 3);
 	mod->enc->state[mod->enc->program].custom_group2[4] = luaL_checkinteger(localL, 4);
     return 0;
+}
+
+int lua_toggle_rds_rtp(lua_State *localL) {
+    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
+	int ertp = lua_toboolean(localL, 1);
+    TOGGLE(mod->enc->rtpState[mod->enc->program][ertp].toggle);
+    return 0;
+}
+
+int lua_set_rds_rtp_meta(lua_State *localL) {
+    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
+    if (!lua_isboolean(localL, 2)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 2));
+    if (!lua_isboolean(localL, 3)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 3));
+	int ertp = lua_toboolean(localL, 1);
+    mod->enc->rtpData[mod->enc->program][ertp].enabled = lua_toboolean(localL, 2);
+    mod->enc->rtpData[mod->enc->program][ertp].running = lua_toboolean(localL, 3);
+    return 0;
+}
+int lua_get_rds_rtp_meta(lua_State *localL) {
+    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
+	int ertp = lua_toboolean(localL, 1);
+    lua_pushboolean(localL, mod->enc->rtpData[mod->enc->program][ertp].enabled);
+    lua_pushboolean(localL, mod->enc->rtpData[mod->enc->program][ertp].running);
+    return 2;
 }
 
 STR_SETTER(ptyn, set_rds_ptyn)
@@ -338,9 +360,10 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_rtplus_tags", lua_set_rds_rtplus_tags);
     lua_register(L, "get_rds_rtplus_tags", lua_get_rds_rtplus_tags);
+    lua_register(L, "toggle_rds_rtp", lua_toggle_rds_rtp);
 
-    lua_register(L, "set_rds_ertplus_tags", lua_set_rds_ertplus_tags);
-    lua_register(L, "get_rds_ertplus_tags", lua_get_rds_ertplus_tags);
+    lua_register(L, "set_rds_rtp_meta", lua_set_rds_rtp_meta);
+    lua_register(L, "get_rds_rtp_meta", lua_get_rds_rtp_meta);
 
     lua_register(L, "put_rds_custom_group", lua_put_rds_custom_group);
     lua_register(L, "put_rds2_custom_group", lua_put_rds2_custom_group);

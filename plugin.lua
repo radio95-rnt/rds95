@@ -41,51 +41,51 @@ function set_rds_slc_data(slc_data) end
 ---@return integer
 function get_rds_slc_data() end
 
----@param ct integer 0 or 1
+---@param ct boolean
 function set_rds_ct(ct) end
----@return integer
+---@return boolean
 function get_rds_ct() end
 
----@param dpty integer 0 or 1
+---@param dpty boolean
 function set_rds_dpty(dpty) end
----@return integer
+---@return boolean
 function get_rds_dpty() end
 
----@param tp integer 0 or 1
+---@param tp boolean
 function set_rds_tp(tp) end
----@return integer
+---@return boolean
 function get_rds_tp() end
 
----@param ta integer 0 or 1
+---@param ta boolean
 function set_rds_ta(ta) end
----@return integer
+---@return boolean
 function get_rds_ta() end
 
 -- Feature Flags
----@param enabled integer 0 or 1
+---@param enabled boolean
 function set_rds_rt1_enabled(enabled) end
----@return integer
+---@return boolean
 function get_rds_rt1_enabled() end
 
----@param enabled integer 0 or 1
+---@param enabled boolean
 function set_rds_rt2_enabled(enabled) end
----@return integer
+---@return boolean
 function get_rds_rt2_enabled() end
 
----@param enabled integer 0 or 1
+---@param enabled boolean
 function set_rds_ptyn_enabled(enabled) end
----@return integer
+---@return boolean
 function get_rds_ptyn_enabled() end
 
----@param rt_type integer 0 (RT A/B) or 1 (RT C)
+---@param rt_type boolean
 function set_rds_rt_type(rt_type) end
----@return integer
+---@return boolean
 function get_rds_rt_type() end
 
 -- Modulation & Generation
----@param mode integer
+---@param mode boolean
 function set_rds_rds2mod(mode) end
----@return integer
+---@return boolean
 function get_rds_rds2mod() end
 
 ---@param rdsgen integer
@@ -99,9 +99,9 @@ function set_rds_level(level) end
 function get_rds_level() end
 
 -- Program & Linking
----@param linkage integer
+---@param linkage boolean
 function set_rds_link(linkage) end
----@return integer
+---@return boolean
 function get_rds_link() end
 
 ---@param program_idx integer 0 to (max_programs - 1)
@@ -125,7 +125,7 @@ function get_rds_rt_text_timeout() end
 function set_rds_ptyn(ptyn) end
 ---@param ps string Program Service (8 chars)
 function set_rds_ps(ps) end
----@param tps string Text PS (Scrolling PS)
+---@param tps string Traffic PS
 function set_rds_tps(tps) end
 ---@param rt1 string Radio Text 1 (max 64 chars)
 function set_rds_rt1(rt1) end
@@ -137,45 +137,36 @@ function set_rds_lps(lps) end
 ---@return string
 function get_rds_lps() end
 
+---@param ert string
 function set_rds_ert(ert) end
 ---@return string
 function get_rds_ert() end
 
+---@param grpseq string
 function set_rds_grpseq(grpseq) end
 ---@return string
 function get_rds_grpseq() end
 
-
-function set_rds_grpseq2(grpseq) end
+---@param grpseq2 string
+function set_rds_grpseq2(grpseq2) end
 ---@return string
 function get_rds_grpseq2() end
 
 -- RT Plus Tags
 ---Sets RT+ tags: type1, start1, len1, type2, start2, len2
+---@param ertp boolean
 ---@param t1 integer
 ---@param s1 integer
 ---@param l1 integer
 ---@param t2 integer
 ---@param s2 integer
 ---@param l2 integer
-function set_rds_rtplus_tags(t1, s1, l1, t2, s2, l2) end
+function set_rds_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2) end
 
 ---Gets RT+ tags: type1, start1, len1, type2, start2, len2
----@return integer, integer, integer, integer, integer, integer
-function get_rds_rtplus_tags() end
-
----Sets eRT+ tags: type1, start1, len1, type2, start2, len2
----@param t1 integer
----@param s1 integer
----@param l1 integer
----@param t2 integer
----@param s2 integer
----@param l2 integer
-function set_rds_ertplus_tags(t1, s1, l1, t2, s2, l2) end
-
----Gets eRT+ tags: type1, start1, len1, type2, start2, len2
----@return integer, integer, integer, integer, integer, integer
-function get_rds_ertplus_tags() end
+---@param ertp boolean
+---@return integer type1, integer start1, integer len1, integer type2, integer start2, integer len2
+function get_rds_rtplus_tags(ertp) end
 
 ---Puts in a RDS1 group in the buffer, note that block A is filled in always
 ---@param b integer
@@ -189,3 +180,17 @@ function put_rds_custom_group(b, c, d) end
 ---@param c integer
 ---@param d integer
 function put_rds2_custom_group(a, b, c, d) end
+
+---Toggles RTP or ERTP's toggle switch
+---@param ertp boolean
+function toggle_rds_rtp(ertp) end
+
+---Sets the metadata of RTP or ERTP
+---@param ertp boolean
+---@param enabled boolean
+---@param running boolean
+function set_rds_rtp_meta(ertp, enabled, running) end
+---Gets the metadata of RTP and ERTP
+---@param ertp boolean
+---@return boolean enabled, boolean running
+function get_rds_rtp_meta(ertp) end

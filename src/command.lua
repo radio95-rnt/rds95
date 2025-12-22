@@ -14,16 +14,32 @@ if type(data) == "string" and data ~= nil then
         elseif data == "pty" then return string.format("PTY=%s\r\n", string.format("%d", get_rds_pty()))
         elseif data == "ecc" then return string.format("ECC=%s\r\n", string.format("%x", get_rds_ecc()))
         elseif data == "slcd" then return string.format("SLCD=%s\r\n", string.format("%x", get_rds_slc_data()))
-        elseif data == "ct" then return string.format("CT=%s\r\n", string.format("%d", get_rds_ct()))
-        elseif data == "dpty" then return string.format("DPTY=%s\r\n", string.format("%d", get_rds_dpty()))
-        elseif data == "tp" then return string.format("TP=%s\r\n", string.format("%d", get_rds_tp()))
-        elseif data == "ta" then return string.format("TA=%s\r\n", string.format("%d", get_rds_ta()))
-        elseif data == "rtp" then 
-            local t1, s1, l1, t2, s2, l2 = get_rds_rtplus_tags()
+        elseif data == "ct" then return string.format("CT=%s\r\n", string.format("%d", (get_rds_ct() and 1 or 0)))
+        elseif data == "dpty" then return string.format("DPTY=%s\r\n", string.format("%d", (get_rds_dpty() and 1 or 0)))
+        elseif data == "tp" then return string.format("TP=%s\r\n", string.format("%d", (get_rds_tp() and 1 or 0)))
+        elseif data == "ta" then return string.format("TA=%s\r\n", string.format("%d", (get_rds_ta() and 1 or 0)))
+        elseif data == "rt1en" then return string.format("RT1EN=%s\r\n", string.format("%d", (get_rds_rt1_enabled() and 1 or 0)))
+        elseif data == "rt2en" then return string.format("RT2EN=%s\r\n", string.format("%d", (get_rds_rt2_enabled() and 1 or 0)))
+        elseif data == "ptynen" then return string.format("PTYNEN=%s\r\n", string.format("%d", (get_rds_ptyn_enabled() and 1 or 0)))
+        elseif data == "rttype" then return string.format("RTTYPE=%s\r\n", string.format("%d", (get_rds_rt_type() and 1 or 0)))
+        elseif data == "rds2mod" then return string.format("RDS2MOD=%s\r\n", string.format("%d", (get_rds_rds2mod() and 1 or 0)))
+        elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d",get_rds_rdsgen()))
+        elseif data == "level" then return string.format("LEVEL=%s\r\n", string.format("%d", get_rds_level() * 255))
+        elseif data == "link" then return string.format("LINK=%s\r\n", string.format("%d", (get_rds_link() and 1 or 0)))
+        elseif data == "rtp" then
+            local t1, s1, l1, t2, s2, l2 = get_rds_rtplus_tags(false)
             return string.format("RTP=%d,%d,%d,%d,%d,%d\r\n", t1, s1, l1, t2, s2, l2)
-        elseif data == "ertp" then 
-            local t1, s1, l1, t2, s2, l2 = get_rds_ertplus_tags()
+        elseif data == "ertp" then
+            local t1, s1, l1, t2, s2, l2 = get_rds_rtplus_tags(true)
             return string.format("ERTP=%d,%d,%d,%d,%d,%d\r\n", t1, s1, l1, t2, s2, l2)
+        elseif data == "rtprun" then
+            local enabled, running = get_rds_rtp_meta(false)
+            local f1 = enabled and 2 or (running and 1 or 0)
+            return string.format("RTPRUN=%d\r\n", f1)
+        elseif data == "ertprun" then
+            local enabled, running = get_rds_rtp_meta(true)
+            local f1 = enabled and 2 or (running and 1 or 0)
+            return string.format("ERTPRUN=%d\r\n", f1)
         else return "?" end
         -- TODO: more
     end
@@ -52,47 +68,47 @@ if type(data) == "string" and data ~= nil then
     elseif cmd == "ct" then
         local ct = tonumber(value)
         if not ct then return "-" end
-        set_rds_ct(ct)
+        set_rds_ct(ct ~= 0)
         return "+"
     elseif cmd == "dpty" then
         local dpty = tonumber(value)
         if not dpty then return "-" end
-        set_rds_dpty(dpty)
+        set_rds_dpty(dpty ~= 0)
         return "+"
     elseif cmd == "tp" then
         local tp = tonumber(value)
         if not tp then return "-" end
-        set_rds_tp(tp)
+        set_rds_tp(tp ~= 0)
         return "+"
     elseif cmd == "ta" then
         local ta = tonumber(value)
         if not ta then return "-" end
-        set_rds_ta(ta)
+        set_rds_ta(ta ~= 0)
         return "+"
     elseif cmd == "rt1en" then
         local en = tonumber(value)
         if not en then return "-" end
-        set_rds_rt1_enabled(en)
+        set_rds_rt1_enabled(en ~= 0)
         return "+"
     elseif cmd == "rt2en" then
         local en = tonumber(value)
         if not en then return "-" end
-        set_rds_rt2_enabled(en)
+        set_rds_rt2_enabled(en ~= 0)
         return "+"
     elseif cmd == "ptynen" then
         local en = tonumber(value)
         if not en then return "-" end
-        set_rds_ptyn_enabled(en)
+        set_rds_ptyn_enabled(en ~= 0)
         return "+"
     elseif cmd == "rttype" then
         local type = tonumber(value)
         if not type then return "-" end
-        set_rds_rt_type(type)
+        set_rds_rt_type(type ~= 0)
         return "+"
     elseif cmd == "rds2mod" then
         local type = tonumber(value)
         if not type then return "-" end
-        set_rds_rds2mod(type)
+        set_rds_rds2mod(type ~= 0)
         return "+"
     elseif cmd == "rdsgen" then
         local type = tonumber(value)
@@ -123,7 +139,7 @@ if type(data) == "string" and data ~= nil then
     elseif cmd == "link" then
         local link = tonumber(value)
         if not link then return "-" end
-        set_rds_link(link)
+        set_rds_link(link ~= 0)
         return "+"
     elseif cmd == "rtper" then
         local period = tonumber(value)
@@ -152,18 +168,16 @@ if type(data) == "string" and data ~= nil then
     elseif cmd == "grpseq2" then
         set_rds_grpseq2(value)
         return "+"
-    elseif cmd == "rtp" then
+    elseif cmd == "rtp" or cmd == "ertp" then
+        local is_ertp = (cmd == "ertp")
         local t1, s1, l1, t2, s2, l2 = value:match("(%d+),(%d+),(%d+),(%d+),(%d+),(%d+)")
-        if not t1 or not l2 then return "-" end
----@diagnostic disable-next-line: param-type-mismatch
-        set_rds_rtplus_tags(tonumber(t1), tonumber(s1), tonumber(l1), tonumber(t2), tonumber(s2), tonumber(l2))
-        return "+"
 
-    elseif cmd == "ertp" then
-        local t1, s1, l1, t2, s2, l2 = value:match("(%d+),(%d+),(%d+),(%d+),(%d+),(%d+)")
-        if not t1 or not l2 then return "-" end
+        if not l2 then return "-" end
+        set_rds_rtplus_tags(
+            is_ertp,
 ---@diagnostic disable-next-line: param-type-mismatch
-        set_rds_ertplus_tags(tonumber(t1), tonumber(s1), tonumber(l1), tonumber(t2), tonumber(s2), tonumber(l2))
+            tonumber(t1), tonumber(s1), tonumber(l1), tonumber(t2), tonumber(s2), tonumber(l2)
+        )
         return "+"
     elseif cmd == "g" then
         local a, b, c, d = value:match("^(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)$")
@@ -179,6 +193,20 @@ if type(data) == "string" and data ~= nil then
         end
 
         return "-"
+    elseif cmd == "rtprun" or cmd == "ertprun" then
+        local is_ertp = (cmd == "ertprun")
+
+        local f1_str, f2_str = value:match("([^,]+),?([^,]*)")
+        if not f1_str then return "-" end
+
+        local f1 = tonumber(f1_str) or 0
+        local f2 = tonumber(f2_str) or 0
+        local enabled = (f1 == 2)
+        local running = (f1 & 1) ~= 0
+
+        set_rds_rtp_meta(is_ertp, enabled, running)
+        if f2 ~= 0 then toggle_rds_rtp(is_ertp) end
+        return "+"
     else
         return "?"
     end

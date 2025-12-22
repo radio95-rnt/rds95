@@ -145,24 +145,6 @@ static void handle_site(char *arg, RDSModulator* mod, char* output) {
 	strcpy(output, "+");
 }
 
-static void handle_rtprun(char *arg, RDSModulator *mod, char *output) {
-	int flag1 = 0, flag2 = 0;
-	if (sscanf(arg, "%d,%d", &flag1, &flag2) < 1) flag1 = atoi(arg);
-	mod->enc->rtpData[mod->enc->program][0].enabled = (flag1 == 2);
-	mod->enc->rtpData[mod->enc->program][0].running = flag1 & 1;
-	if (flag2) TOGGLE(mod->enc->rtpState[mod->enc->program][0].toggle);
-	strcpy(output, "+");
-}
-
-static void handle_ertprun(char *arg, RDSModulator* mod, char* output) {
-	int flag1 = 0, flag2 = 0;
-	if (sscanf(arg, "%d,%d", &flag1, &flag2) < 1) flag1 = atoi(arg);
-	mod->enc->rtpData[mod->enc->program][1].enabled = (flag1 == 2);
-	mod->enc->rtpData[mod->enc->program][1].running = flag1 & 1;
-	if (flag2) TOGGLE(mod->enc->rtpState[mod->enc->program][1].toggle);
-	strcpy(output, "+");
-}
-
 static void handle_eonen(char *arg, char *pattern, RDSModulator* mod, char* output) {
 	mod->enc->data[mod->enc->program].eon[atoi(pattern)-1].enabled = atoi(arg);
 	strcpy(output, "+");
@@ -255,14 +237,6 @@ static const command_handler_t commands_eq4[] = {
 
 static const command_handler_t commands_eq5[] = {
 	{"SITE", handle_site, 4}
-};
-
-static const command_handler_t commands_eq7[] = {
-	{"RTPRUN", handle_rtprun, 6},
-};
-
-static const command_handler_t commands_eq8[] = {
-	{"ERTPRUN", handle_ertprun, 7},
 };
 
 static const pattern_command_handler_t pattern_commands[] = {
@@ -377,14 +351,6 @@ void process_ascii_cmd(RDSModulator* mod, char *str, char *cmd_output) {
 				case 4:
 					table = commands_eq5;
 					table_size = sizeof(commands_eq5) / sizeof(command_handler_t);
-					break;
-				case 6:
-					table = commands_eq7;
-					table_size = sizeof(commands_eq7) / sizeof(command_handler_t);
-					break;
-				case 7:
-					table = commands_eq8;
-					table_size = sizeof(commands_eq8) / sizeof(command_handler_t);
 					break;
 			}
 
