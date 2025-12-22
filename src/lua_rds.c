@@ -92,8 +92,8 @@ BOOL_GETTER(rt2_enabled)
 BOOL_SETTER(ptyn_enabled)
 BOOL_GETTER(ptyn_enabled)
 
-BOOL_SETTER(rt_type)
-BOOL_GETTER(rt_type)
+INT_SETTER(rt_type)
+INT_GETTER(rt_type)
 
 int lua_set_rds_rds2mod(lua_State *localL) {
     if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));

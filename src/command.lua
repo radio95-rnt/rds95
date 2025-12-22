@@ -21,7 +21,7 @@ if type(data) == "string" and data ~= nil then
         elseif data == "rt1en" then return string.format("RT1EN=%s\r\n", string.format("%d", (get_rds_rt1_enabled() and 1 or 0)))
         elseif data == "rt2en" then return string.format("RT2EN=%s\r\n", string.format("%d", (get_rds_rt2_enabled() and 1 or 0)))
         elseif data == "ptynen" then return string.format("PTYNEN=%s\r\n", string.format("%d", (get_rds_ptyn_enabled() and 1 or 0)))
-        elseif data == "rttype" then return string.format("RTTYPE=%s\r\n", string.format("%d", (get_rds_rt_type() and 1 or 0)))
+        elseif data == "rttype" then return string.format("RTTYPE=%s\r\n", string.format("%d", get_rds_rt_type()))
         elseif data == "rds2mod" then return string.format("RDS2MOD=%s\r\n", string.format("%d", (get_rds_rds2mod() and 1 or 0)))
         elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d",get_rds_rdsgen()))
         elseif data == "level" then return string.format("LEVEL=%s\r\n", string.format("%d", get_rds_level() * 255))
@@ -103,7 +103,7 @@ if type(data) == "string" and data ~= nil then
     elseif cmd == "rttype" then
         local type = tonumber(value)
         if not type then return "-" end
-        set_rds_rt_type(type ~= 0)
+        set_rds_rt_type(type)
         return "+"
     elseif cmd == "rds2mod" then
         local type = tonumber(value)

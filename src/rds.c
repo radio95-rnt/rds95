@@ -679,9 +679,6 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 	memset(&(enc->rtpData[program]), 0, sizeof(RDSRTPlusData)*2);
 	memset(&(enc->encoder_data), 0, sizeof(RDSEncoderData));
 
-	enc->encoder_data.encoder_addr[0] = 255;
-	enc->encoder_data.encoder_addr[1] = 255;
-
 	enc->data[program].ct = 1;
 	strcpy((char *)enc->data[program].grp_sqc, DEFAULT_GRPSQC);
 	enc->data[program].tp = 1;
@@ -694,8 +691,6 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 	enc->data[program].rt_type = 2;
 
 	reset_rds_state(enc, program);
-
-	enc->encoder_data.ascii_data.expected_encoder_addr = 255; // Unknown
 }
 
 void init_rds_encoder(RDSEncoder* enc) {

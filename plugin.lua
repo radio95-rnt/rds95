@@ -77,9 +77,9 @@ function set_rds_ptyn_enabled(enabled) end
 ---@return boolean
 function get_rds_ptyn_enabled() end
 
----@param rt_type boolean
+---@param rt_type integer
 function set_rds_rt_type(rt_type) end
----@return boolean
+---@return integer
 function get_rds_rt_type() end
 
 -- Modulation & Generation
