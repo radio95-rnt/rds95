@@ -377,7 +377,7 @@ void lua_on_init() {
             lua_pop(L, 1);
         }
     } else {
-        // printf("Note: 'on_init' function not found in Lua script. Skipping.\n");
+        printf("Note: 'on_init' function not found in Lua script. Skipping.\n");
         lua_pop(L, 1);
     }
 }
