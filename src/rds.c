@@ -694,13 +694,14 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 }
 
 void init_rds_encoder(RDSEncoder* enc) {
-	for(int i = 0; i < PROGRAMS; i++) set_rds_defaults(enc, i);
+	for(int i = 0; i < PROGRAMS; i++) {
+		set_rds_defaults(enc, i);
+		reset_rds_state(enc, i);
+	}
 
-	if (encoder_saved() && encoder_loadFromFile(enc)) lua_on_init();
+	if (encoder_loadFromFile(enc)) lua_on_init();
 	else if(!encoder_saved()) lua_on_init();
 	encoder_saveToFile(enc);
-
-	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(enc, i);
 }
 
 void set_rds_rt1(RDSEncoder* enc, const char *rt1) {
