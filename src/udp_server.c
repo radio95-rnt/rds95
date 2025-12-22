@@ -31,7 +31,6 @@ int open_udp_server(int port, RDSModulator* rds_mod) {
     poller.events = POLLIN;
 
     mod = rds_mod;
-    init_lua(rds_mod);
 
     return 0;
 }
