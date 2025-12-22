@@ -196,7 +196,7 @@ STR_RAW_GETTER(lps)
 STR_RAW_SETTER(ert, set_rds_ert)
 STR_RAW_GETTER(ert)
 
-STR_RAW_SETTER(grpseq2, handle_grpseq2)
+STR_RAW_SETTER(grpseq2, set_rds_grpseq2)
 int lua_get_rds_grpseq2(lua_State *localL) {
     lua_pushstring(localL, mod->enc->data[mod->enc->program].grp_sqc_rds2);
     return 1;
@@ -216,7 +216,7 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_pushstring(L, VERSION);
     lua_setglobal(L, "core_version");
-    
+
     lua_register(L, "set_rds_program_defaults", lua_set_rds_program_defaults);
 
     lua_register(L, "set_rds_pi", lua_set_rds_pi);
