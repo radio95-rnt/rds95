@@ -32,7 +32,7 @@ void encoder_saveToFile(RDSEncoder *enc) {
 	fclose(file);
 }
 
-void encoder_loadFromFile(RDSEncoder *enc) {
+int encoder_loadFromFile(RDSEncoder *enc) {
 	char encoderPath[128];
 	snprintf(encoderPath, sizeof(encoderPath), "%s/.rdsEncoder", getenv("HOME"));
 
@@ -40,19 +40,19 @@ void encoder_loadFromFile(RDSEncoder *enc) {
 	FILE *file = fopen(encoderPath, "rb");
 	if (!file) {
 		perror("Error opening file");
-		return;
+		return 1;
 	}
 	fread(&rdsEncoderfile, sizeof(rdsEncoderfile), 1, file);
 	fclose(file);
 	
 	if (rdsEncoderfile.file_starter != 225 || rdsEncoderfile.file_ender != 95 || rdsEncoderfile.file_middle != 160) {
 		fprintf(stderr, "[RDSENCODER-FILE] Invalid file format\n");
-		return;
+		return 1;
 	}
 
 	if (crc16_ccitt((char*)&rdsEncoderfile, offsetof(RDSEncoderFile, crc)) != rdsEncoderfile.crc) {
 		fprintf(stderr, "[RDSENCODER-FILE] CRC mismatch! Data may be corrupted\n");
-		return;
+		return 1;
 	}
 
 	for (int i = 0; i < PROGRAMS; i++) {
@@ -61,6 +61,7 @@ void encoder_loadFromFile(RDSEncoder *enc) {
 	}
 	memcpy(&(enc->encoder_data), &(rdsEncoderfile.encoder_data), sizeof(RDSEncoderData));
 	enc->program = rdsEncoderfile.program;
+	return 0;
 }
 
 int encoder_saved() {

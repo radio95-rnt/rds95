@@ -696,7 +696,7 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 void init_rds_encoder(RDSEncoder* enc) {
 	for(int i = 0; i < PROGRAMS; i++) set_rds_defaults(enc, i);
 
-	if (encoder_saved()) encoder_loadFromFile(enc);
+	if (encoder_saved() && encoder_loadFromFile(enc)) lua_on_init();
 	else {
 		encoder_saveToFile(enc);
 		lua_on_init();

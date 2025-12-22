@@ -12,7 +12,10 @@ int lua_set_rds_program_defaults(lua_State *localL) {
 
 int lua_reset_rds(lua_State *localL) {
     (void)localL;
-    encoder_saveToFile(mod->enc);
+    if(encoder_saveToFile(mod->enc)) {
+        lua_set_rds_program_defaults(localL);
+        encoder_saveToFile(mod->enc)
+    }
 	encoder_loadFromFile(mod->enc);
 	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(mod->enc, i);
     Modulator_saveToFile(&mod->params);
