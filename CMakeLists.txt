@@ -11,6 +11,9 @@ file(GLOB SOURCES src/*.c)
 
 add_executable(rds95 ${SOURCES})
 
-target_link_libraries(rds95 PRIVATE m pthread pulse pulse-simple inih)
+find_package(Lua REQUIRED)
+
+target_include_directories(rds95 PRIVATE ${LUA_INCLUDE_DIR})
+target_link_libraries(rds95 PRIVATE m pthread pulse pulse-simple inih ${LUA_LIBRARIES})
 
 install(TARGETS rds95 DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
