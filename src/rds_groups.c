@@ -135,26 +135,26 @@ void get_rds_rt_group(RDSEncoder* enc, RDSGroup *group) {
 	if (enc->state[enc->program].rt_state == segments) enc->state[enc->program].rt_state = 0;
 }
 
-inline void get_rdsp_rtp_oda_group(RDSGroup *group) {
+void get_rdsp_rtp_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
 	group->b |= 11 << 1;
 	group->d = ODA_AID_RTPLUS;
 }
 
-inline void get_rdsp_ertp_oda_group(RDSGroup *group) {
+void get_rdsp_ertp_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
 	group->b |= 13 << 1;
 	group->d = ODA_AID_ERTPLUS;
 }
 
-inline void get_rdsp_ert_oda_group(RDSGroup *group) {
+void get_rdsp_ert_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
 	group->b |= 12 << 1;
 	group->c = 1; // UTF-8
 	group->d = ODA_AID_ERT;
 }
 
-inline void get_rdsp_oda_af_oda_group(RDSGroup *group) {
+void get_rdsp_oda_af_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
 	group->b |= 7 << 1;
 	group->d = ODA_AID_ODAAF;
@@ -211,13 +211,13 @@ void get_rds_lps_group(RDSEncoder* enc, RDSGroup *group) {
 	if (enc->state[enc->program].lps_state == enc->state[enc->program].lps_segments) enc->state[enc->program].lps_state = 0;
 }
 
-inline void get_rds_ecc_group(RDSEncoder* enc, RDSGroup *group) {
+void get_rds_ecc_group(RDSEncoder* enc, RDSGroup *group) {
 	group->b |= 1 << 12;
 	group->c = enc->state[enc->program].eon_linkage << 15;
 	group->c |= enc->data[enc->program].ecc;
 }
 
-inline void get_rds_slcdata_group(RDSEncoder* enc, RDSGroup *group) {
+void get_rds_slcdata_group(RDSEncoder* enc, RDSGroup *group) {
 	group->b |= 1 << 12;
 	group->c = enc->state[enc->program].eon_linkage << 15;
 	group->c |= 0x6000;
