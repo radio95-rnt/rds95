@@ -31,13 +31,13 @@
 #define	ODA_AID_ERTPLUS	0x4BD8
 #define ODA_AID_ODAAF	0x6365
 
-static uint16_t offset_words_typea[] = {
+uint16_t offset_words_typea[] = {
 	0x0FC, /*  A  */
 	0x198, /*  B  */
 	0x168, /*  C  */
 	0x1B4, /*  D  */
 };
-static uint16_t offset_words_typeb[] = {
+uint16_t offset_words_typeb[] = {
 	0x0FC, /*  A  */
 	0x198, /*  B  */
 	0x350, /*  C' */
