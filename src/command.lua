@@ -78,8 +78,6 @@ if type(data) == "string" and data ~= nil then
 
     cmd = cmd:lower()
 
-    if cmd == "debug" then return "Count is: " .. tostring(eon_count) end
-
     local eon_num, eon_type = cmd:match("^eon(%d+)([a-z]+)$")
     if eon_num then
         local eon_idx = tonumber(eon_num)
