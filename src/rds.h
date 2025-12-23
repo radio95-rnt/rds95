@@ -32,6 +32,7 @@
 #define	ODA_AID_ERTPLUS	0x4BD8
 #define ODA_AID_ODAAF	0x6365
 
+#ifndef offset_words_h
 uint16_t offset_words_typea[] = {
 	0x0FC, /*  A  */
 	0x198, /*  B  */
@@ -44,6 +45,8 @@ uint16_t offset_words_typeb[] = {
 	0x350, /*  C' */
 	0x1B4, /*  D  */
 };
+#define offset_words_h
+#endif
 
 typedef struct {
 	uint8_t num_entries : 6;
