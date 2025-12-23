@@ -76,6 +76,8 @@ if type(data) == "string" and data ~= nil then
         -- TODO: more
     end
 
+    cmd = cmd:lower()
+    
     local eon_set_cmd, eon_set_num, eon_set_type = cmd:match("^eon(%d+)([a-z]+)$")
     if eon_set_cmd then
         local eon_idx = tonumber(eon_set_cmd)
@@ -158,7 +160,6 @@ if type(data) == "string" and data ~= nil then
         end
     end
 
-    cmd = cmd:lower()
     if cmd == "pi" then
         local pi = tonumber(value, 16)
         if not pi then return "-" end
