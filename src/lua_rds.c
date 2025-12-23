@@ -78,9 +78,9 @@ int lua_get_rds_##name(lua_State *localL) { \
     lua_pushboolean(localL, mod->enc->data[mod->enc->program].name); \
     return 1; \
 }
-#define STR_RAW_GETTER(name, length) \
+#define STR_RAW_GETTER(name) \
 int lua_get_rds_##name(lua_State *localL) { \
-    lua_pushlstring(localL, mod->enc->data[mod->enc->program].name, length); \
+    lua_pushstring(localL, mod->enc->data[mod->enc->program].name); \
     return 1; \
 }
 INT_SETTER(pi)
@@ -259,13 +259,13 @@ STR_SETTER(rt1, set_rds_rt1)
 STR_SETTER(rt2, set_rds_rt2)
 
 STR_RAW_SETTER(lps, set_rds_lps)
-STR_RAW_GETTER(lps, LPS_LENGTH)
+STR_RAW_GETTER(lps)
 
 STR_RAW_SETTER(ert, set_rds_ert)
-STR_RAW_GETTER(ert, ERT_LENGTH)
+STR_RAW_GETTER(ert)
 
 STR_RAW_SETTER(grp_sqc_rds2, set_rds_grpseq2)
-STR_RAW_GETTER(grp_sqc_rds2, 24)
+STR_RAW_GETTER(grp_sqc_rds2)
 
 int lua_set_rds_grp_sqc(lua_State *localL) {
 	const char* str = luaL_checklstring(localL, 1, NULL);
@@ -273,7 +273,7 @@ int lua_set_rds_grp_sqc(lua_State *localL) {
     else set_rds_grpseq(mod->enc, str);
     return 0;
 }
-STR_RAW_GETTER(grp_sqc, 24)
+STR_RAW_GETTER(grp_sqc)
 
 AF_SETTER(af_group0, af, RDSAFs, add_rds_af)
 AF_SETTER(af_oda, af_oda, RDSAFsODA, add_rds_af_oda)
