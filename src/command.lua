@@ -40,8 +40,8 @@ if type(data) == "string" and data ~= nil then
             local enabled, running = get_rds_rtp_meta(true)
             local f1 = enabled and 2 or (running and 1 or 0)
             return string.format("ERTPRUN=%d\r\n", f1)
-        elseif data == "lps" then return string.format("LPS=%s", get_rds_lps())
-        elseif data == "ert" then return string.format("ERT=%s", get_rds_ert())
+        elseif data == "lps" then return string.format("LPS=%s\r\n", get_rds_lps())
+        elseif data == "ert" then return string.format("ERT=%s\r\n", get_rds_ert())
         else return "?" end
         -- TODO: more
     end
