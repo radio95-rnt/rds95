@@ -1,4 +1,5 @@
 #pragma once
+#include "common.h"
 
 /* The RDS error-detection code generator polynomial is
  * x^10 + x^8 + x^7 + x^5 + x^4 + x^3 + x^0
