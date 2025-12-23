@@ -208,7 +208,7 @@ void get_rds_lps_group(RDSEncoder* enc, RDSGroup *group) {
 	group->d |= enc->state[enc->program].lps_text[enc->state[enc->program].lps_state * 4 + 3];
 
 	enc->state[enc->program].lps_state++;
-	if (enc->state[enc->program].lps_state == enc->state[enc->program].lps_segments) enc->state[enc->program].lps_state = 0;
+	if (enc->state[enc->program].lps_state >= enc->state[enc->program].lps_segments) enc->state[enc->program].lps_state = 0;
 }
 
 void get_rds_ecc_group(RDSEncoder* enc, RDSGroup *group) {

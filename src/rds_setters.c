@@ -82,6 +82,7 @@ void set_rds_lps(RDSEncoder* enc, const char *lps) {
 			enc->state[enc->program].lps_segments++;
 		}
 	} else enc->state[enc->program].lps_segments = 8;
+	if(enc->state[enc->program].lps_segments > 8) enc->state[enc->program].lps_segments = 8; //make sure
 }
 
 void set_rds_ert(RDSEncoder* enc, const char *ert) {
