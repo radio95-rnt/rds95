@@ -42,6 +42,8 @@ if type(data) == "string" and data ~= nil then
             return string.format("ERTPRUN=%d\r\n", f1)
         elseif data == "lps" then return string.format("LPS=%s\r\n", get_rds_lps())
         elseif data == "ert" then return string.format("ERT=%s\r\n", get_rds_ert())
+        elseif data == "grpseq" then return string.format("GRPSEQ=%s\r\n", get_rds_grpseq())
+        elseif data == "grpseq2" then return string.format("GRPSEQ2=%s\r\n", get_rds_grpseq2())
         else return "?" end
         -- TODO: more
     end
