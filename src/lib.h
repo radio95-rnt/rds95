@@ -3,8 +3,6 @@
 #include "rds.h"
 #include <time.h>
 
-#define TOGGLE(x) ((x) ^= 1)
-
 void msleep(unsigned long ms);
 
 int _strnlen(const char *s, int maxlen);
