@@ -31,6 +31,19 @@
 #define	ODA_AID_ERTPLUS	0x4BD8
 #define ODA_AID_ODAAF	0x6365
 
+static uint16_t offset_words_typea[] = {
+	0x0FC, /*  A  */
+	0x198, /*  B  */
+	0x168, /*  C  */
+	0x1B4, /*  D  */
+};
+static uint16_t offset_words_typeb[] = {
+	0x0FC, /*  A  */
+	0x198, /*  B  */
+	0x350, /*  C' */
+	0x1B4, /*  D  */
+};
+
 typedef struct {
 	uint8_t num_entries : 6;
 	uint8_t num_afs : 5;
@@ -223,6 +236,7 @@ typedef struct
 void reset_rds_state(RDSEncoder* enc, uint8_t program);
 void set_rds_defaults(RDSEncoder* enc, uint8_t program);
 void init_rds_encoder(RDSEncoder* enc);
+void add_checkwords(RDSGroup *group, uint8_t *bits);
 void get_rds_bits(RDSEncoder* enc, uint8_t *bits, uint8_t stream);
 
 void set_rds_rt1(RDSEncoder* enc, const char *rt1);

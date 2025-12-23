@@ -36,41 +36,6 @@ inline uint16_t get_block_from_group(RDSGroup *group, uint8_t block) {
 	}
 }
 
-static uint16_t offset_words_typea[] = {
-	0x0FC, /*  A  */
-	0x198, /*  B  */
-	0x168, /*  C  */
-	0x1B4, /*  D  */
-};
-static uint16_t offset_words_typeb[] = {
-	0x0FC, /*  A  */
-	0x198, /*  B  */
-	0x350, /*  C' */
-	0x1B4, /*  D  */
-};
-
-void add_checkwords(RDSGroup *group, uint8_t *bits)
-{	
-	uint16_t* offset_words;
-	if(group->is_type_b) offset_words = offset_words_typeb;
-	else offset_words = offset_words_typea;
-
-	for (uint8_t i = 0; i < GROUP_LENGTH; i++) {
-		uint16_t block = get_block_from_group(group, i);
-
-		uint16_t block_crc = 0;
-		uint8_t j;
-		for (j = 0; j < BLOCK_SIZE; j++) {
-			uint8_t bit = (block & (0x8000 >> j)) != 0;
-			uint8_t msb = (block_crc >> (POLY_DEG - 1)) & 1;
-			block_crc <<= 1;
-			if (msb ^ bit) block_crc ^= POLY;
-			*bits++ = bit; // Write the data itself to the bits
-		}
-		for (j = 0; j < POLY_DEG; j++) *bits++ = ((block_crc ^ offset_words[i]) >> (POLY_DEG - 1 - j)) & 1; // Write the checkword to the bits
-	}
-}
-
 uint8_t add_rds_af_oda(RDSAFsODA *af_list, float freq) {
 	uint16_t af;
 
