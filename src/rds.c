@@ -294,6 +294,19 @@ group_coded:
 	return;
 }
 
+uint16_t offset_words_typea[] = {
+	0x0FC, /*  A  */
+	0x198, /*  B  */
+	0x168, /*  C  */
+	0x1B4, /*  D  */
+};
+uint16_t offset_words_typeb[] = {
+	0x0FC, /*  A  */
+	0x198, /*  B  */
+	0x350, /*  C' */
+	0x1B4, /*  D  */
+};
+
 void add_checkwords(RDSGroup *group, uint8_t *bits)
 {	
 	uint16_t* offset_words;

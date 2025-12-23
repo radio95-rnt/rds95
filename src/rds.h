@@ -1,5 +1,4 @@
 #pragma once
-#include "common.h"
 
 /* The RDS error-detection code generator polynomial is
  * x^10 + x^8 + x^7 + x^5 + x^4 + x^3 + x^0
@@ -31,22 +30,6 @@
 #define	ODA_AID_ERT		0x6552
 #define	ODA_AID_ERTPLUS	0x4BD8
 #define ODA_AID_ODAAF	0x6365
-
-#ifndef offset_words_h
-uint16_t offset_words_typea[] = {
-	0x0FC, /*  A  */
-	0x198, /*  B  */
-	0x168, /*  C  */
-	0x1B4, /*  D  */
-};
-uint16_t offset_words_typeb[] = {
-	0x0FC, /*  A  */
-	0x198, /*  B  */
-	0x350, /*  C' */
-	0x1B4, /*  D  */
-};
-#define offset_words_h
-#endif
 
 typedef struct {
 	uint8_t num_entries : 6;
