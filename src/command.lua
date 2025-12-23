@@ -75,6 +75,89 @@ if type(data) == "string" and data ~= nil then
             return "?" end
         -- TODO: more
     end
+
+    local eon_set_cmd, eon_set_num, eon_set_type = cmd:match("^eon(%d+)([a-z]+)$")
+    if eon_set_cmd then
+        local eon_idx = tonumber(eon_set_cmd)
+        if not eon_idx or eon_idx < 1 or eon_idx > eon_count then
+            return "?"
+        end
+
+        eon_idx = eon_idx - 1
+
+        local enabled, pi, tp, ta, pty, ps, afs, data_val = get_rds_eon(eon_idx)
+
+        if eon_set_type == "en" then
+            local en_val = tonumber(value)
+            if not en_val then return "-" end
+            enabled = (en_val ~= 0)
+            set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
+            return "+"
+
+        elseif eon_set_type == "pi" then
+            local pi_val = tonumber(value, 16)
+            if not pi_val then return "-" end
+            set_rds_eon(eon_idx, enabled, pi_val, tp, ta, pty, ps, afs, data_val)
+            return "+"
+
+        elseif eon_set_type == "ps" then
+            local ps_val = value:sub(1, 24)
+            set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps_val, afs, data_val)
+            return "+"
+
+        elseif eon_set_type == "pty" then
+            local pty_val = tonumber(value)
+            if not pty_val then return "-" end
+            set_rds_eon(eon_idx, enabled, pi, tp, ta, pty_val, ps, afs, data_val)
+            return "+"
+
+        elseif eon_set_type == "ta" then
+            if not enabled or not tp then
+                return "-"
+            end
+            local ta_val = tonumber(value)
+            if not ta_val then return "-" end
+            ta = (ta_val ~= 0)
+            set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
+            if ta then
+                set_rds_ta(true)
+            end
+            return "+"
+
+        elseif eon_set_type == "tp" then
+            local tp_val = tonumber(value)
+            if not tp_val then return "-" end
+            tp = (tp_val ~= 0)
+            set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
+            return "+"
+
+        elseif eon_set_type == "af" then
+            local af_table = {}
+            if value == "" or value == "0" then
+                set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, {}, data_val)
+                return "+"
+            end
+            for freq_str in value:gmatch("([^,]+)") do
+                local f = tonumber(freq_str)
+                if f then
+                    table.insert(af_table, f)
+                else
+                    return "-"
+                end
+            end
+            if #af_table > 25 then return "-" end
+            set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, af_table, data_val)
+            return "+"
+        elseif eon_set_type == "dt" then
+            local dt_val = tonumber(value, 16)
+            if not dt_val then return "-" end
+            set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, dt_val)
+            return "+"
+        else
+            return "?"
+        end
+    end
+
     cmd = cmd:lower()
     if cmd == "pi" then
         local pi = tonumber(value, 16)
@@ -276,93 +359,6 @@ if type(data) == "string" and data ~= nil then
         set_rds_af_oda(af_table)
         return "+"
     else
-        local eon_set_cmd, eon_set_num, eon_set_type = cmd:match("^eon(%d+)([a-z]+)$")
-        if eon_set_cmd then
-            local eon_idx = tonumber(eon_set_cmd)
-            if not eon_idx or eon_idx < 1 or eon_idx > eon_count then
-                return "?"
-            end
-
-            eon_idx = eon_idx - 1
-
-            local enabled, pi, tp, ta, pty, ps, afs, data_val = get_rds_eon(eon_idx)
-
-            if eon_set_type == "en" then
-                local en_val = tonumber(value)
-                if not en_val then return "-" end
-                enabled = (en_val ~= 0)
-                set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
-                return "+"
-
-            elseif eon_set_type == "pi" then
-                local pi_val = tonumber(value, 16)
-                if not pi_val then return "-" end
-                set_rds_eon(eon_idx, enabled, pi_val, tp, ta, pty, ps, afs, data_val)
-                return "+"
-
-            elseif eon_set_type == "ps" then
-                local ps_val = value:sub(1, 24)
-                set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps_val, afs, data_val)
-                return "+"
-
-            elseif eon_set_type == "pty" then
-                local pty_val = tonumber(value)
-                if not pty_val then return "-" end
-                set_rds_eon(eon_idx, enabled, pi, tp, ta, pty_val, ps, afs, data_val)
-                return "+"
-
-            elseif eon_set_type == "ta" then
-                if not enabled or not tp then
-                    return "-"
-                end
-                local ta_val = tonumber(value)
-                if not ta_val then return "-" end
-                ta = (ta_val ~= 0)
-                set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
-                if ta then
-                    set_rds_ta(true)
-                end
-                return "+"
-
-            elseif eon_set_type == "tp" then
-                local tp_val = tonumber(value)
-                if not tp_val then return "-" end
-                tp = (tp_val ~= 0)
-                set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
-                return "+"
-
-            elseif eon_set_type == "af" then
-                local af_table = {}
-
-                if value == "" or value == "0" then
-                    set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, {}, data_val)
-                    return "+"
-                end
-
-                for freq_str in value:gmatch("([^,]+)") do
-                    local f = tonumber(freq_str)
-                    if f then
-                        table.insert(af_table, f)
-                    else
-                        return "-"
-                    end
-                end
-
-                if #af_table > 25 then return "-" end
-
-                set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, af_table, data_val)
-                return "+"
-
-            elseif eon_set_type == "dt" then
-                local dt_val = tonumber(value, 16)
-                if not dt_val then return "-" end
-                set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, dt_val)
-                return "+"
-            else
-                return "?"
-            end
-        else
-            return "?"
-        end
+        return "?"
     end
 end
