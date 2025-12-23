@@ -44,37 +44,36 @@ if type(data) == "string" and data ~= nil then
         elseif data == "ert" then return string.format("ERT=%s\r\n", get_rds_ert())
         elseif data == "grpseq" then return string.format("GRPSEQ=%s\r\n", get_rds_grpseq())
         elseif data == "grpseq2" then return string.format("GRPSEQ2=%s\r\n", get_rds_grpseq2())
-        else return "?" end
+        else 
+            local eon_cmd, eon_num = data:match("^eon(%d+)([a-z]+)$")
+            if eon_cmd then
+                local eon_idx = tonumber(eon_cmd)
+                if not eon_idx or eon_idx < 1 or eon_idx > eon_count then
+                    return "?"
+                end
+
+                eon_idx = eon_idx - 1
+
+                local enabled, pi, tp, ta, pty, ps, afs, data_val = get_rds_eon(eon_idx)
+
+                if eon_num == "en" then
+                    return string.format("EON%dEN=%d\r\n", eon_idx + 1, enabled and 1 or 0)
+                elseif eon_num == "pi" then
+                    return string.format("EON%dPI=%x\r\n", eon_idx + 1, pi)
+                elseif eon_num == "ps" then
+                    return string.format("EON%dPS=%s\r\n", eon_idx + 1, ps)
+                elseif eon_num == "pty" then
+                    return string.format("EON%dPTY=%d\r\n", eon_idx + 1, pty)
+                elseif eon_num == "ta" then
+                    return string.format("EON%dTA=%d\r\n", eon_idx + 1, ta and 1 or 0)
+                elseif eon_num == "tp" then
+                    return string.format("EON%dTP=%d\r\n", eon_idx + 1, tp and 1 or 0)
+                elseif eon_num == "dt" then
+                    return string.format("EON%dDT=%x\r\n", eon_idx + 1, data_val)
+                end
+            end
+            return "?" end
         -- TODO: more
-    end
-    local eon_cmd, eon_num = data:match("^eon(%d+)([a-z]+)$")
-    if eon_cmd then
-        local eon_idx = tonumber(eon_cmd)
-        if not eon_idx or eon_idx < 1 or eon_idx > eon_count then
-            return "?"
-        end
-
-        eon_idx = eon_idx - 1
-
-        local enabled, pi, tp, ta, pty, ps, afs, data_val = get_rds_eon(eon_idx)
-
-        if eon_num == "en" then
-            return string.format("EON%dEN=%d\r\n", eon_idx + 1, enabled and 1 or 0)
-        elseif eon_num == "pi" then
-            return string.format("EON%dPI=%x\r\n", eon_idx + 1, pi)
-        elseif eon_num == "ps" then
-            return string.format("EON%dPS=%s\r\n", eon_idx + 1, ps)
-        elseif eon_num == "pty" then
-            return string.format("EON%dPTY=%d\r\n", eon_idx + 1, pty)
-        elseif eon_num == "ta" then
-            return string.format("EON%dTA=%d\r\n", eon_idx + 1, ta and 1 or 0)
-        elseif eon_num == "tp" then
-            return string.format("EON%dTP=%d\r\n", eon_idx + 1, tp and 1 or 0)
-        elseif eon_num == "dt" then
-            return string.format("EON%dDT=%x\r\n", eon_idx + 1, data_val)
-        else
-            return "?"
-        end
     end
     cmd = cmd:lower()
     if cmd == "pi" then
