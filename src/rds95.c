@@ -11,7 +11,6 @@
 #include "modulator.h"
 #include "udp_server.h"
 #include "lib.h"
-#include "ascii_cmd.h"
 
 #define DEFAULT_CONFIG_PATH "/etc/rds95.conf"
 #define DEFAULT_STREAMS 1
