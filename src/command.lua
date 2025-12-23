@@ -2,8 +2,7 @@ if type(data) == "string" and data ~= nil then
     local cmd, value = data:match("([^=]+)=([^=]+)")
     if cmd == nil then
         data = data:lower()
-        if data == "ver" then
-            return string.format("rds95 v. %s - (C) 2025 radio95 - lua parser", core_version)
+        if data == "ver" then return string.format("rds95 v. %s - (C) 2025 radio95 - lua parser", core_version)
         elseif data == "init" then
             set_rds_program_defaults()
             return "+"
@@ -48,28 +47,17 @@ if type(data) == "string" and data ~= nil then
             local eon_cmd, eon_num = data:match("^eon(%d+)([a-z]+)$")
             if eon_cmd then
                 local eon_idx = tonumber(eon_cmd)
-                if not eon_idx or eon_idx < 1 or eon_idx > eon_count then
-                    return "?"
-                end
-
+                if not eon_idx or eon_idx < 1 or eon_idx > eon_count then return "?" end
                 eon_idx = eon_idx - 1
-
                 local enabled, pi, tp, ta, pty, ps, afs, data_val = get_rds_eon(eon_idx)
 
-                if eon_num == "en" then
-                    return string.format("EON%dEN=%d\r\n", eon_idx + 1, enabled and 1 or 0)
-                elseif eon_num == "pi" then
-                    return string.format("EON%dPI=%x\r\n", eon_idx + 1, pi)
-                elseif eon_num == "ps" then
-                    return string.format("EON%dPS=%s\r\n", eon_idx + 1, ps)
-                elseif eon_num == "pty" then
-                    return string.format("EON%dPTY=%d\r\n", eon_idx + 1, pty)
-                elseif eon_num == "ta" then
-                    return string.format("EON%dTA=%d\r\n", eon_idx + 1, ta and 1 or 0)
-                elseif eon_num == "tp" then
-                    return string.format("EON%dTP=%d\r\n", eon_idx + 1, tp and 1 or 0)
-                elseif eon_num == "dt" then
-                    return string.format("EON%dDT=%x\r\n", eon_idx + 1, data_val)
+                if eon_num == "en" then return string.format("EON%dEN=%d\r\n", eon_idx + 1, enabled and 1 or 0)
+                elseif eon_num == "pi" then return string.format("EON%dPI=%x\r\n", eon_idx + 1, pi)
+                elseif eon_num == "ps" then return string.format("EON%dPS=%s\r\n", eon_idx + 1, ps)
+                elseif eon_num == "pty" then return string.format("EON%dPTY=%d\r\n", eon_idx + 1, pty)
+                elseif eon_num == "ta" then return string.format("EON%dTA=%d\r\n", eon_idx + 1, ta and 1 or 0)
+                elseif eon_num == "tp" then return string.format("EON%dTP=%d\r\n", eon_idx + 1, tp and 1 or 0)
+                elseif eon_num == "dt" then return string.format("EON%dDT=%x\r\n", eon_idx + 1, data_val)
                 end
             end
             return "?"
@@ -81,58 +69,44 @@ if type(data) == "string" and data ~= nil then
     local eon_num, eon_type = cmd:match("^eon(%d+)([a-z]+)$")
     if eon_num then
         local eon_idx = tonumber(eon_num)
-        if not eon_idx or eon_idx < 1 or eon_idx > eon_count then
-            return "?"
-        end
-
+        if not eon_idx or eon_idx < 1 or eon_idx > eon_count then return "?" end
         eon_idx = eon_idx - 1
 
         local enabled, pi, tp, ta, pty, ps, afs, data_val = get_rds_eon(eon_idx)
-
         if eon_type == "en" then
             local en_val = tonumber(value)
             if not en_val then return "-" end
             enabled = (en_val ~= 0)
             set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
             return "+"
-
         elseif eon_type == "pi" then
             local pi_val = tonumber(value, 16)
             if not pi_val then return "-" end
             set_rds_eon(eon_idx, enabled, pi_val, tp, ta, pty, ps, afs, data_val)
             return "+"
-
         elseif eon_type == "ps" then
             local ps_val = value:sub(1, 24)
             set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps_val, afs, data_val)
             return "+"
-
         elseif eon_type == "pty" then
             local pty_val = tonumber(value)
             if not pty_val then return "-" end
             set_rds_eon(eon_idx, enabled, pi, tp, ta, pty_val, ps, afs, data_val)
             return "+"
-
         elseif eon_type == "ta" then
-            if not enabled or not tp then
-                return "-"
-            end
+            if not enabled or not tp then return "-" end
             local ta_val = tonumber(value)
             if not ta_val then return "-" end
             ta = (ta_val ~= 0)
             set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
-            if ta then
-                set_rds_ta(true)
-            end
+            if ta then set_rds_ta(true) end
             return "+"
-
         elseif eon_type == "tp" then
             local tp_val = tonumber(value)
             if not tp_val then return "-" end
             tp = (tp_val ~= 0)
             set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
             return "+"
-
         elseif eon_type == "af" then
             local af_table = {}
             if value == "" or value == "0" then
@@ -141,24 +115,49 @@ if type(data) == "string" and data ~= nil then
             end
             for freq_str in value:gmatch("([^,]+)") do
                 local f = tonumber(freq_str)
-                if f then
-                    table.insert(af_table, f)
-                else
-                    return "-"
-                end
+                if f then table.insert(af_table, f)
+                else return "-" end
             end
             if #af_table > 25 then return "-" end
             set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, af_table, data_val)
             return "+"
-
         elseif eon_type == "dt" then
             local dt_val = tonumber(value, 16)
             if not dt_val then return "-" end
             set_rds_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, dt_val)
             return "+"
-        else
-            return "?"
+        else return "?" end
+    end
+
+    local udg_num = cmd:match("^udg([12])$")
+    local udg2_num = cmd:match("^2udg([12])$")
+    if udg_num then
+        local xy = (udg_num == "1")
+        local groups = {}
+
+        for segment in value:gmatch("([^,]+)") do
+            local b, c, d = segment:match("^(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)$")
+            if not (b and c and d) then return "-" end
+            table.insert(groups, {tonumber(b, 16), tonumber(c, 16), tonumber(d, 16)})
         end
+
+        if #groups > 8 or #groups == 0 then return "-" end
+        set_rds_udg(xy, groups)
+        return "+"
+    end
+    if udg2_num then
+        local xy = (udg2_num == "1")
+        local groups = {}
+
+        for segment in value:gmatch("([^,]+)") do
+            local a, b, c, d = segment:match("^(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)$")
+            if not (a and b and c and d) then return "-" end
+            table.insert(groups, {tonumber(a, 16), tonumber(b, 16), tonumber(c, 16), tonumber(d, 16)})
+        end
+
+        if #groups > 8 or #groups == 0 then return "-" end
+        set_rds_udg2(xy, groups)
+        return "+"
     end
 
     if cmd == "pi" then

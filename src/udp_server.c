@@ -59,7 +59,6 @@ void poll_udp_server() {
             strncpy(cmd_buf, token, BUF_SIZE - 1);
 
             memset(cmd_output, 0, BUF_SIZE);
-            process_ascii_cmd(mod, cmd_buf, NULL);
             run_lua(cmd_buf, cmd_output);
 
             size_t out_len = strlen(cmd_output);

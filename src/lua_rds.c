@@ -61,6 +61,7 @@ int lua_set_rds_##name(lua_State *localL) { \
     for (int i = 1; i <= n; i++) { \
         lua_rawgeti(localL, 1, i); \
         if (lua_isnumber(localL, -1)) add_func(&new_af, lua_tonumber(localL, -1)); \
+        else return luaL_error(localL, "number expected, got %s", luaL_typename(localL, -1)); \
         lua_pop(localL, 1); \
     } \
 	memcpy(&(mod->enc->data[mod->enc->program].af_field), &new_af, sizeof(new_af)); \
@@ -296,14 +297,15 @@ int lua_set_rds_eon(lua_State *localL) {
         memset(&(mod->enc->data[mod->enc->program].eon[eon].af), 0, sizeof(RDSAFs));
         return 0;
     }
-    if(n > 25) return luaL_error(localL, "table length over 25"); \
+    if(n > 25) return luaL_error(localL, "table length over 25");
     
     RDSAFs new_af;
     memset(&new_af, 0, sizeof(RDSAFs));
     
     for (int i = 1; i <= n; i++) {
-        lua_rawgeti(localL, 8, i); \
+        lua_rawgeti(localL, 8, i);
         if (lua_isnumber(localL, -1)) add_rds_af(&new_af, lua_tonumber(localL, -1));
+        else return luaL_error(localL, "number expected, got %s", luaL_typename(localL, -1));
         lua_pop(localL, 1);
     }
 	memcpy(&(mod->enc->data[mod->enc->program].eon[eon].af), &new_af, sizeof(new_af));
@@ -322,6 +324,77 @@ int lua_get_rds_eon(lua_State *localL) {
     lua_createtable(localL, 0, 0); // don't have decoding for AF, so just return empty table
     lua_pushinteger(localL, mod->enc->data[mod->enc->program].eon[eon].data);
     return 8;
+}
+
+int lua_set_rds_udg(lua_State *localL) {
+    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
+    int xy = lua_toboolean(localL, 1);
+    luaL_checktype(localL, 2, LUA_TTABLE);
+    int n = lua_rawlen(localL, 2);
+    if(n > 8) return luaL_error(localL, "table length over 8");
+
+    uint16_t blocks[8][3] = {0};
+    
+    for (int i = 1; i <= n; i++) {
+        lua_rawgeti(localL, 2, i);
+        if(lua_istable(localL, -1)) {
+            int n2 = lua_rawlen(localL, -1);
+            if(n2 > 3) return luaL_error(localL, "table length over 3");
+            for(int j = 1; j <= n2; j++) {
+                lua_rawgeti(localL, -1, j);
+                if (lua_isinteger(localL, -1)) blocks[i-1][j-1] = lua_tointeger(localL, -1);
+                else return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -1));
+                lua_pop(localL, 1);
+            }
+        }
+        else return luaL_error(localL, "table expected, got %s", luaL_typename(localL, -1));
+        lua_pop(localL, 1);
+    }
+
+    if(xy) {
+        memcpy(&(mod->enc->data[mod->enc->program].udg2), blocks, n * sizeof(uint16_t[3]));
+		mod->enc->data[mod->enc->program].udg2_len = n;
+    } else {
+        memcpy(&(mod->enc->data[mod->enc->program].udg1), blocks, n * sizeof(uint16_t[3]));
+		mod->enc->data[mod->enc->program].udg1_len = n;
+    }
+
+    return 0;
+}
+int lua_set_rds_udg2(lua_State *localL) {
+    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
+    int xy = lua_toboolean(localL, 1);
+    luaL_checktype(localL, 2, LUA_TTABLE);
+    int n = lua_rawlen(localL, 2);
+    if(n > 8) return luaL_error(localL, "table length over 8");
+
+    uint16_t blocks[8][4] = {0};
+    
+    for (int i = 1; i <= n; i++) {
+        lua_rawgeti(localL, 2, i);
+        if(lua_istable(localL, -1)) {
+            int n2 = lua_rawlen(localL, -1);
+            if(n2 > 4) return luaL_error(localL, "table length over 4");
+            for(int j = 1; j <= n2; j++) {
+                lua_rawgeti(localL, -1, j);
+                if (lua_isinteger(localL, -1)) blocks[i-1][j-1] = lua_tointeger(localL, -1);
+                else return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -1));
+                lua_pop(localL, 1);
+            }
+        }
+        else return luaL_error(localL, "table expected, got %s", luaL_typename(localL, -1));
+        lua_pop(localL, 1);
+    }
+
+    if(xy) {
+        memcpy(&(mod->enc->data[mod->enc->program].udg2_rds2), blocks, n * sizeof(uint16_t[4]));
+		mod->enc->data[mod->enc->program].udg2_len_rds2 = n;
+    } else {
+        memcpy(&(mod->enc->data[mod->enc->program].udg1_rds2), blocks, n * sizeof(uint16_t[4]));
+		mod->enc->data[mod->enc->program].udg1_len_rds2 = n;
+    }
+
+    return 0;
 }
 
 void init_lua(RDSModulator* rds_mod) {
@@ -436,6 +509,9 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_eon", lua_set_rds_eon);
     lua_register(L, "get_rds_eon", lua_get_rds_eon);
+
+    lua_register(L, "set_rds_udg", lua_set_rds_udg);
+    lua_register(L, "set_rds_udg2", lua_set_rds_udg2);
 }
 
 void run_lua(char *str, char *cmd_output) {

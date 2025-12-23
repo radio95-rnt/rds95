@@ -227,3 +227,12 @@ function set_rds_eon(eon, enabled, pi, tp, ta, pty, ps, afs, data) end
 ---@return table _ this is empty, getting afs is not supported yet
 ---@return integer data
 function get_rds_eon(eon) end
+
+---Sets the X/Y of the UDG
+---@param xy boolean
+---@param groups table Table of tables, this should be up to 8 tables containing 3 integers
+function set_rds_udg(xy, groups) end
+---Sets the X/Y of the UDG for RDS2
+---@param xy boolean
+---@param groups table Table of tables, this should be up to 8 tables containing 4 integers
+function set_rds_udg2(xy, groups) end
