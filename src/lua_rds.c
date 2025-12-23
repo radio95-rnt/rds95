@@ -13,9 +13,10 @@ int lua_set_rds_program_defaults(lua_State *localL) {
 int lua_reset_rds(lua_State *localL) {
     (void)localL;
     encoder_saveToFile(mod->enc);
+    Modulator_saveToFile(&mod->params);
+
 	encoder_loadFromFile(mod->enc);
 	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(mod->enc, i);
-    Modulator_saveToFile(&mod->params);
 	Modulator_loadFromFile(&mod->params);
     return 0;
 }
@@ -43,6 +44,29 @@ int lua_set_rds_##name(lua_State *localL) { \
     function(mod->enc, str); \
     return 0; \
 }
+#define AF_SETTER(name, af_field, af_struct, add_func) \
+int lua_set_rds_##name(lua_State *localL) { \
+    luaL_checktype(localL, 1, LUA_TTABLE); \
+    \
+    int n = lua_rawlen(localL, 1); \
+    if (n == 0) { \
+        memset(&(mod->enc->data[mod->enc->program].af_field), 0, sizeof(af_struct)); \
+        return 0; \
+    } \
+    if(n > 25) return luaL_error(localL, "table length over 25"); \
+    \
+    af_struct new_af; \
+    memset(&new_af, 0, sizeof(af_struct)); \
+    \
+    for (int i = 1; i <= n; i++) { \
+        lua_rawgeti(localL, 1, i); \
+        if (lua_isnumber(localL, -1)) add_func(&new_af, lua_tonumber(localL, -1)); \
+        lua_pop(localL, 1); \
+    } \
+	memcpy(&(mod->enc->data[mod->enc->program].af_field), &new_af, sizeof(new_af)); \
+    \
+    return 0; \
+}
 
 #define INT_GETTER(name) \
 int lua_get_rds_##name(lua_State *localL) { \
@@ -54,9 +78,9 @@ int lua_get_rds_##name(lua_State *localL) { \
     lua_pushboolean(localL, mod->enc->data[mod->enc->program].name); \
     return 1; \
 }
-#define STR_RAW_GETTER(name) \
+#define STR_RAW_GETTER(name, length) \
 int lua_get_rds_##name(lua_State *localL) { \
-    lua_pushstring(localL, mod->enc->data[mod->enc->program].name); \
+    lua_pushlstring(localL, mod->enc->data[mod->enc->program].name, length); \
     return 1; \
 }
 INT_SETTER(pi)
@@ -145,19 +169,13 @@ int lua_set_rds_rt_switching_period(lua_State *localL) {
 	mod->enc->state[mod->enc->program].rt_switching_period_state = mod->enc->data[mod->enc->program].rt_switching_period;
     return 0;
 }
-int lua_get_rds_rt_switching_period(lua_State *localL) {
-    lua_pushinteger(localL, mod->enc->data[mod->enc->program].rt_switching_period);
-    return 1;
-}
+INT_GETTER(rt_switching_period)
 int lua_set_rds_rt_text_timeout(lua_State *localL) {
 	mod->enc->data[mod->enc->program].rt_text_timeout = luaL_checkinteger(localL, 1);
 	mod->enc->state[mod->enc->program].rt_text_timeout_state = mod->enc->data[mod->enc->program].rt_text_timeout;
     return 0;
 }
-int lua_get_rds_rt_text_timeout(lua_State *localL) {
-    lua_pushinteger(localL, mod->enc->data[mod->enc->program].rt_text_timeout);
-    return 1;
-}
+INT_GETTER(rt_text_timeout)
 
 int lua_set_rds_level(lua_State *localL) {
 	mod->params.level = luaL_checknumber(localL, 1);
@@ -241,71 +259,69 @@ STR_SETTER(rt1, set_rds_rt1)
 STR_SETTER(rt2, set_rds_rt2)
 
 STR_RAW_SETTER(lps, set_rds_lps)
-STR_RAW_GETTER(lps)
+STR_RAW_GETTER(lps, LPS_LENGTH)
 
 STR_RAW_SETTER(ert, set_rds_ert)
-STR_RAW_GETTER(ert)
+STR_RAW_GETTER(ert, ERT_LENGTH)
 
-STR_RAW_SETTER(grpseq2, set_rds_grpseq2)
-int lua_get_rds_grpseq2(lua_State *localL) {
-    lua_pushstring(localL, mod->enc->data[mod->enc->program].grp_sqc_rds2);
-    return 1;
-}
+STR_RAW_SETTER(grp_sqc_rds2, set_rds_grpseq2)
+STR_RAW_GETTER(grp_sqc_rds2, 24)
 
-int lua_set_rds_grpseq(lua_State *localL) {
+int lua_set_rds_grp_sqc(lua_State *localL) {
 	const char* str = luaL_checklstring(localL, 1, NULL);
     if(_strnlen(str, 2) < 1) set_rds_grpseq(mod->enc, DEFAULT_GRPSQC);
     else set_rds_grpseq(mod->enc, str);
     return 0;
 }
-int lua_get_rds_grpseq(lua_State *localL) {
-    lua_pushstring(localL, mod->enc->data[mod->enc->program].grp_sqc);
-    return 1;
-}
+STR_RAW_GETTER(grp_sqc, 24)
 
-int lua_set_rds_af_group0(lua_State *localL) {
-    luaL_checktype(localL, 1, LUA_TTABLE);
+AF_SETTER(af_group0, af, RDSAFs, add_rds_af)
+AF_SETTER(af_oda, af_oda, RDSAFsODA, add_rds_af_oda)
 
-    int n = lua_rawlen(localL, 1);
+int lua_set_rds_eon(lua_State *localL) {
+    int eon = luaL_checkinteger(localL, 1);
+    if (!lua_isboolean(localL, 2)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 2));
+    if (!lua_isboolean(localL, 4)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 4));
+    if (!lua_isboolean(localL, 5)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 5));
+    luaL_checktype(localL, 8, LUA_TTABLE);
+    mod->enc->data[mod->enc->program].eon[eon].enabled = lua_toboolean(localL, 2);
+    mod->enc->data[mod->enc->program].eon[eon].pi = luaL_checkinteger(localL, 3);
+    mod->enc->data[mod->enc->program].eon[eon].tp = lua_toboolean(localL, 4);
+    mod->enc->data[mod->enc->program].eon[eon].ta = lua_toboolean(localL, 5);
+    mod->enc->data[mod->enc->program].eon[eon].pty = luaL_checkinteger(localL, 6);
+	_strncpy(mod->enc->data[mod->enc->program].eon[eon].ps, luaL_checklstring(localL, 7, NULL), 8);
+
+    int n = lua_rawlen(localL, 8);
     if (n == 0) {
-        memset(&(mod->enc->data[mod->enc->program].af), 0, sizeof(RDSAFs));
+        memset(&(mod->enc->data[mod->enc->program].eon[eon].af), 0, sizeof(RDSAFs));
         return 0;
     }
-    if(n > 25) return luaL_error(localL, "table length over 25");
-
+    if(n > 25) return luaL_error(localL, "table length over 25"); \
+    
     RDSAFs new_af;
     memset(&new_af, 0, sizeof(RDSAFs));
-
+    
     for (int i = 1; i <= n; i++) {
-        lua_rawgeti(localL, 1, i);
+        lua_rawgeti(localL, 8, i); \
         if (lua_isnumber(localL, -1)) add_rds_af(&new_af, lua_tonumber(localL, -1));
         lua_pop(localL, 1);
     }
-	memcpy(&(mod->enc->data[mod->enc->program].af), &new_af, sizeof(new_af));
+	memcpy(&(mod->enc->data[mod->enc->program].eon[eon].af), &new_af, sizeof(new_af));
 
+    mod->enc->data[mod->enc->program].eon[eon].data = luaL_checkinteger(localL, 9);
     return 0;
 }
-int lua_set_rds_af_oda(lua_State *localL) {
-    luaL_checktype(localL, 1, LUA_TTABLE);
-
-    int n = lua_rawlen(localL, 1);
-    if (n == 0) {
-        memset(&(mod->enc->data[mod->enc->program].af_oda), 0, sizeof(RDSAFsODA));
-        return 0;
-    }
-    if(n > 25) return luaL_error(localL, "table length over 25");
-
-    RDSAFsODA new_af;
-    memset(&new_af, 0, sizeof(RDSAFsODA));
-
-    for (int i = 1; i <= n; i++) {
-        lua_rawgeti(localL, 1, i);
-        if (lua_isnumber(localL, -1)) add_rds_af_oda(&new_af, lua_tonumber(localL, -1));
-        lua_pop(localL, 1);
-    }
-	memcpy(&(mod->enc->data[mod->enc->program].af_oda), &new_af, sizeof(new_af));
-
-    return 0;
+int lua_get_rds_eon(lua_State *localL) {
+    int eon = luaL_checkinteger(localL, 1);
+    lua_pushboolean(localL, mod->enc->data[mod->enc->program].eon[eon].enabled);
+    lua_pushinteger(localL, mod->enc->data[mod->enc->program].eon[eon].pi);
+    lua_pushboolean(localL, mod->enc->data[mod->enc->program].eon[eon].tp);
+    lua_pushboolean(localL, mod->enc->data[mod->enc->program].eon[eon].ta);
+    lua_pushinteger(localL, mod->enc->data[mod->enc->program].eon[eon].pty);
+    lua_pushlstring(localL, mod->enc->data[mod->enc->program].eon[eon].ps, 8);
+    lua_createtable(localL, 0, 0); // don't have decoding for AF, so just return empty table
+    lua_pushinteger(localL, mod->enc->data[mod->enc->program].eon[eon].data);
+    return 8;
 }
 
 void init_lua(RDSModulator* rds_mod) {
@@ -324,6 +340,8 @@ void init_lua(RDSModulator* rds_mod) {
     lua_setglobal(L, "core_version");
     lua_pushinteger(L, PROGRAMS);
     lua_setglobal(L, "max_programs");
+    lua_pushinteger(L, 4);
+    lua_setglobal(L, "eon_count");
 
     lua_register(L, "set_rds_program_defaults", lua_set_rds_program_defaults);
     lua_register(L, "reset_rds", lua_reset_rds);
@@ -370,11 +388,11 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "set_rds_rdsgen", lua_set_rds_rdsgen);
     lua_register(L, "get_rds_rdsgen", lua_get_rds_rdsgen);
 
-    lua_register(L, "set_rds_grpseq", lua_set_rds_grpseq);
-    lua_register(L, "get_rds_grpseq", lua_get_rds_grpseq);
+    lua_register(L, "set_rds_grpseq", lua_set_rds_grp_sqc);
+    lua_register(L, "get_rds_grpseq", lua_get_rds_grp_sqc);
 
-    lua_register(L, "set_rds_grpseq2", lua_set_rds_grpseq2);
-    lua_register(L, "get_rds_grpseq2", lua_get_rds_grpseq2);
+    lua_register(L, "set_rds_grpseq2", lua_set_rds_grp_sqc_rds2);
+    lua_register(L, "get_rds_grpseq2", lua_get_rds_grp_sqc_rds2);
 
     lua_register(L, "set_rds_link", lua_set_rds_link);
     lua_register(L, "get_rds_link", lua_get_rds_link);
@@ -415,6 +433,9 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_af_group0", lua_set_rds_af_group0);
     lua_register(L, "set_rds_af_oda", lua_set_rds_af_oda);
+
+    lua_register(L, "set_rds_eon", lua_set_rds_eon);
+    lua_register(L, "get_rds_eon", lua_get_rds_eon);
 }
 
 void run_lua(char *str, char *cmd_output) {
@@ -427,8 +448,7 @@ void run_lua(char *str, char *cmd_output) {
 	snprintf(path, sizeof(path), "%s/.rds95.command.lua", getenv("HOME"));
     if (luaL_loadfilex(L, path, NULL) == LUA_OK && lua_pcall(L, 0, 1, 0) == LUA_OK) {
         if (lua_isstring(L, -1)) {
-            const char * message = lua_tostring(L, -1);
-            if(cmd_output) strcpy(cmd_output, message);
+            if(cmd_output) strcpy(cmd_output, lua_tostring(L, -1));
         }
         lua_pop(L, 1);
     } else {
@@ -450,7 +470,7 @@ void lua_on_init() {
         return;
     }
 
-    lua_pushnil(L);
+    lua_pushnil(L); // Make sure the script doesn't parse any old command
     lua_setglobal(L, "data");
 
     if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
@@ -468,7 +488,7 @@ void lua_on_init() {
             lua_pop(L, 1);
         }
     } else {
-        printf("Note: 'on_init' function not found in Lua script. Skipping.\n");
+        // printf("Note: 'on_init' function not found in Lua script. Skipping.\n");
         lua_pop(L, 1);
     }
 }

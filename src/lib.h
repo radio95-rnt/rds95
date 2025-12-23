@@ -6,6 +6,7 @@
 void msleep(unsigned long ms);
 
 int _strnlen(const char *s, int maxlen);
+char _strncpy(char *dest, const char *src, int n);
 
 uint16_t crc16_ccitt(char *data, uint16_t len);
 

@@ -4,6 +4,8 @@
 ---@type string
 core_version = ""
 ---@type integer
+eon_count = 0
+---@type integer
 max_programs = 0
 ---@type string|nil
 data = "" -- Set during run_lua calls
@@ -201,3 +203,27 @@ function set_rds_af_group0(afs) end
 ---Sets the AFs included in the ODA
 ---@param afs table
 function set_rds_af_oda(afs) end
+
+---Sets data about the EON
+---@param eon integer Index of the EON we are setting
+---@param enabled boolean
+---@param pi integer
+---@param tp boolean
+---@param ta boolean
+---@param pty integer
+---@param ps string
+---@param afs table
+---@param data integer
+function set_rds_eon(eon, enabled, pi, tp, ta, pty, ps, afs, data) end
+
+---Gets the same data set_rds_eon sets, yes this returns 8 arguments
+---@param eon integer
+---@return boolean enabled
+---@return integer pi
+---@return boolean tp
+---@return boolean ta
+---@return integer pty
+---@return string ps
+---@return table _ this is empty, getting afs is not supported yet
+---@return integer data
+function get_rds_eon(eon) end

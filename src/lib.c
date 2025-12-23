@@ -13,7 +13,18 @@ inline int _strnlen(const char *s, int maxlen) {
 	while (s[len] != 0 && len < maxlen) len++;
 	return len;
 }
-
+inline char _strncpy(char *dest, const char *src, int n) {
+	int i = 0;
+	while (i < n && src[i] != '\0') {
+		dest[i] = src[i];
+		i++;
+	}
+	while (i < n) {
+		dest[i] = '\0';
+		i++;
+	}
+	return dest;
+}
 uint16_t crc16_ccitt(char* data, uint16_t len) {
 	uint16_t i, crc=0xFFFF;
 	for (i=0; i < len; i++ ) {

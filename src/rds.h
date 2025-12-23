@@ -24,7 +24,7 @@
 #define AF_CODE_NUM_AFS_BASE	224
 #define AF_CODE_LFMF_FOLLOWS	250
 
-#define PROGRAMS 2
+#define PROGRAMS 3
 
 // List of ODAs: https://www.nrscstandards.org/committees/dsm/archive/rds-oda-aids.pdf
 #define	ODA_AID_RTPLUS	0x4bd7
