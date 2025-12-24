@@ -157,8 +157,12 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 	time(&now);
 	utc = gmtime(&now);
 
-	if (utc->tm_min != enc->state[enc->program].last_minute) {
+	if(utc->tm_sec != enc->state[enc->program].last_second) {
+		enc->state[enc->program].last_second = utc->tm_sec;
 		lua_call_function("tick");
+	}
+
+	if (utc->tm_min != enc->state[enc->program].last_minute) {
 		enc->state[enc->program].last_minute = utc->tm_min;
 
 		uint8_t eon_has_ta = 0;
@@ -355,6 +359,7 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	time(&now);
 	utc = gmtime(&now);
 	tempCoder.state[program].last_minute = utc->tm_min;
+	tempCoder.state[program].last_second = utc->tm_min;
 
 	for(int i = 0; i < EONs; i++) tempCoder.data[program].eon[i].ta = 0;
 

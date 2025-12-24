@@ -24,7 +24,7 @@ function on_init() end
 ---It should be defined by the user in the script.
 ---@return nil
 function on_start() end
----This function is called every minute
+---This function is called every second
 ---It should be defined by the user in the script.
 ---@return nil
 function tick() end

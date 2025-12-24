@@ -159,6 +159,7 @@ typedef struct {
 	uint8_t fasttuning_state : 3;
 
 	uint8_t last_minute : 6;
+	uint8_t last_second : 6;
 
 	uint8_t ta_timeout : 7;
 	uint8_t ta_timeout_state : 7;
