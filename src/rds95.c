@@ -18,7 +18,13 @@
 
 #define NUM_MPX_FRAMES	128
 
-static uint8_t stop_rds;
+static uint8_t stop_rds = 0;
+static volatile sig_atomic_t reload_requested = 0;
+
+static void reload() {
+	printf("Received an reloading signal\n");
+	reload_requested = 1;
+}
 
 static void stop() {
 	printf("Received an stopping signal\n");
@@ -27,6 +33,10 @@ static void stop() {
 
 static void *udp_server_worker() {
 	while (!stop_rds) {
+		if(reload_requested) {
+			reload_requested = 0;
+			reload_lua();
+		}
 		poll_udp_server();
 		msleep(READ_TIMEOUT_MS);
 	}
@@ -130,6 +140,7 @@ int main(int argc, char **argv) {
 
 	signal(SIGINT, stop);
 	signal(SIGTERM, stop);
+	signal(SIGHUP, reload);
 
 	format.format = PA_SAMPLE_FLOAT32NE;
 	format.channels = config.num_streams;
