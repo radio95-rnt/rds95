@@ -624,9 +624,6 @@ void lua_group_ref(RDSGroup* group, int ref) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
 
     if (lua_isfunction(L, -1)) {
-        lua_pushinteger(L, group->b);
-        lua_pushinteger(L, group->c);
-        lua_pushinteger(L, group->d);
         if (lua_pcall(L, 3, 3, 0) == LUA_OK) {
             if (!lua_isinteger(L, -1)) {
                 pthread_mutex_unlock(&lua_mutex);
