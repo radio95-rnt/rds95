@@ -394,6 +394,9 @@ int get_rds_user_oda_group_content(RDSEncoder* enc, RDSGroup *group) {
 
         if (oda_state->odas[current_idx].lua_handler != 0) {
             lua_group_ref(group, oda_state->odas[current_idx].lua_handler);
+			group->b |= oda_state->odas[current_idx].group << 12;
+			group->b |= oda_state->odas[current_idx].group_version << 11;
+			group->is_type_b = (IS_TYPE_B(group->b) != 0);
             return 1;
         }
     }
