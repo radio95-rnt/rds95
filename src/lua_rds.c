@@ -5,11 +5,17 @@ static RDSModulator* mod = NULL;
 static lua_State *L = NULL;
 static pthread_mutex_t lua_mutex;
 static uint8_t unload_refs[33] = {LUA_REFNIL};
+static uint8_t lua_reload_scheduled = 0;
+
+int lua_reload_command(lua_State* localL) {
+    lua_reload_scheduled = 1;
+    return 0;
+}
 
 int lua_set_rds_program_defaults(lua_State *localL) {
     (void)localL;
     for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
-    unload_refs[0] = 0;
+    unload_refs[0] = 1;
 	set_rds_defaults(mod->enc, mod->enc->program);
     lua_call_function("on_init");
     lua_call_function("on_state");
@@ -19,7 +25,7 @@ int lua_set_rds_program_defaults(lua_State *localL) {
 int lua_reset_rds(lua_State *localL) {
     (void)localL;
     for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
-    unload_refs[0] = 0;
+    unload_refs[0] = 1;
     encoder_saveToFile(mod->enc);
     Modulator_saveToFile(&mod->params);
 
@@ -437,6 +443,7 @@ int lua_set_oda_handler(lua_State *localL) {
 }
 
 void init_lua(RDSModulator* rds_mod) {
+    static int mutex_initialized = 0;
     mod = rds_mod;
     L = luaL_newstate();
 
@@ -457,6 +464,7 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_program_defaults", lua_set_rds_program_defaults);
     lua_register(L, "reset_rds", lua_reset_rds);
+    lua_register(L, "reload", lua_reload_command);
 
     lua_register(L, "set_rds_pi", lua_set_rds_pi);
     lua_register(L, "get_rds_pi", lua_get_rds_pi);
@@ -570,11 +578,15 @@ void init_lua(RDSModulator* rds_mod) {
             lua_pop(L, 1);
         }
     }
-    lua_pushvalue(L, 1); 
-    pthread_mutex_init(&lua_mutex, NULL);
+    lua_pushvalue(L, 1);
+    if(mutex_initialized == 0) {
+        pthread_mutex_init(&lua_mutex, NULL);
+        mutex_initialized = 1;
+    }
 }
 
 void run_lua(char *str, char *cmd_output) {
+    if(lua_reload_scheduled != 0) reload_lua();
     pthread_mutex_lock(&lua_mutex);
     lua_getglobal(L, "data_handle");
 
@@ -589,6 +601,7 @@ void run_lua(char *str, char *cmd_output) {
 }
 
 int lua_group(RDSGroup* group) {
+    if(lua_reload_scheduled != 0) reload_lua();
     pthread_mutex_lock(&lua_mutex);
     lua_getglobal(L, "group");
 
@@ -622,6 +635,7 @@ int lua_group(RDSGroup* group) {
 }
 
 void lua_group_ref(RDSGroup* group, int ref) {
+    if(lua_reload_scheduled != 0) reload_lua();
     pthread_mutex_lock(&lua_mutex);
     lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
 
@@ -655,6 +669,7 @@ void lua_group_ref(RDSGroup* group, int ref) {
 }
 
 void lua_call_function(const char* function) {
+    if(lua_reload_scheduled != 0) reload_lua();
     pthread_mutex_lock(&lua_mutex);
     lua_getglobal(L, function);
 
@@ -667,9 +682,38 @@ void lua_call_function(const char* function) {
     pthread_mutex_unlock(&lua_mutex);
 }
 
+void reload_lua() {
+    pthread_mutex_lock(&lua_mutex);
+    lua_reload_scheduled = 0;
+
+    lua_getglobal(L, "on_unload");
+    if (lua_isfunction(L, -1)) {
+        if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+            fprintf(stderr, "Lua error in on_unload: %s\n", lua_tostring(L, -1));
+            lua_pop(L, 1);
+        }
+    } else lua_pop(L, 1);
+
+    if (unload_refs) {
+        for (int i = 1; i < *unload_refs; i++) {
+            luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
+        }
+        *unload_refs = 1;
+    }
+
+    if (L) {
+        lua_close(L);
+        L = NULL;
+    }
+    pthread_mutex_unlock(&lua_mutex);
+
+    init_lua(mod);
+}
+
 void destroy_lua(void) {
     if (L) {
         for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
+        *unload_refs = 1;
         lua_close(L);
         L = NULL;
     }
