@@ -2,7 +2,9 @@
 
 void encoder_saveToFile(RDSEncoder *enc) {
 	char encoderPath[128];
+	char encoderPath_tmp[128];
 	snprintf(encoderPath, sizeof(encoderPath), "%s/.rdsEncoder", getenv("HOME"));
+	snprintf(encoderPath_tmp, sizeof(encoderPath_tmp), "%s/.rdsEncoder.tmp", getenv("HOME"));
 
 	RDSEncoder tempEncoder;
 	FILE *file = fopen(encoderPath, "rb");
@@ -17,19 +19,20 @@ void encoder_saveToFile(RDSEncoder *enc) {
 	tempEncoder.program = enc->program;
 
 	RDSEncoderFile rdsEncoderfile = {.file_starter = 225, .file_middle = 160, .file_ender = 95, .program = tempEncoder.program};
-	memcpy(&rdsEncoderfile.data[enc->program], &tempEncoder.data[enc->program], sizeof(RDSData));
-	memcpy(&rdsEncoderfile.rtpData[enc->program], &tempEncoder.rtpData[enc->program], sizeof(RDSRTPlusData) * 2);
+	memcpy(&rdsEncoderfile.data, &tempEncoder.data, sizeof(RDSData)*PROGRAMS);
+	memcpy(&rdsEncoderfile.rtpData, &tempEncoder.rtpData, sizeof(RDSRTPlusData) * 2 * PROGRAMS);
 	memcpy(&rdsEncoderfile.encoder_data, &tempEncoder.encoder_data, sizeof(RDSEncoderData));
 
 	rdsEncoderfile.crc = crc16_ccitt((char *)&rdsEncoderfile, offsetof(RDSEncoderFile, crc));
 
-	file = fopen(encoderPath, "wb");
+	file = fopen(encoderPath_tmp, "wb");
 	if (!file) {
 		perror("Error opening file");
 		return;
 	}
 	fwrite(&rdsEncoderfile, sizeof(RDSEncoderFile), 1, file);
 	fclose(file);
+	rename(encoderPath_tmp, encoderPath);
 }
 
 int encoder_loadFromFile(RDSEncoder *enc) {
@@ -55,10 +58,8 @@ int encoder_loadFromFile(RDSEncoder *enc) {
 		return 1;
 	}
 
-	for (int i = 0; i < PROGRAMS; i++) {
-		memcpy(&(enc->data[i]), &(rdsEncoderfile.data[i]), sizeof(RDSData));
-		memcpy(&(enc->rtpData[i]), &(rdsEncoderfile.rtpData[i]), sizeof(RDSRTPlusData)*2);
-	}
+	memcpy(&(enc->data), &(rdsEncoderfile.data), sizeof(RDSData)*PROGRAMS);
+	memcpy(&(enc->rtpData), &(rdsEncoderfile.rtpData), sizeof(RDSRTPlusData)*2*PROGRAMS);
 	memcpy(&(enc->encoder_data), &(rdsEncoderfile.encoder_data), sizeof(RDSEncoderData));
 	enc->program = rdsEncoderfile.program;
 	return 0;

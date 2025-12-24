@@ -14,7 +14,7 @@ data = "" -- Set during run_lua calls
 ---@return nil
 function set_rds_program_defaults() end
 
----Saves, loads and resets the state of the data
+---Saves, loads and resets the state of the data, you might as well restart the whole program
 ---@return nil
 function reset_rds() end
 
