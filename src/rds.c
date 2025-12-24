@@ -384,4 +384,5 @@ void init_rds_encoder(RDSEncoder* enc) {
 		lua_on_init();
 	}
 	encoder_saveToFile(enc);
+	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(enc, i);
 }
