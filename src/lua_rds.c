@@ -593,15 +593,15 @@ void lua_group(RDSGroup* group) {
         lua_pushinteger(L, group->c);
         lua_pushinteger(L, group->d);
         if (lua_pcall(L, 3, 3, 0) == LUA_OK) {
-            if (!lua_isinteger(localL, -1)) {
+            if (!lua_isinteger(L, -1)) {
                 pthread_mutex_unlock(&lua_mutex);
                 return;
             }
-            if (!lua_isinteger(localL, -2)) {
+            if (!lua_isinteger(L, -2)) {
                 pthread_mutex_unlock(&lua_mutex);
                 return;
             }
-            if (!lua_isinteger(localL, -3)) {
+            if (!lua_isinteger(L, -3)) {
                 pthread_mutex_unlock(&lua_mutex);
                 return;
             }
@@ -628,15 +628,15 @@ void lua_group_ref(RDSGroup* group, int ref) {
         lua_pushinteger(L, group->c);
         lua_pushinteger(L, group->d);
         if (lua_pcall(L, 3, 3, 0) == LUA_OK) {
-            if (!lua_isinteger(localL, -1)) {
+            if (!lua_isinteger(L, -1)) {
                 pthread_mutex_unlock(&lua_mutex);
                 return;
             }
-            if (!lua_isinteger(localL, -2)) {
+            if (!lua_isinteger(L, -2)) {
                 pthread_mutex_unlock(&lua_mutex);
                 return;
             }
-            if (!lua_isinteger(localL, -3)) {
+            if (!lua_isinteger(L, -3)) {
                 pthread_mutex_unlock(&lua_mutex);
                 return;
             }
