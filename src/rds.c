@@ -141,6 +141,7 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	if(*grp == 'S' && enc->data[enc->program].ert[0] != '\0') good_group = 1;
 	if(*grp == 'F' && enc->data[enc->program].lps[0] != '\0') good_group = 1;
 	if(*grp == 'T') good_group = 1;
+	if(*grp == 'L') good_group = 1;
 	if(*grp == 'U' && enc->data[enc->program].af_oda.num_afs) good_group = 1;
 	return good_group;
 }
