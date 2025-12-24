@@ -7,8 +7,6 @@ core_version = ""
 eon_count = 0
 ---@type integer
 max_programs = 0
----@type string|nil
-data = "" -- Set during run_lua calls
 
 ---Starts the initialization sequence, also calls the on_init function
 ---@return nil
@@ -43,7 +41,7 @@ function data_handle(data) end
 ---@return integer b
 ---@return integer c
 ---@return integer d
-function group(a, b, c, d) end
+function group(b, c, d) end
 
 ---@param pi integer
 function set_rds_pi(pi) end
