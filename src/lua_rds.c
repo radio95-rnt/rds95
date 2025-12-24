@@ -580,7 +580,7 @@ void run_lua(char *str, char *cmd_output) {
         lua_pushstring(L, str);
         if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
             if (lua_isstring(L, -1) && cmd_output) _strncpy(cmd_output, lua_tostring(L, -1), 254);
-        } else fprintf(stderr, "Lua error: %s\n at 'data_handle'", lua_tostring(L, -1));
+        } else fprintf(stderr, "Lua error: %s at 'data_handle'\n", lua_tostring(L, -1));
     } else if (lua_isstring(L, -1) && cmd_output) _strncpy(cmd_output, lua_tostring(L, -1), 254);
     lua_pop(L, 1);
     pthread_mutex_unlock(&lua_mutex);
@@ -642,7 +642,7 @@ void lua_group_ref(RDSGroup* group, int ref) {
             group->b = luaL_checkinteger(L, -3);
             lua_pop(L, 3);
         } else {
-            fprintf(stderr, "Lua error: %s\n at ref %d", lua_tostring(L, -1), ref);
+            fprintf(stderr, "Lua error: %s at ref %d\n", lua_tostring(L, -1), ref);
             lua_pop(L, 1);
         }
     } else lua_pop(L, 1);
