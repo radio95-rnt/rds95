@@ -33,10 +33,6 @@ static void stop() {
 
 static void *udp_server_worker() {
 	while (!stop_rds) {
-		if(reload_requested) {
-			reload_requested = 0;
-			reload_lua();
-		}
 		poll_udp_server();
 		msleep(READ_TIMEOUT_MS);
 	}
@@ -172,19 +168,18 @@ int main(int argc, char **argv) {
 	init_rds_modulator(&rdsModulator, &rdsEncoder, config.num_streams);
 	init_rds_encoder(&rdsEncoder);
 
-	if(config.udp_port) {
-		if(open_udp_server(config.udp_port, &rdsModulator) == 0) {
-			fprintf(stderr, "Reading control commands on UDP:%d.\n", config.udp_port);
-			int r = pthread_create(&udp_server_thread, &attr, udp_server_worker, NULL);
-			if (r < 0) {
-				fprintf(stderr, "Could not create UDP server thread.\n");
-				config.udp_port = 0;
-				goto exit;
-			} else fprintf(stderr, "Created UDP server thread.\n");
-		} else {
-			fprintf(stderr, "Failed to open UDP server\n");
+	if(config.udp_port == 0) config.udp_port = 5000;
+	if(open_udp_server(config.udp_port, &rdsModulator) == 0) {
+		fprintf(stderr, "Reading control commands on UDP:%d.\n", config.udp_port);
+		int r = pthread_create(&udp_server_thread, &attr, udp_server_worker, NULL);
+		if (r < 0) {
+			fprintf(stderr, "Could not create UDP server thread.\n");
 			config.udp_port = 0;
-		}
+			goto exit;
+		} else fprintf(stderr, "Created UDP server thread.\n");
+	} else {
+		fprintf(stderr, "Failed to open UDP server\n");
+		config.udp_port = 0;
 	}
 
 	int pulse_error;
@@ -201,6 +196,10 @@ int main(int argc, char **argv) {
 		if (pa_simple_write(rds_device, rds_buffer, NUM_MPX_FRAMES * config.num_streams * sizeof(float), &pulse_error) != 0) {
 			fprintf(stderr, "Error: could not play audio. (%s : %d)\n", pa_strerror(pulse_error), pulse_error);
 			break;
+		}
+		if(reload_requested) {
+			reload_requested = 0;
+			reload_lua();
 		}
 	}
 
