@@ -264,7 +264,7 @@ function set_rds_udg2(xy, groups) end
 ---@param id_data integer
 ---@return integer oda_id
 function register_oda(group, group_version, id, id_data) end
----Sets a function to handle the ODA for the oda id we have specified when we get to group "" TODO: which one
+---Sets a function to handle the ODA for the oda id we have specified when we get to group "K"
 ---@param oda_id integer
 ---@param fun function
 function set_oda_handler(oda_id, fun) end
