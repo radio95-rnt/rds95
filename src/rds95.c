@@ -134,9 +134,19 @@ int main(int argc, char **argv) {
 
 	pthread_attr_init(&attr);
 
-	signal(SIGINT, stop);
-	signal(SIGTERM, stop);
-	signal(SIGHUP, reload);
+	struct sigaction sa_stop, sa_reload;
+
+	sa_stop.sa_handler = stop;
+	sigemptyset(&sa_stop.sa_mask);
+	sa_stop.sa_flags = 0;
+
+	sa_reload.sa_handler = reload;
+	sigemptyset(&sa_reload.sa_mask);
+	sa_reload.sa_flags = 0;
+
+	sigaction(SIGINT, &sa_stop, NULL);
+	sigaction(SIGTERM, &sa_stop, NULL);
+	sigaction(SIGHUP, &sa_reload, NULL);
 
 	format.format = PA_SAMPLE_FLOAT32NE;
 	format.channels = config.num_streams;
