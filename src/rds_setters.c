@@ -20,6 +20,7 @@ void set_rds_rt1(RDSEncoder* enc, const char *rt1) {
 			enc->state[enc->program].rt_segments++;
 		}
 	} else enc->state[enc->program].rt_segments = 16;
+	if(enc->state[enc->program].rt_segments > 16) enc->state[enc->program].rt_segments = 16; //make sure
 }
 
 void set_rds_rt2(RDSEncoder* enc, const char *rt2) {
@@ -40,6 +41,7 @@ void set_rds_rt2(RDSEncoder* enc, const char *rt2) {
 			enc->state[enc->program].rt2_segments++;
 		}
 	} else enc->state[enc->program].rt2_segments = 16;
+	if(enc->state[enc->program].rt2_segments > 16) enc->state[enc->program].rt2_segments = 16; //make sure
 }
 
 void set_rds_ps(RDSEncoder* enc, const char *ps) {
@@ -103,6 +105,7 @@ void set_rds_ert(RDSEncoder* enc, const char *ert) {
 			enc->state[enc->program].ert_segments++;
 		}
 	} else enc->state[enc->program].ert_segments = 32;
+	if(enc->state[enc->program].ert_segments > 32) enc->state[enc->program].ert_segments = 32; //make sure
 }
 
 inline void set_rds_rtplus_tags(RDSEncoder* enc, uint8_t *tags) {

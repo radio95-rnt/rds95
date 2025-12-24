@@ -25,6 +25,7 @@
 #define AF_CODE_LFMF_FOLLOWS	250
 
 #define PROGRAMS 3
+#define EONs 4
 
 // List of ODAs: https://www.nrscstandards.org/committees/dsm/archive/rds-oda-aids.pdf
 #define	ODA_AID_RTPLUS	0x4bd7
@@ -105,7 +106,7 @@ typedef struct {
 	uint16_t udg1_rds2[8][4];
 	uint16_t udg2_rds2[8][4];
 
-	RDSEON eon[4];
+	RDSEON eon[EONs];
 } RDSData;
 typedef struct {
 	uint8_t af_state : 6;

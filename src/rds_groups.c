@@ -312,9 +312,7 @@ void get_rds_eon_group(RDSEncoder* enc, RDSGroup *group) {
 			uint8_t i = 0;
 			while(i < 4 && !enc->data[enc->program].eon[enc->state[enc->program].eon_index].enabled) {
 				enc->state[enc->program].eon_index++;
-				if(enc->state[enc->program].eon_index == 4) {
-					enc->state[enc->program].eon_index = 0;
-				}
+				if(enc->state[enc->program].eon_index >= EONs) enc->state[enc->program].eon_index = 0;
 				eon = enc->data[enc->program].eon[enc->state[enc->program].eon_index];
 				i++;
 			}
@@ -340,7 +338,7 @@ void get_rds_ert_group(RDSEncoder* enc, RDSGroup *group) {
 	group->d |= enc->state[enc->program].ert_text[enc->state[enc->program].ert_state * 4 + 3];
 
 	enc->state[enc->program].ert_state++;
-	if (enc->state[enc->program].ert_state == enc->state[enc->program].ert_segments) enc->state[enc->program].ert_state = 0;
+	if (enc->state[enc->program].ert_state >= enc->state[enc->program].ert_segments) enc->state[enc->program].ert_state = 0;
 }
 
 uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group) {

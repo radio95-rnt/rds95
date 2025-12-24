@@ -413,7 +413,7 @@ void init_lua(RDSModulator* rds_mod) {
     lua_setglobal(L, "core_version");
     lua_pushinteger(L, PROGRAMS);
     lua_setglobal(L, "max_programs");
-    lua_pushinteger(L, 4);
+    lua_pushinteger(L, EONs);
     lua_setglobal(L, "eon_count");
 
     lua_register(L, "set_rds_program_defaults", lua_set_rds_program_defaults);

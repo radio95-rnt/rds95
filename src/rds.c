@@ -5,6 +5,7 @@
 #include "lua_rds.h"
 #include <time.h>
 
+// declarations (stupid c)
 uint16_t get_next_af(RDSEncoder* enc);
 void get_next_af_oda(RDSEncoder* enc, uint16_t* af_group);
 uint16_t get_next_af_eon(RDSEncoder* enc, uint8_t eon_index);
@@ -27,6 +28,30 @@ void get_rds_eon_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_ert_group(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group);
+
+#define HANDLE_UDG_STREAM(chan_idx, udg_prefix) \
+    do { \
+        if (stream != 0) { \
+            udg_idx = enc->state[enc->program].udg_idxs_rds2[chan_idx]; \
+            group->a = enc->data[enc->program].udg_prefix##_rds2[udg_idx][0]; \
+            group->b = enc->data[enc->program].udg_prefix##_rds2[udg_idx][1]; \
+            group->c = enc->data[enc->program].udg_prefix##_rds2[udg_idx][2]; \
+            group->d = enc->data[enc->program].udg_prefix##_rds2[udg_idx][3]; \
+            enc->state[enc->program].udg_idxs_rds2[chan_idx]++; \
+            if (enc->state[enc->program].udg_idxs_rds2[chan_idx] == enc->data[enc->program].udg_prefix##_len_rds2) \
+                enc->state[enc->program].udg_idxs_rds2[chan_idx] = 0; \
+            group->is_type_b = (group->a == 0 && IS_TYPE_B(group->b)); \
+        } else { \
+            udg_idx = enc->state[enc->program].udg_idxs[chan_idx]; \
+            group->b = enc->data[enc->program].udg_prefix[udg_idx][0]; \
+            group->c = enc->data[enc->program].udg_prefix[udg_idx][1]; \
+            group->d = enc->data[enc->program].udg_prefix[udg_idx][2]; \
+            enc->state[enc->program].udg_idxs[chan_idx]++; \
+            if (enc->state[enc->program].udg_idxs[chan_idx] == enc->data[enc->program].udg_prefix##_len) \
+                enc->state[enc->program].udg_idxs[chan_idx] = 0; \
+            group->is_type_b = (IS_TYPE_B(group->b) != 0); \
+        } \
+    } while(0)
 
 static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, uint8_t stream) {
 	uint8_t udg_idx;
@@ -57,44 +82,10 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 			get_rds_eon_group(enc, group);
 			break;
 		case 'X':
-			if(stream != 0) {
-				udg_idx = enc->state[enc->program].udg_idxs_rds2[0];
-				group->a = enc->data[enc->program].udg1_rds2[udg_idx][0];
-				group->b = enc->data[enc->program].udg1_rds2[udg_idx][1];
-				group->c = enc->data[enc->program].udg1_rds2[udg_idx][2];
-				group->d = enc->data[enc->program].udg1_rds2[udg_idx][3];
-				enc->state[enc->program].udg_idxs_rds2[0]++;
-				if(enc->state[enc->program].udg_idxs_rds2[0] == enc->data[enc->program].udg1_len_rds2) enc->state[enc->program].udg_idxs_rds2[0] = 0;
-				group->is_type_b = (group->a == 0 && IS_TYPE_B(group->b));
-				break;
-			}
-			udg_idx = enc->state[enc->program].udg_idxs[0];
-			group->b = enc->data[enc->program].udg1[udg_idx][0];
-			group->c = enc->data[enc->program].udg1[udg_idx][1];
-			group->d = enc->data[enc->program].udg1[udg_idx][2];
-			enc->state[enc->program].udg_idxs[0]++;
-			if(enc->state[enc->program].udg_idxs[0] == enc->data[enc->program].udg1_len) enc->state[enc->program].udg_idxs[0] = 0;
-			group->is_type_b = (IS_TYPE_B(group->b) != 0);
+			HANDLE_UDG_STREAM(0, udg1);
 			break;
 		case 'Y':
-			if(stream != 0) {
-				udg_idx = enc->state[enc->program].udg_idxs_rds2[1];
-				group->a = enc->data[enc->program].udg2_rds2[udg_idx][0];
-				group->b = enc->data[enc->program].udg2_rds2[udg_idx][1];
-				group->c = enc->data[enc->program].udg2_rds2[udg_idx][2];
-				group->d = enc->data[enc->program].udg2_rds2[udg_idx][3];
-				enc->state[enc->program].udg_idxs_rds2[1]++;
-				if(enc->state[enc->program].udg_idxs_rds2[1] == enc->data[enc->program].udg2_len_rds2) enc->state[enc->program].udg_idxs_rds2[1] = 0;
-				group->is_type_b = (group->a == 0 && IS_TYPE_B(group->b));
-				break;
-			}
-			udg_idx = enc->state[enc->program].udg_idxs[1];
-			group->b = enc->data[enc->program].udg2[udg_idx][0];
-			group->c = enc->data[enc->program].udg2[udg_idx][1];
-			group->d = enc->data[enc->program].udg2[udg_idx][2];
-			enc->state[enc->program].udg_idxs[1]++;
-			if(enc->state[enc->program].udg_idxs[1] == enc->data[enc->program].udg2_len) enc->state[enc->program].udg_idxs[1] = 0;
-			group->is_type_b = (IS_TYPE_B(group->b) != 0);
+			HANDLE_UDG_STREAM(1, udg2);
 			break;
 		case 'R':
 			if(enc->state[enc->program].rtp_oda == 0) get_rds_rtplus_group(enc, group);
@@ -132,7 +123,7 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	if(*grp == '2' && (enc->data[enc->program].rt1_enabled || enc->data[enc->program].rt2_enabled)) good_group = 1;
 	if(*grp == 'A' && enc->data[enc->program].ptyn_enabled) good_group = 1;
 	if(*grp == 'E') {
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < EONs; i++) {
 			if (enc->data[enc->program].eon[i].enabled) {
 				good_group = 1;
 				break;
@@ -165,7 +156,7 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 		enc->state[enc->program].last_minute = utc->tm_min;
 
 		uint8_t eon_has_ta = 0;
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < EONs; i++) {
 			if (enc->data[enc->program].eon[i].enabled && enc->data[enc->program].eon[i].ta) {
 				eon_has_ta = 1;
 				break;
@@ -359,7 +350,7 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	utc = gmtime(&now);
 	tempCoder.state[program].last_minute = utc->tm_min;
 
-	for(int i = 0; i < 4; i++) tempCoder.data[program].eon[i].ta = 0;
+	for(int i = 0; i < EONs; i++) tempCoder.data[program].eon[i].ta = 0;
 
 	memcpy(&(enc->state[program]), &(tempCoder.state[program]), sizeof(RDSState));
 	memcpy(&(enc->rtpState[program]), &(tempCoder.rtpState[program]), sizeof(RDSRTPlusState));
