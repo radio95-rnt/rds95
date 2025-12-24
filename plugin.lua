@@ -264,7 +264,13 @@ function set_rds_udg2(xy, groups) end
 ---@param id_data integer
 ---@return integer oda_id
 function register_oda(group, group_version, id, id_data) end
----Sets a function to handle the ODA for the oda id we have specified when we get to group "K"
----@param oda_id integer
----@param fun function
+
+---The callback function for an ODA handler
+---@alias ODAHandler fun(): (integer, integer, integer)
+
+---Sets a function to handle the ODA data generation. 
+---The handler is called when the group sequence 'K' slot is processed.
+---The function must return 3 integers representing RDS Blocks B, C, and D.
+---@param oda_id integer The ID returned by register_oda
+---@param fun ODAHandler
 function set_oda_handler(oda_id, fun) end
