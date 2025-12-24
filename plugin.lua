@@ -24,6 +24,10 @@ function on_init() end
 ---It should be defined by the user in the script.
 ---@return nil
 function on_start() end
+---This function is called every time when the state resets, register your odas here
+---It should be defined by the user in the script.
+---@return nil
+function on_state() end
 ---This function is called every second
 ---It should be defined by the user in the script.
 ---@return nil

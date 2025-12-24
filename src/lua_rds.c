@@ -12,6 +12,7 @@ int lua_set_rds_program_defaults(lua_State *localL) {
     unload_refs[0] = 0;
 	set_rds_defaults(mod->enc, mod->enc->program);
     lua_call_function("on_init");
+    lua_call_function("on_state");
     return 0;
 }
 
@@ -25,6 +26,7 @@ int lua_reset_rds(lua_State *localL) {
 	encoder_loadFromFile(mod->enc);
 	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(mod->enc, i);
 	Modulator_loadFromFile(&mod->params);
+    lua_call_function("on_state");
     return 0;
 }
 
