@@ -6,7 +6,7 @@ static lua_State *L = NULL;
 int lua_set_rds_program_defaults(lua_State *localL) {
     (void)localL;
 	set_rds_defaults(mod->enc, mod->enc->program);
-    lua_on_init();
+    lua_call_function("on_init");
     return 0;
 }
 
@@ -535,7 +535,7 @@ void run_lua(char *str, char *cmd_output) {
     }
 }
 
-void lua_on_init() {
+void lua_call_function(const char* function) {
     char path[128];
     snprintf(path, sizeof(path), "%s/.rds95.command.lua", getenv("HOME"));
 
@@ -556,17 +556,14 @@ void lua_on_init() {
         return;
     }
 
-    lua_getglobal(L, "on_init");
+    lua_getglobal(L, function);
 
     if (lua_isfunction(L, -1)) {
         if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
             fprintf(stderr, "Lua error running 'on_init': %s\n", lua_tostring(L, -1));
             lua_pop(L, 1);
         }
-    } else {
-        // printf("Note: 'on_init' function not found in Lua script. Skipping.\n");
-        lua_pop(L, 1);
-    }
+    } else lua_pop(L, 1);
 }
 
 void destroy_lua(void) {

@@ -22,6 +22,10 @@ function reset_rds() end
 ---It should be defined by the user in the script.
 ---@return nil
 function on_init() end
+---This function is called by the C core after we initialize the encoder (always, every start)
+---It should be defined by the user in the script.
+---@return nil
+function on_start() end
 
 ---@param pi integer
 function set_rds_pi(pi) end
