@@ -39,14 +39,13 @@ void poll_udp_server() {
     static char buf[BUF_SIZE];
     static char cmd_buf[BUF_SIZE];
     static char cmd_output[BUF_SIZE];
-    ssize_t bytes_read;
 
     if (poll(&poller, 1, UDP_READ_TIMEOUT_MS) <= 0) return;
     if (!(poller.revents & POLLIN)) return;
 
     memset(buf, 0, BUF_SIZE);
     client_len = sizeof(client_addr);
-	bytes_read = recvfrom(sockfd, buf, BUF_SIZE - 1, 0, (struct sockaddr *)&client_addr, &client_len);
+	ssize_t bytes_read = recvfrom(sockfd, buf, BUF_SIZE - 1, 0, (struct sockaddr *)&client_addr, &client_len);
     if (bytes_read <= 0) return;
 
     buf[bytes_read] = '\0';
@@ -62,10 +61,7 @@ void poll_udp_server() {
             run_lua(cmd_buf, cmd_output);
 
             size_t out_len = strlen(cmd_output);
-            if (out_len > 0) {
-                ssize_t sent = sendto(sockfd, cmd_output, out_len, 0, (struct sockaddr *)&client_addr, client_len);
-                if (sent == -1) perror("sendto");
-            }
+            if (out_len > 0 && sendto(sockfd, cmd_output, out_len, 0, (struct sockaddr *)&client_addr, client_len) == -1) perror("sendto"); // no walrus
         }
         token = strtok(NULL, "\r\n");
     }

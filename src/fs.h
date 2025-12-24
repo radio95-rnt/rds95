@@ -6,7 +6,6 @@
 
 void encoder_saveToFile(RDSEncoder *emp);
 int encoder_loadFromFile(RDSEncoder *emp);
-int encoder_saved();
 
 void Modulator_saveToFile(RDSModulatorParameters *emp);
 void Modulator_loadFromFile(RDSModulatorParameters *emp);

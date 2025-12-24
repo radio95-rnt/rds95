@@ -8,7 +8,7 @@
 
 void init_lua(RDSModulator* rds_mod);
 void run_lua(char *str, char *cmd_output);
-void lua_group(RDSGroup* group);
+int lua_group(RDSGroup* group);
 void lua_call_function(const char* function);
 void lua_group_ref(RDSGroup* group, int ref);
 void destroy_lua();

@@ -65,15 +65,6 @@ int encoder_loadFromFile(RDSEncoder *enc) {
 	return 0;
 }
 
-int encoder_saved() {
-	char encoderPath[128];
-	snprintf(encoderPath, sizeof(encoderPath), "%s/.rdsEncoder", getenv("HOME"));
-	FILE *file = fopen(encoderPath, "rb");
-	if(!file) return 0;
-	fclose(file);
-	return 1;
-}
-
 void Modulator_saveToFile(RDSModulatorParameters *emp) {
 	char modulatorPath[128];
 	snprintf(modulatorPath, sizeof(modulatorPath), "%s/.rdsModulator", getenv("HOME"));

@@ -586,7 +586,7 @@ void run_lua(char *str, char *cmd_output) {
     pthread_mutex_unlock(&lua_mutex);
 }
 
-void lua_group(RDSGroup* group) {
+int lua_group(RDSGroup* group) {
     pthread_mutex_lock(&lua_mutex);
     lua_getglobal(L, "group");
 
@@ -595,31 +595,28 @@ void lua_group(RDSGroup* group) {
         lua_pushinteger(L, group->b);
         lua_pushinteger(L, group->c);
         lua_pushinteger(L, group->d);
-        if (lua_pcall(L, 3, 3, 0) == LUA_OK) {
+        if (lua_pcall(L, 4, 3, 0) == LUA_OK) {
             if (!lua_isinteger(L, -1)) {
                 pthread_mutex_unlock(&lua_mutex);
-                return;
+                return 0;
             }
             if (!lua_isinteger(L, -2)) {
                 pthread_mutex_unlock(&lua_mutex);
-                return;
+                return 0;
             }
             if (!lua_isinteger(L, -3)) {
                 pthread_mutex_unlock(&lua_mutex);
-                return;
+                return 0;
             }
             group->d = luaL_checkinteger(L, -1);
             group->c = luaL_checkinteger(L, -2);
             group->b = luaL_checkinteger(L, -3);
-            lua_pop(L, 3);
-        } else {
-            fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
-            lua_pop(L, 1);
-        }
-    } else {
+            lua_pop(L, 2);
+        } else fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
         lua_pop(L, 1);
-    }
+    } else lua_pop(L, 1);
     pthread_mutex_unlock(&lua_mutex);
+    return 1;
 }
 
 void lua_group_ref(RDSGroup* group, int ref) {
