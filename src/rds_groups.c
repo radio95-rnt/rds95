@@ -191,7 +191,7 @@ void get_rdsp_ct_group(RDSGroup *group, time_t now) {
 	group->d = (utc->tm_hour & 0xf) << 12 | utc->tm_min << 6;
 
 	local_time = localtime(&now);
-	offset = local_time->__tm_gmtoff / (30 * 60);
+	offset = local_time->tm_gmtoff / (30 * 60);
 	if (offset < 0) group->d |= 1 << 5;
 	group->d |= abs(offset);
 }
