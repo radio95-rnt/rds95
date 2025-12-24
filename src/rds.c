@@ -30,6 +30,7 @@ uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group);
 void get_rdsp_lua_group(RDSGroup *group);
 void get_rds_user_oda_group(RDSEncoder* enc, RDSGroup *group);
+int get_rds_user_oda_group_content(RDSEncoder* enc, RDSGroup *group);
 
 #define HANDLE_UDG_STREAM(chan_idx, udg_prefix) \
     do { \
@@ -116,6 +117,9 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 		case 'O':
 			get_rds_user_oda_group(enc, group);
 			break;
+		case 'K':
+			if(get_rds_user_oda_group_content(enc, group) == 0) get_rds_ps_group(enc, group);
+			break;
 		case 'U':
 			if(enc->state[enc->program].af_oda == 0) get_rds_oda_af_group(enc, group);
 			else get_rdsp_oda_af_oda_group(group);
@@ -147,6 +151,7 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	if(*grp == 'T') good_group = 1;
 	if(*grp == 'L') good_group = 1;
 	if(*grp == 'O' && enc->state[enc->program].user_oda.oda_len != 0) good_group = 1;
+	if(*grp == 'K') good_group = 1;
 	if(*grp == 'U' && enc->data[enc->program].af_oda.num_afs) good_group = 1;
 	return good_group;
 }

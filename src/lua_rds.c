@@ -4,9 +4,12 @@
 static RDSModulator* mod = NULL;
 static lua_State *L = NULL;
 static pthread_mutex_t lua_mutex;
+static uint8_t unload_refs[33] = {LUA_REFNIL};
 
 int lua_set_rds_program_defaults(lua_State *localL) {
     (void)localL;
+    for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
+    unload_refs[0] = 0;
 	set_rds_defaults(mod->enc, mod->enc->program);
     lua_call_function("on_init");
     return 0;
@@ -14,6 +17,8 @@ int lua_set_rds_program_defaults(lua_State *localL) {
 
 int lua_reset_rds(lua_State *localL) {
     (void)localL;
+    for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
+    unload_refs[0] = 0;
     encoder_saveToFile(mod->enc);
     Modulator_saveToFile(&mod->params);
 
@@ -403,13 +408,28 @@ int lua_register_oda(lua_State *localL) {
     if (!lua_isboolean(localL, 2)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 2));
     uint8_t id = mod->enc->state[mod->enc->program].user_oda.oda_len++;
 	if(mod->enc->state[mod->enc->program].user_oda.oda_len >= 32) return luaL_error(localL, "There can't be more than 32 registered ODAs");
-    mod->enc->state[mod->enc->program].user_oda.odas[id].enabled = 1;
+	if(mod->enc->state[mod->enc->program].user_oda.odas[id].group != 0) return luaL_error(localL, "internal error");
     mod->enc->state[mod->enc->program].user_oda.odas[id].group = luaL_checkinteger(localL, 1);
+    if(mod->enc->state[mod->enc->program].user_oda.odas[id].group == 0) return luaL_error(localL, "Invalid group")
     mod->enc->state[mod->enc->program].user_oda.odas[id].group_version = lua_toboolean(localL, 2);
     mod->enc->state[mod->enc->program].user_oda.odas[id].id = luaL_checkinteger(localL, 3);
     mod->enc->state[mod->enc->program].user_oda.odas[id].id_data = luaL_checkinteger(localL, 4);
     lua_pushinteger(localL, id);
     return 1;
+}
+
+int lua_set_oda_handler(lua_State *localL) {
+    uint8_t idx = luaL_checkinteger(localL, 1);
+	if(idx >= 32) return luaL_error(localL, "There can't be more than 32 registered ODAs");
+	if(mod->enc->state[mod->enc->program].user_oda.odas[idx].group == 0) return luaL_error(localL, "this oda is not registered");
+    luaL_checktype(localL, 2, LUA_TFUNCTION);
+    lua_pushvalue(localL, 2);
+    if(mod->enc->state[mod->enc->program].user_oda.odas[idx].lua_handler != 0) luaL_unref(localL, LUA_REGISTRYINDEX, mod->enc->state[mod->enc->program].user_oda.odas[idx].lua_handler);
+    mod->enc->state[mod->enc->program].user_oda.odas[idx].lua_handler = luaL_ref(localL, LUA_REGISTRYINDEX);
+    int index = *unload_refs;
+    unload_refs[index] = mod->enc->state[mod->enc->program].user_oda.odas[idx].lua_handler;
+    (*unload_refs)++;
+    return 0;
 }
 
 void init_lua(RDSModulator* rds_mod) {
@@ -529,6 +549,7 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "set_rds_udg2", lua_set_rds_udg2);
 
     lua_register(L, "register_oda", lua_register_oda);
+    lua_register(L, "set_oda_handler", lua_set_oda_handler);
 
     char path[128];
     const char *home = getenv("HOME");
@@ -545,6 +566,7 @@ void init_lua(RDSModulator* rds_mod) {
             lua_pop(L, 1);
         }
     }
+    lua_pushvalue(L, 1); 
     pthread_mutex_init(&lua_mutex, NULL);
 }
 
@@ -555,9 +577,9 @@ void run_lua(char *str, char *cmd_output) {
     if (lua_isfunction(L, -1)) {
         lua_pushstring(L, str);
         if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
-            if (lua_isstring(L, -1) && cmd_output) strcpy(cmd_output, lua_tostring(L, -1));
+            if (lua_isstring(L, -1) && cmd_output) _strncpy(cmd_output, lua_tostring(L, -1), 254);
         } else fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
-    } else if (lua_isstring(L, -1) && cmd_output) strcpy(cmd_output, lua_tostring(L, -1));
+    } else if (lua_isstring(L, -1) && cmd_output) _strncpy(cmd_output, lua_tostring(L, -1), 254);
     lua_pop(L, 1);
     pthread_mutex_unlock(&lua_mutex);
 }
@@ -571,6 +593,18 @@ void lua_group(RDSGroup* group) {
         lua_pushinteger(L, group->c);
         lua_pushinteger(L, group->d);
         if (lua_pcall(L, 3, 3, 0) == LUA_OK) {
+            if (!lua_isinteger(localL, -1)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -1));
+            }
+            if (!lua_isinteger(localL, -2)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -2));
+            }
+            if (!lua_isinteger(localL, -3)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -3));
+            }
             group->d = luaL_checkinteger(L, -1);
             group->c = luaL_checkinteger(L, -2);
             group->b = luaL_checkinteger(L, -3);
@@ -582,6 +616,39 @@ void lua_group(RDSGroup* group) {
     } else {
         lua_pop(L, 1);
     }
+    pthread_mutex_unlock(&lua_mutex);
+}
+
+void lua_group_ref(RDSGroup* group, int ref) {
+    pthread_mutex_lock(&lua_mutex);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+
+    if (lua_isfunction(L, -1)) {
+        lua_pushinteger(L, group->b);
+        lua_pushinteger(L, group->c);
+        lua_pushinteger(L, group->d);
+        if (lua_pcall(L, 3, 3, 0) == LUA_OK) {
+            if (!lua_isinteger(localL, -1)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -1));
+            }
+            if (!lua_isinteger(localL, -2)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -2));
+            }
+            if (!lua_isinteger(localL, -3)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -3));
+            }
+            group->d = luaL_checkinteger(L, -1);
+            group->c = luaL_checkinteger(L, -2);
+            group->b = luaL_checkinteger(L, -3);
+            lua_pop(L, 3);
+        } else {
+            fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
+            lua_pop(L, 1);
+        }
+    } else lua_pop(L, 1);
     pthread_mutex_unlock(&lua_mutex);
 }
 
@@ -600,6 +667,7 @@ void lua_call_function(const char* function) {
 
 void destroy_lua(void) {
     if (L) {
+        for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
         lua_close(L);
         L = NULL;
     }

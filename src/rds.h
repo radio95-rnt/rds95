@@ -113,7 +113,6 @@ typedef struct {
 } RDSEONState;
 
 typedef struct {
-	uint8_t enabled : 1;
 	uint8_t group : 4;
 	uint8_t group_version : 1;
 	uint16_t id;
@@ -123,6 +122,7 @@ typedef struct {
 typedef struct {
 	uint8_t oda_len;
 	uint8_t oda_pointer;
+	uint8_t oda_runner_pointer;
 	RDSODA odas[32];
 } RDSODAState;
 
