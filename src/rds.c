@@ -151,7 +151,14 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	if(*grp == 'T') good_group = 1;
 	if(*grp == 'L') good_group = 1;
 	if(*grp == 'O' && enc->state[enc->program].user_oda.oda_len != 0) good_group = 1;
-	if(*grp == 'K') good_group = 1;
+	if(*grp == 'K') {
+		for (int i = 0; i < enc->state->user_oda.oda_len; i++) {
+			if (enc->state->user_oda.odas[i].lua_handler != 0) {
+				good_group = 1;
+				break;
+			}
+		}
+	}
 	if(*grp == 'U' && enc->data[enc->program].af_oda.num_afs) good_group = 1;
 	return good_group;
 }
