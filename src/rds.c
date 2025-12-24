@@ -28,6 +28,7 @@ void get_rds_eon_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_ert_group(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group);
+void get_rdsp_lua_group(RDSGroup *group);
 
 #define HANDLE_UDG_STREAM(chan_idx, udg_prefix) \
     do { \
@@ -108,6 +109,9 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 		case 'T':
 			get_rds_fasttuning_group(enc, group);
 			break;
+		case 'L':
+			get_rdsp_lua_group(group);
+			break;
 		case 'U':
 			if(enc->state[enc->program].af_oda == 0) get_rds_oda_af_group(enc, group);
 			else get_rdsp_oda_af_oda_group(group);
@@ -153,6 +157,7 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 	utc = gmtime(&now);
 
 	if (utc->tm_min != enc->state[enc->program].last_minute) {
+		lua_call_function("tick");
 		enc->state[enc->program].last_minute = utc->tm_min;
 
 		uint8_t eon_has_ta = 0;

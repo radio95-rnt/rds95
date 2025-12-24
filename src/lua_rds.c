@@ -515,23 +515,78 @@ void init_lua(RDSModulator* rds_mod) {
 }
 
 void run_lua(char *str, char *cmd_output) {
-    lua_pushstring(L, str);
-    lua_setglobal(L, "data");
-
-    int top = lua_gettop(L);
-
     char path[128];
-	snprintf(path, sizeof(path), "%s/.rds95.command.lua", getenv("HOME"));
-    if (luaL_loadfilex(L, path, NULL) == LUA_OK && lua_pcall(L, 0, 1, 0) == LUA_OK) {
-        if (lua_isstring(L, -1)) {
-            if(cmd_output) strcpy(cmd_output, lua_tostring(L, -1));
+    const char *home = getenv("HOME");
+    if (!home) return;
+    snprintf(path, sizeof(path), "%s/.rds95.command.lua", home);
+
+    if (luaL_loadfile(L, path) != LUA_OK) {
+        fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return;
+    }
+    if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+        fprintf(stderr, "Lua error running script: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return;
+    }
+
+    lua_getglobal(L, "data_handle");
+
+    if (lua_isfunction(L, -1)) {
+        lua_pushstring(L, str);
+        if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
+            if (lua_isstring(L, -1) && cmd_output) {
+                const char *res = lua_tostring(L, -1);
+                strcpy(cmd_output, res); 
+            }
+            lua_pop(L, 1);
+        } else {
+            fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
+            lua_pop(L, 1);
         }
+    } else if (lua_isstring(L, -1)) {
+        if (cmd_output) strcpy(cmd_output, lua_tostring(L, -1));
         lua_pop(L, 1);
     } else {
-        const char *err = lua_tostring(L, -1);
-        fprintf(stderr, "Lua error: %s\n", err);
         lua_pop(L, 1);
-        lua_settop(L, top);
+    }
+}
+
+void lua_group(RDSGroup* group) {
+    char path[128];
+    const char *home = getenv("HOME");
+    if (!home) return;
+    snprintf(path, sizeof(path), "%s/.rds95.command.lua", home);
+
+    if (luaL_loadfile(L, path) != LUA_OK) {
+        fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return;
+    }
+    if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+        fprintf(stderr, "Lua error running script: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return;
+    }
+
+    lua_getglobal(L, "group");
+
+    if (lua_isfunction(L, -1)) {
+        lua_pushinteger(L, group->b);
+        lua_pushinteger(L, group->c);
+        lua_pushinteger(L, group->d);
+        if (lua_pcall(L, 3, 3, 0) == LUA_OK) {
+            group->d = luaL_checkinteger(L, -1);
+            group->c = luaL_checkinteger(L, -2);
+            group->b = luaL_checkinteger(L, -3);
+            lua_pop(L, 3);
+        } else {
+            fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
+            lua_pop(L, 1);
+        }
+    } else {
+        lua_pop(L, 1);
     }
 }
 
@@ -546,9 +601,6 @@ void lua_call_function(const char* function) {
         return;
     }
 
-    lua_pushnil(L); // Make sure the script doesn't parse any old command
-    lua_setglobal(L, "data");
-
     if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
         const char *err = lua_tostring(L, -1);
         fprintf(stderr, "Lua error running script: %s\n", err);
@@ -560,7 +612,7 @@ void lua_call_function(const char* function) {
 
     if (lua_isfunction(L, -1)) {
         if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-            fprintf(stderr, "Lua error running 'on_init': %s\n", lua_tostring(L, -1));
+            fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
             lua_pop(L, 1);
         }
     } else lua_pop(L, 1);

@@ -1,5 +1,6 @@
 #include "rds.h"
 #include "lib.h"
+#include "lua_rds.h"
 
 uint16_t get_next_af(RDSEncoder* enc) {
 	uint16_t out;
@@ -364,4 +365,8 @@ uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group) {
 		return 1;
 	}
 	return 0;
+}
+void get_rdsp_lua_group(RDSGroup *group) {
+	lua_group(group);
+	group->is_type_b = (IS_TYPE_B(group->b) != 0);
 }

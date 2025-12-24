@@ -26,6 +26,24 @@ function on_init() end
 ---It should be defined by the user in the script.
 ---@return nil
 function on_start() end
+---This function is called every minute
+---It should be defined by the user in the script.
+---@return nil
+function tick() end
+---This function is called in order to handle UDP data
+---It should be defined by the user in the script.
+---@param data string
+---@return string
+function data_handle(data) end
+---This function is called when the group "L" is in the sequence
+---It should be defined by the user in the script.
+---@param b integer
+---@param c integer
+---@param d integer
+---@return integer b
+---@return integer c
+---@return integer d
+function group(a, b, c, d) end
 
 ---@param pi integer
 function set_rds_pi(pi) end
@@ -240,3 +258,10 @@ function set_rds_udg(xy, groups) end
 ---@param xy boolean
 ---@param groups table Table of tables, this should be up to 8 tables containing 4 integers
 function set_rds_udg2(xy, groups) end
+
+---Registers an ODA to be used in the O of the group sequence
+---@param group integer
+---@param group_version boolean
+---@param id integer
+---@param id_data integer
+function register_oda(group, group_version, id, id_data) end

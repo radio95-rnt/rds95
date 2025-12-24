@@ -1,4 +1,4 @@
-if type(data) == "string" and data ~= nil then
+function data_handle(data)
     local cmd, value = data:match("([^=]+)=([^=]+)")
     if cmd == nil then
         data = data:lower()
@@ -64,6 +64,7 @@ if type(data) == "string" and data ~= nil then
         end
     end
 
+---@diagnostic disable-next-line: need-check-nil
     cmd = cmd:lower()
 
     local eon_num, eon_type = cmd:match("^eon(%d+)([a-z]+)$")
