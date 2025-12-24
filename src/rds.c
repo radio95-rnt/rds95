@@ -359,7 +359,7 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	time(&now);
 	utc = gmtime(&now);
 	tempCoder.state[program].last_minute = utc->tm_min;
-	tempCoder.state[program].last_second = utc->tm_min;
+	tempCoder.state[program].last_second = utc->tm_sec;
 
 	for(int i = 0; i < EONs; i++) tempCoder.data[program].eon[i].ta = 0;
 
