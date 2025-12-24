@@ -256,3 +256,11 @@ function set_rds_udg(xy, groups) end
 ---@param xy boolean
 ---@param groups table Table of tables, this should be up to 8 tables containing 4 integers
 function set_rds_udg2(xy, groups) end
+
+---Registers an ODA to be used in the O of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
+---@param group integer
+---@param group_version boolean
+---@param id integer
+---@param id_data integer
+---@return integer oda_id
+function register_oda(group, group_version, id, id_data) end

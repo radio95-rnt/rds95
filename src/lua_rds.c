@@ -1,7 +1,9 @@
 #include "lua_rds.h"
+#include <pthread.h>
 
 static RDSModulator* mod = NULL;
 static lua_State *L = NULL;
+static pthread_mutex_t lua_mutex;
 
 int lua_set_rds_program_defaults(lua_State *localL) {
     (void)localL;
@@ -397,6 +399,19 @@ int lua_set_rds_udg2(lua_State *localL) {
     return 0;
 }
 
+int lua_register_oda(lua_State *localL) {
+    if (!lua_isboolean(localL, 2)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 2));
+    uint8_t id = mod->enc->state[mod->enc->program].user_oda.oda_len++;
+	if(mod->enc->state[mod->enc->program].user_oda.oda_len >= 32) return luaL_error(localL, "There can't be more than 32 registered ODAs");
+    mod->enc->state[mod->enc->program].user_oda.odas[id].enabled = 1;
+    mod->enc->state[mod->enc->program].user_oda.odas[id].group = luaL_checkinteger(localL, 1);
+    mod->enc->state[mod->enc->program].user_oda.odas[id].group_version = lua_toboolean(localL, 2);
+    mod->enc->state[mod->enc->program].user_oda.odas[id].id = luaL_checkinteger(localL, 3);
+    mod->enc->state[mod->enc->program].user_oda.odas[id].id_data = luaL_checkinteger(localL, 4);
+    lua_pushinteger(localL, id);
+    return 1;
+}
+
 void init_lua(RDSModulator* rds_mod) {
     mod = rds_mod;
     L = luaL_newstate();
@@ -512,9 +527,9 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_udg", lua_set_rds_udg);
     lua_register(L, "set_rds_udg2", lua_set_rds_udg2);
-}
 
-void run_lua(char *str, char *cmd_output) {
+    lua_register(L, "register_oda", lua_register_oda);
+
     char path[128];
     const char *home = getenv("HOME");
     if (!home) return;
@@ -524,48 +539,31 @@ void run_lua(char *str, char *cmd_output) {
         fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(L, -1));
         lua_pop(L, 1);
         return;
+    } else {
+        if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+            printf("Init error: %s\n", lua_tostring(L, -1));
+            lua_pop(L, 1);
+        }
     }
-    if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-        fprintf(stderr, "Lua error running script: %s\n", lua_tostring(L, -1));
-        lua_pop(L, 1);
-        return;
-    }
+    pthread_mutex_init(&lua_mutex, NULL);
+}
 
+void run_lua(char *str, char *cmd_output) {
+    pthread_mutex_lock(&lua_mutex);
     lua_getglobal(L, "data_handle");
 
     if (lua_isfunction(L, -1)) {
         lua_pushstring(L, str);
         if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
-            if (lua_isstring(L, -1) && cmd_output) {
-                const char *res = lua_tostring(L, -1);
-                strcpy(cmd_output, res);
-            }
-        } else {
-            fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
-        }
-    } else if (lua_isstring(L, -1)) {
-        if (cmd_output) strcpy(cmd_output, lua_tostring(L, -1));
-    }
+            if (lua_isstring(L, -1) && cmd_output) strcpy(cmd_output, lua_tostring(L, -1));
+        } else fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
+    } else if (lua_isstring(L, -1) && cmd_output) strcpy(cmd_output, lua_tostring(L, -1));
     lua_pop(L, 1);
+    pthread_mutex_unlock(&lua_mutex);
 }
 
 void lua_group(RDSGroup* group) {
-    char path[128];
-    const char *home = getenv("HOME");
-    if (!home) return;
-    snprintf(path, sizeof(path), "%s/.rds95.command.lua", home);
-
-    if (luaL_loadfile(L, path) != LUA_OK) {
-        fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(L, -1));
-        lua_pop(L, 1);
-        return;
-    }
-    if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-        fprintf(stderr, "Lua error running script: %s\n", lua_tostring(L, -1));
-        lua_pop(L, 1);
-        return;
-    }
-
+    pthread_mutex_lock(&lua_mutex);
     lua_getglobal(L, "group");
 
     if (lua_isfunction(L, -1)) {
@@ -584,26 +582,11 @@ void lua_group(RDSGroup* group) {
     } else {
         lua_pop(L, 1);
     }
+    pthread_mutex_unlock(&lua_mutex);
 }
 
 void lua_call_function(const char* function) {
-    char path[128];
-    snprintf(path, sizeof(path), "%s/.rds95.command.lua", getenv("HOME"));
-
-    if (luaL_loadfilex(L, path, NULL) != LUA_OK) {
-        const char *err = lua_tostring(L, -1);
-        fprintf(stderr, "Lua error loading file: %s\n", err);
-        lua_pop(L, 1);
-        return;
-    }
-
-    if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-        const char *err = lua_tostring(L, -1);
-        fprintf(stderr, "Lua error running script: %s\n", err);
-        lua_pop(L, 1);
-        return;
-    }
-
+    pthread_mutex_lock(&lua_mutex);
     lua_getglobal(L, function);
 
     if (lua_isfunction(L, -1)) {
@@ -612,6 +595,7 @@ void lua_call_function(const char* function) {
             lua_pop(L, 1);
         }
     } else lua_pop(L, 1);
+    pthread_mutex_unlock(&lua_mutex);
 }
 
 void destroy_lua(void) {
@@ -620,4 +604,5 @@ void destroy_lua(void) {
         L = NULL;
     }
     mod = NULL;
+    pthread_mutex_destroy(&lua_mutex);
 }

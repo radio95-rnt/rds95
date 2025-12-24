@@ -370,3 +370,15 @@ void get_rdsp_lua_group(RDSGroup *group) {
 	lua_group(group);
 	group->is_type_b = (IS_TYPE_B(group->b) != 0);
 }
+
+void get_rds_user_oda_group(RDSEncoder* enc, RDSGroup *group) {
+	uint8_t pointer = enc->state[enc->program].user_oda.oda_pointer++;
+	if(enc->state[enc->program].user_oda.oda_pointer >= enc->state[enc->program].user_oda.oda_len) enc->state[enc->program].user_oda.oda_pointer = 0;
+	RDSODA oda = enc->state[enc->program].user_oda.odas[pointer];
+
+	group->b |= 3 << 12;
+	group->b |= oda.group << 1;
+	group->b |= oda.group_version;
+	group->c = oda.id_data;
+	group->d = oda.id;
+}

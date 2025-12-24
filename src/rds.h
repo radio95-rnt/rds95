@@ -111,6 +111,21 @@ typedef struct {
 typedef struct {
 	uint8_t af_state : 6;
 } RDSEONState;
+
+typedef struct {
+	uint8_t enabled : 1;
+	uint8_t group : 4;
+	uint8_t group_version : 1;
+	uint16_t id;
+	uint16_t id_data;
+	int lua_handler;
+} RDSODA;
+typedef struct {
+	uint8_t oda_len;
+	uint8_t oda_pointer;
+	RDSODA odas[32];
+} RDSODAState;
+
 typedef struct {
 	uint8_t ps_update : 1;
 	uint8_t tps_update : 1;
@@ -175,6 +190,8 @@ typedef struct {
 
 	uint16_t last_stream0_group[3];
 	uint8_t last_stream0_group_type_b : 1;
+
+	RDSODAState user_oda;
 } RDSState;
 
 typedef struct {
