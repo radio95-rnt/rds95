@@ -595,15 +595,15 @@ void lua_group(RDSGroup* group) {
         if (lua_pcall(L, 3, 3, 0) == LUA_OK) {
             if (!lua_isinteger(localL, -1)) {
                 pthread_mutex_unlock(&lua_mutex);
-                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -1));
+                return;
             }
             if (!lua_isinteger(localL, -2)) {
                 pthread_mutex_unlock(&lua_mutex);
-                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -2));
+                return;
             }
             if (!lua_isinteger(localL, -3)) {
                 pthread_mutex_unlock(&lua_mutex);
-                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -3));
+                return;
             }
             group->d = luaL_checkinteger(L, -1);
             group->c = luaL_checkinteger(L, -2);
@@ -630,15 +630,15 @@ void lua_group_ref(RDSGroup* group, int ref) {
         if (lua_pcall(L, 3, 3, 0) == LUA_OK) {
             if (!lua_isinteger(localL, -1)) {
                 pthread_mutex_unlock(&lua_mutex);
-                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -1));
+                return;
             }
             if (!lua_isinteger(localL, -2)) {
                 pthread_mutex_unlock(&lua_mutex);
-                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -2));
+                return;
             }
             if (!lua_isinteger(localL, -3)) {
                 pthread_mutex_unlock(&lua_mutex);
-                return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -3));
+                return;
             }
             group->d = luaL_checkinteger(L, -1);
             group->c = luaL_checkinteger(L, -2);
