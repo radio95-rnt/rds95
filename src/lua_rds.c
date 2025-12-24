@@ -288,6 +288,7 @@ AF_SETTER(af_oda, af_oda, RDSAFsODA, add_rds_af_oda)
 
 int lua_set_rds_eon(lua_State *localL) {
     int eon = luaL_checkinteger(localL, 1);
+    if(eon >= EONs) return luaL_error(localL, "eon index exceeded");
     if (!lua_isboolean(localL, 2)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 2));
     if (!lua_isboolean(localL, 4)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 4));
     if (!lua_isboolean(localL, 5)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 5));
@@ -322,6 +323,7 @@ int lua_set_rds_eon(lua_State *localL) {
 }
 int lua_get_rds_eon(lua_State *localL) {
     int eon = luaL_checkinteger(localL, 1);
+    if(eon >= EONs) return luaL_error(localL, "eon index exceeded");
     lua_pushboolean(localL, mod->enc->data[mod->enc->program].eon[eon].enabled);
     lua_pushinteger(localL, mod->enc->data[mod->enc->program].eon[eon].pi);
     lua_pushboolean(localL, mod->enc->data[mod->enc->program].eon[eon].tp);
