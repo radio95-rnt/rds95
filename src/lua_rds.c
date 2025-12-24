@@ -624,17 +624,20 @@ void lua_group_ref(RDSGroup* group, int ref) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
 
     if (lua_isfunction(L, -1)) {
-        if (lua_pcall(L, 3, 3, 0) == LUA_OK) {
+        if (lua_pcall(L, 0, 3, 0) == LUA_OK) {
             if (!lua_isinteger(L, -1)) {
                 pthread_mutex_unlock(&lua_mutex);
+                lua_pop(L, 1);
                 return;
             }
             if (!lua_isinteger(L, -2)) {
                 pthread_mutex_unlock(&lua_mutex);
+                lua_pop(L, 1);
                 return;
             }
             if (!lua_isinteger(L, -3)) {
                 pthread_mutex_unlock(&lua_mutex);
+                lua_pop(L, 1);
                 return;
             }
             group->d = luaL_checkinteger(L, -1);
