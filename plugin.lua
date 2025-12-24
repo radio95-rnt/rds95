@@ -35,13 +35,14 @@ function tick() end
 function data_handle(data) end
 ---This function is called when the group "L" is in the sequence
 ---It should be defined by the user in the script.
+---@param group string group this was called in from the group sequence
 ---@param b integer
 ---@param c integer
 ---@param d integer
 ---@return integer b
 ---@return integer c
 ---@return integer d
-function group(b, c, d) end
+function group(group, b, c, d) end
 
 ---@param pi integer
 function set_rds_pi(pi) end

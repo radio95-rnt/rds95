@@ -591,6 +591,7 @@ void lua_group(RDSGroup* group) {
     lua_getglobal(L, "group");
 
     if (lua_isfunction(L, -1)) {
+        lua_pushstring(L, "L");
         lua_pushinteger(L, group->b);
         lua_pushinteger(L, group->c);
         lua_pushinteger(L, group->d);
