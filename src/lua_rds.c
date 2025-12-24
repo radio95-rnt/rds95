@@ -298,10 +298,10 @@ int lua_set_rds_eon(lua_State *localL) {
         return 0;
     }
     if(n > 25) return luaL_error(localL, "table length over 25");
-    
+
     RDSAFs new_af;
     memset(&new_af, 0, sizeof(RDSAFs));
-    
+
     for (int i = 1; i <= n; i++) {
         lua_rawgeti(localL, 8, i);
         if (lua_isnumber(localL, -1)) add_rds_af(&new_af, lua_tonumber(localL, -1));
@@ -334,7 +334,7 @@ int lua_set_rds_udg(lua_State *localL) {
     if(n > 8) return luaL_error(localL, "table length over 8");
 
     uint16_t blocks[8][3] = {0};
-    
+
     for (int i = 1; i <= n; i++) {
         lua_rawgeti(localL, 2, i);
         if(lua_istable(localL, -1)) {
@@ -369,7 +369,7 @@ int lua_set_rds_udg2(lua_State *localL) {
     if(n > 8) return luaL_error(localL, "table length over 8");
 
     uint16_t blocks[8][4] = {0};
-    
+
     for (int i = 1; i <= n; i++) {
         lua_rawgeti(localL, 2, i);
         if(lua_istable(localL, -1)) {
@@ -538,19 +538,15 @@ void run_lua(char *str, char *cmd_output) {
         if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
             if (lua_isstring(L, -1) && cmd_output) {
                 const char *res = lua_tostring(L, -1);
-                strcpy(cmd_output, res); 
+                strcpy(cmd_output, res);
             }
-            lua_pop(L, 1);
         } else {
             fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
-            lua_pop(L, 1);
         }
     } else if (lua_isstring(L, -1)) {
         if (cmd_output) strcpy(cmd_output, lua_tostring(L, -1));
-        lua_pop(L, 1);
-    } else {
-        lua_pop(L, 1);
     }
+    lua_pop(L, 1);
 }
 
 void lua_group(RDSGroup* group) {
