@@ -1,4 +1,5 @@
 #pragma once
+#define _GNU_SOURCE
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
