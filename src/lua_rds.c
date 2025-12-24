@@ -8,6 +8,7 @@ static uint8_t unload_refs[33] = {LUA_REFNIL};
 static uint8_t lua_reload_scheduled = 0;
 
 int lua_reload_command(lua_State* localL) {
+    (void)localL;
     lua_reload_scheduled = 1;
     return 0;
 }
@@ -694,12 +695,10 @@ void reload_lua() {
         }
     } else lua_pop(L, 1);
 
-    if (unload_refs) {
-        for (int i = 1; i < *unload_refs; i++) {
-            luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
-        }
-        *unload_refs = 1;
+    for (int i = 1; i < *unload_refs; i++) {
+        luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
     }
+    *unload_refs = 1;
 
     if (L) {
         lua_close(L);
