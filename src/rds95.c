@@ -134,7 +134,6 @@ int main(int argc, char **argv) {
 
 	pthread_attr_init(&attr);
 
-	signal(SIGINT, stop);
 	signal(SIGTERM, stop);
 	signal(SIGHUP, reload);
 
