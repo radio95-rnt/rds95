@@ -54,7 +54,7 @@ install(CODE
   if(EXISTS \${PREFIX_FILE})
     message(STATUS \"Prefix file found. Adding .script_prefix.lua.\")
     file(READ \${PREFIX_FILE} PREFIX_CONTENT)
-    set(FINAL_CONTENT \"\${PREFIX_CONTENT}\")
+    set(FINAL_CONTENT \"\${FINAL_CONTENT}\n\${PREFIX_CONTENT}\")
   else()
     message(STATUS \"Prefix file not found.\")
   endif()
