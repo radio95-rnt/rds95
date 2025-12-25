@@ -432,8 +432,8 @@ int lua_register_oda(lua_State *localL) {
     case 4:
     case 3:
     case 1:
-    default:
         if(mod->enc->state[mod->enc->program].user_oda.odas[id].group_version == 0) return luaL_error(localL, "Invalid group");
+    default:
         break;
     }
     mod->enc->state[mod->enc->program].user_oda.odas[id].group_version = lua_toboolean(localL, 2);
