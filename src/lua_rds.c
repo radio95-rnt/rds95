@@ -40,6 +40,7 @@ int lua_set_userdata_offset(lua_State *localL) {
 }
 
 int lua_force_save(lua_State *localL) {
+    (void)localL;
     encoder_saveToFile(mod->enc);
     Modulator_saveToFile(&mod->params);
     return 0;
