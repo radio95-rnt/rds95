@@ -49,6 +49,7 @@ function data_handle(data) end
 ---@param b integer
 ---@param c integer
 ---@param d integer
+---@return boolean generated
 ---@return integer b
 ---@return integer c
 ---@return integer d

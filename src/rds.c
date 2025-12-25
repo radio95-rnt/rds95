@@ -26,7 +26,7 @@ void get_rds_ertplus_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_eon_group(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group);
-int get_rdsp_lua_group(RDSGroup *group);
+int get_rdsp_lua_group(RDSGroup *group, const char grp);
 void get_rds_user_oda_group(RDSEncoder* enc, RDSGroup *group);
 int get_rds_user_oda_group_content(RDSEncoder* enc, RDSGroup *group);
 
@@ -105,11 +105,12 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 			get_rds_fasttuning_group(enc, group);
 			break;
 		case 'L':
-			if(get_rdsp_lua_group(group) == 0) get_rds_ps_group(enc, group);
+			if(get_rdsp_lua_group(group, *grp) == 0) get_rds_ps_group(enc, group);
 			break;
 		case 'O':
 			get_rds_user_oda_group(enc, group);
 			break;
+		case 'S':
 		case 'K':
 			if(get_rds_user_oda_group_content(enc, group) == 0) get_rds_ps_group(enc, group);
 			break;

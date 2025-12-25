@@ -343,8 +343,8 @@ uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group) {
 	}
 	return 0;
 }
-int get_rdsp_lua_group(RDSGroup *group) {
-	int generated = lua_group(group);
+int get_rdsp_lua_group(RDSGroup *group, const char grp) {
+	int generated = lua_group(group, grp);
 	if(generated) group->is_type_b = (IS_TYPE_B(group->b) != 0);
 	return generated;
 }
