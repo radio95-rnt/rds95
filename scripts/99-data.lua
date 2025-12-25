@@ -1,5 +1,9 @@
 function data_handle(data)
     local cmd, value = data:match("([^=]+)=([^=]+)")
+    if cmd == nil and data:sub(-1) == "=" then
+        cmd = data:sub(1, -2)
+        value = ""
+    end
     if cmd == nil then
         data = data:lower()
         if data == "ver" then return string.format("rds95 v. %s - (C) 2025 radio95 - lua parser", core_version)
