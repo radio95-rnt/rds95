@@ -23,7 +23,6 @@ install(CODE
   # Define the paths for the source and destination files
   set(PREFIX_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/.script_prefix.lua\")
   set(SCRIPTS_DIR \"${CMAKE_CURRENT_SOURCE_DIR}/scripts\")
-  set(SCRIPT_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/src/script.lua\")
   set(DEST_FILE \"/etc/rds95.lua\")
 
   # Initialize content variable
@@ -59,11 +58,6 @@ install(CODE
   else()
     message(STATUS \"Scripts directory not found.\")
   endif()
-
-  # Add the main script file
-  message(STATUS \"Adding main script.lua.\")
-  file(READ \${SCRIPT_FILE} MAIN_SCRIPT_CONTENT)
-  set(FINAL_CONTENT \"\${FINAL_CONTENT}\n\${MAIN_SCRIPT_CONTENT}\")
 
   # Write the resulting content to the destination file
   message(STATUS \"Installing script file to \${DEST_FILE}\")
