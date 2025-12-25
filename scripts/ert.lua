@@ -5,7 +5,7 @@ local function init_ert()
     if _Ert_oda_id == nil then
         _Ert_oda_id = register_oda(12, false, 0x6552, 1)
         set_oda_handler(_Ert_oda_id, function ()
-            if string.byte(get_userdata_offset(257, 1)) == 1 then
+            if string.byte(get_userdata_offset(258, 1)) == 1 then
                 local new_data = get_userdata_offset(0, 128)
                 local new_segments = string.byte(get_userdata_offset(128, 1))
                 set_userdata_offset(129, 128, new_data)
@@ -15,7 +15,10 @@ local function init_ert()
             end
 
             local segments = string.byte(get_userdata_offset(257, 1))
-            if segments == 0 then segments = 1 end
+
+            if segments == 0 then return 0, 0, 0 end
+
+            if _Ert_state >= segments then _Ert_state = 0 end
 
             local b = _Ert_state & 31
             local chunk = get_userdata_offset(129 + _Ert_state * 4, 4)
@@ -30,6 +33,7 @@ end
 
 function set_rds_ert(ert)
     if #ert == 0 then
+        set_userdata_offset(0, 128, "")
         set_userdata_offset(128, 1, string.char(0))
         set_userdata_offset(258, 1, string.char(1))
         return
@@ -46,18 +50,21 @@ function set_rds_ert(ert)
     local segments = #data // 4
     if segments > 32 then segments = 32 end
 
+    set_userdata_offset(128, 1, string.char(segments))
+
     if string.byte(get_userdata_offset(257, 1)) == 0 then
         init_ert()
         set_userdata_offset(129, 128, data)
         set_userdata_offset(257, 1, string.char(segments))
+        _Ert_state = 0
     else set_userdata_offset(258, 1, string.char(1)) end
-
-    set_userdata_offset(128, 1, string.char(segments))
 end
 
 function get_rds_ert()
+    local segments = string.byte(get_userdata_offset(128, 1))
+    if segments == 0 then return "" end
+
     local data = get_userdata_offset(0, 128)
-    if string.byte(get_userdata_offset(128, 1)) == 0 then return "" end
     return data:match("^(.-)[\r%z]*") or ""
 end
 
