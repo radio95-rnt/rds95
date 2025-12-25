@@ -28,15 +28,6 @@ install(CODE
   # Initialize content variable
   set(FINAL_CONTENT \"\")
 
-  # Check if the optional prefix file exists
-  if(EXISTS \${PREFIX_FILE})
-    message(STATUS \"Prefix file found. Adding .script_prefix.lua.\")
-    file(READ \${PREFIX_FILE} PREFIX_CONTENT)
-    set(FINAL_CONTENT \"\${PREFIX_CONTENT}\")
-  else()
-    message(STATUS \"Prefix file not found.\")
-  endif()
-
   # Check if scripts directory exists and contains .lua files
   if(EXISTS \${SCRIPTS_DIR} AND IS_DIRECTORY \${SCRIPTS_DIR})
     file(GLOB LUA_SCRIPTS \"\${SCRIPTS_DIR}/*.lua\")
@@ -57,6 +48,15 @@ install(CODE
     endif()
   else()
     message(STATUS \"Scripts directory not found.\")
+  endif()
+
+  # Check if the optional prefix file exists
+  if(EXISTS \${PREFIX_FILE})
+    message(STATUS \"Prefix file found. Adding .script_prefix.lua.\")
+    file(READ \${PREFIX_FILE} PREFIX_CONTENT)
+    set(FINAL_CONTENT \"\${PREFIX_CONTENT}\")
+  else()
+    message(STATUS \"Prefix file not found.\")
   endif()
 
   # Write the resulting content to the destination file
