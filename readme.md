@@ -4,6 +4,8 @@
 
 RDS95 is a light software RDS encoder for linux
 
+RDS95 also embeds Lua to implement some things
+
 RDS95 follows the IEC 62106 standard (available at the RDS Forum website)
 
 Also, yes i would like to license this under the unlicese but the tyranny of the GPL license restricts me from doing that, this is a message to you, anthony (see the [disclaimer](#disclaimer))

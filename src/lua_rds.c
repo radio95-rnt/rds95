@@ -21,8 +21,8 @@ int lua_set_userdata(lua_State *localL) {
     size_t len;
     const char *data = luaL_checklstring(localL, 1, &len);
     if(len > LUA_USER_DATA) return luaL_error(localL, "data exceeds limit");
-    memset(&mod->enc->data[mod->enc->program].lua_data, 0, LUA_USER_DATA);
-    memcpy(&mod->enc->data[mod->enc->program].lua_data, data, len);
+    memset(mod->enc->data[mod->enc->program].lua_data, 0, LUA_USER_DATA);
+    memcpy(mod->enc->data[mod->enc->program].lua_data, data, len);
 
     return 0;
 }
@@ -33,8 +33,8 @@ int lua_set_userdata_offset(lua_State *localL) {
     size_t len;
     const char *data = luaL_checklstring(localL, 3, &len);
     if(len > size || (offset + size) > LUA_USER_DATA) return luaL_error(localL, "data exceeds limit");
-    memset((&mod->enc->data[mod->enc->program].lua_data)+offset, 0, size);
-    memcpy((&mod->enc->data[mod->enc->program].lua_data)+offset, data, len);
+    memset(mod->enc->data[mod->enc->program].lua_data + offset, 0, size);
+    memcpy(mod->enc->data[mod->enc->program].lua_data + offset, data, len);
 
     return 0;
 }
