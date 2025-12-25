@@ -19,12 +19,6 @@
 #define NUM_MPX_FRAMES	128
 
 static uint8_t stop_rds = 0;
-static volatile sig_atomic_t reload_requested = 0;
-
-static void reload() {
-	printf("Received an reloading signal\n");
-	reload_requested = 1;
-}
 
 static void stop() {
 	printf("Received an stopping signal\n");
@@ -134,19 +128,14 @@ int main(int argc, char **argv) {
 
 	pthread_attr_init(&attr);
 
-	struct sigaction sa_stop, sa_reload;
+	struct sigaction sa_stop;
 
 	sa_stop.sa_handler = stop;
 	sigemptyset(&sa_stop.sa_mask);
 	sa_stop.sa_flags = 0;
 
-	sa_reload.sa_handler = reload;
-	sigemptyset(&sa_reload.sa_mask);
-	sa_reload.sa_flags = 0;
-
 	sigaction(SIGINT, &sa_stop, NULL);
 	sigaction(SIGTERM, &sa_stop, NULL);
-	sigaction(SIGHUP, &sa_reload, NULL);
 
 	format.format = PA_SAMPLE_FLOAT32NE;
 	format.channels = config.num_streams;
@@ -206,10 +195,6 @@ int main(int argc, char **argv) {
 		if (pa_simple_write(rds_device, rds_buffer, NUM_MPX_FRAMES * config.num_streams * sizeof(float), &pulse_error) != 0) {
 			fprintf(stderr, "Error: could not play audio. (%s : %d)\n", pa_strerror(pulse_error), pulse_error);
 			break;
-		}
-		if(reload_requested) {
-			reload_requested = 0;
-			reload_lua();
 		}
 	}
 

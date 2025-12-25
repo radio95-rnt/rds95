@@ -11,5 +11,4 @@ void run_lua(char *str, char *cmd_output);
 int lua_group(RDSGroup* group);
 void lua_call_function(const char* function);
 void lua_group_ref(RDSGroup* group, int ref);
-void reload_lua();
 void destroy_lua();
