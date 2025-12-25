@@ -425,7 +425,9 @@ int lua_register_oda(lua_State *localL) {
     case 14:
     case 15:
     case 2:
-    case 0: return luaL_error(localL, "Invalid group");
+    case 0: 
+        return luaL_error(localL, "Invalid group");
+        break;
     case 10:
     case 4:
     case 3:
