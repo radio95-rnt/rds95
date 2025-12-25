@@ -21,8 +21,8 @@ function data_handle(data)
         elseif data == "rt2en" then return string.format("RT2EN=%s\r\n", string.format("%d", (get_rds_rt2_enabled() and 1 or 0)))
         elseif data == "ptynen" then return string.format("PTYNEN=%s\r\n", string.format("%d", (get_rds_ptyn_enabled() and 1 or 0)))
         elseif data == "rttype" then return string.format("RTTYPE=%s\r\n", string.format("%d", get_rds_rt_type()))
-        elseif data == "rds2mod" then return string.format("RDS2MOD=%s\r\n", string.format("%d", (get_rds_rds2mod() and 1 or 0)))
-        elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d",get_rds_rdsgen()))
+        elseif data == "rds2mod" then return string.format("RDS2MOD=%s\r\n", string.format("%d", (get_rds2_mode() and 1 or 0)))
+        elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d", get_rds_streams()))
         elseif data == "level" then return string.format("LEVEL=%s\r\n", string.format("%d", get_rds_level() * 255))
         elseif data == "link" then return string.format("LINK=%s\r\n", string.format("%d", (get_rds_link() and 1 or 0)))
         elseif data == "rtp" then
@@ -225,12 +225,12 @@ function data_handle(data)
     elseif cmd == "rds2mod" then
         local type = tonumber(value)
         if not type then return "-" end
-        set_rds_rds2mod(type ~= 0)
+        set_rds2_mode(type ~= 0)
         return "+"
     elseif cmd == "rdsgen" then
         local type = tonumber(value)
         if not type then return "-" end
-        set_rds_rdsgen(type)
+        set_rds_streams(type)
         return "+"
     elseif cmd == "ptyn" then
         set_rds_ptyn(value)

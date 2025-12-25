@@ -7,6 +7,8 @@ core_version = ""
 eon_count = 0
 ---@type integer
 max_programs = 0
+---@type integer
+user_data_len = 0
 
 ---Starts the initialization sequence, also calls the on_init function
 ---@return nil
@@ -15,6 +17,10 @@ function set_rds_program_defaults() end
 ---Saves, loads and resets the state of the data, you might as well restart the whole program
 ---@return nil
 function reset_rds() end
+
+---Forces encoder and modulator data to be saved to disc
+---@return nil
+function force_save() end
 
 ---This function is called by the C core after we reset data, or have no data in general
 ---It should be defined by the user in the script.
@@ -111,14 +117,14 @@ function get_rds_rt_type() end
 
 -- Modulation & Generation
 ---@param mode boolean
-function set_rds_rds2mod(mode) end
+function set_rds2_mode(mode) end
 ---@return boolean
-function get_rds_rds2mod() end
+function get_rds2_mode() end
 
----@param rdsgen integer
-function set_rds_rdsgen(rdsgen) end
+---@param streams integer
+function set_rds_streams(streams) end
 ---@return integer
-function get_rds_rdsgen() end
+function get_rds_streams() end
 
 ---@param level number
 function set_rds_level(level) end
@@ -282,3 +288,21 @@ function register_oda(group, group_version, id, id_data) end
 ---@param oda_id integer The ID returned by register_oda
 ---@param fun ODAHandler
 function set_oda_handler(oda_id, fun) end
+
+---Data is allocated in each program's data for lua data, note that this overwrites existing data
+---@param data string
+function set_userdata(data) end
+---Writes to the userdata at the offset, size does not have to match the length of the string, if the string is less than size then the rest of the string will be padded with zeroes until it is size
+---@param offset integer
+---@param size integer
+---@param data string
+function set_userdata_offset(offset, size, data) end
+
+---Returns all of the data saved as user data
+---@return string
+function get_userdata() end
+---Gets data from userdata but at the specified offset
+---@param offset integer
+---@param size integer
+---@return string
+function get_userdata_offset(offset, size) end

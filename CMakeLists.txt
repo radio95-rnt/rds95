@@ -21,27 +21,31 @@ install(TARGETS rds95 DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 install(CODE
 "
   # Define the paths for the source and destination files
-  set(PREFIX_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/.command_prefix.lua\")
-  set(COMMAND_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/src/command.lua\")
-  # The $ENV{HOME} variable is evaluated at install time, not configure time
-  set(DEST_FILE \"$ENV{HOME}/.rds95.command.lua\")
+  set(PREFIX_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/.script_prefix.lua\")
+  set(SCRIPT_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/src/script.lua\")
+  set(DEST_FILE \"/etc/rds95.lua\")
 
   # Check if the optional prefix file exists
   if(EXISTS \${PREFIX_FILE})
-    # If it exists, read the prefix and the main command file
-    message(STATUS \"Prefix file found. Combining with command.lua.\")
+    message(STATUS \"Prefix file found. Combining with script.lua.\")
     file(READ \${PREFIX_FILE} PREFIX_CONTENT)
-    file(READ \${COMMAND_FILE} COMMAND_CONTENT)
-    # Concatenate them, with the prefix content first
-    set(FINAL_CONTENT \"\${PREFIX_CONTENT}\n\${COMMAND_CONTENT}\")
+    file(READ \${SCRIPT_FILE} SCRIPT_CONTENT)
+    set(FINAL_CONTENT \"\${PREFIX_CONTENT}\n\${SCRIPT_CONTENT}\")
   else()
-    # Otherwise, just use the content of the main command file
-    message(STATUS \"Prefix file not found. Using command.lua directly.\")
-    file(READ \${COMMAND_FILE} FINAL_CONTENT)
+    message(STATUS \"Prefix file not found. Using script.lua directly.\")
+    file(READ \${SCRIPT_FILE} FINAL_CONTENT)
   endif()
 
   # Write the resulting content to the destination file
-  message(STATUS \"Installing command file to \${DEST_FILE}\")
+  message(STATUS \"Installing script file to \${DEST_FILE}\")
   file(WRITE \${DEST_FILE} \"\${FINAL_CONTENT}\")
+  
+  # Change ownership to the user who invoked sudo (if applicable)
+  if(DEFINED ENV{SUDO_USER})
+    message(STATUS \"Changing ownership of \${DEST_FILE} to \$ENV{SUDO_USER}\")
+    execute_process(COMMAND chown \$ENV{SUDO_USER}:\$ENV{SUDO_USER} \${DEST_FILE})
+  else()
+    message(STATUS \"No SUDO_USER detected, skipping chown\")
+  endif()
 "
 )

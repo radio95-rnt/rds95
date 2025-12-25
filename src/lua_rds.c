@@ -6,6 +6,45 @@ static lua_State *L = NULL;
 static pthread_mutex_t lua_mutex;
 static uint8_t unload_refs[33] = {LUA_REFNIL};
 
+int lua_get_userdata(lua_State *localL) {
+    lua_pushlstring(localL, &mod->enc->data[mod->enc->program].lua_data, LUA_USER_DATA);
+    return 1;
+}
+int lua_get_userdata_offset(lua_State *localL) {
+    uint8_t offset = luaL_checkinteger(localL, 1);
+    uint8_t size = luaL_checkinteger(localL, 2);
+    if((offset+size) > LUA_USER_DATA) return luaL_error(localL, "data exceeds limit");
+    lua_pushlstring(localL, (&mod->enc->data[mod->enc->program].lua_data)+offset, size);
+    return 1;
+}
+int lua_set_userdata(lua_State *localL) {
+    size_t len;
+    const char *data = luaL_checklstring(localL, 1, &len);
+    if(len > LUA_USER_DATA) return luaL_error(localL, "data exceeds limit");
+    memset(&mod->enc->data[mod->enc->program].lua_data, 0, LUA_USER_DATA);
+    memcpy(&mod->enc->data[mod->enc->program].lua_data, data, len);
+
+    return 0;
+}
+int lua_set_userdata_offset(lua_State *localL) {
+    uint8_t offset = luaL_checkinteger(localL, 1);
+    uint8_t size = luaL_checkinteger(localL, 2);
+
+    size_t len;
+    const char *data = luaL_checklstring(localL, 3, &len);
+    if(len > size || (offset + size) > LUA_USER_DATA) return luaL_error(localL, "data exceeds limit");
+    memset((&mod->enc->data[mod->enc->program].lua_data)+offset, 0, size);
+    memcpy((&mod->enc->data[mod->enc->program].lua_data)+offset, data, len);
+
+    return 0;
+}
+
+int lua_force_save(lua_State *localL) {
+    encoder_saveToFile(mod->enc);
+    Modulator_saveToFile(&mod->params);
+    return 0;
+}
+
 int lua_set_rds_program_defaults(lua_State *localL) {
     (void)localL;
     for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
@@ -129,20 +168,20 @@ BOOL_GETTER(ptyn_enabled)
 INT_SETTER(rt_type)
 INT_GETTER(rt_type)
 
-int lua_set_rds_rds2mod(lua_State *localL) {
+int lua_set_rds2_mode(lua_State *localL) {
     if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
 	mod->enc->encoder_data.rds2_mode = lua_toboolean(localL, 1);
     return 0;
 }
-int lua_get_rds_rds2mod(lua_State *localL) {
+int lua_get_rds2_mode(lua_State *localL) {
     lua_pushboolean(localL, mod->enc->encoder_data.rds2_mode);
     return 1;
 }
-int lua_set_rds_rdsgen(lua_State *localL) {
+int lua_set_rds_streams(lua_State *localL) {
 	mod->params.rdsgen = luaL_checkinteger(localL, 1);
     return 0;
 }
-int lua_get_rds_rdsgen(lua_State *localL) {
+int lua_get_rds_streams(lua_State *localL) {
 	lua_pushinteger(localL, mod->params.rdsgen);
     return 1;
 }
@@ -454,6 +493,7 @@ void init_lua(RDSModulator* rds_mod) {
     static int mutex_initialized = 0;
     mod = rds_mod;
     L = luaL_newstate();
+    print("Initializing %s\n", LUA_COPYRIGHT);
 
     luaL_requiref(L, "_G", luaopen_base, 1);
     luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1);
@@ -469,9 +509,12 @@ void init_lua(RDSModulator* rds_mod) {
     lua_setglobal(L, "max_programs");
     lua_pushinteger(L, EONs);
     lua_setglobal(L, "eon_count");
+    lua_pushinteger(L, LUA_USER_DATA);
+    lua_setglobal(L, "user_data_len");
 
     lua_register(L, "set_rds_program_defaults", lua_set_rds_program_defaults);
     lua_register(L, "reset_rds", lua_reset_rds);
+    lua_register(L, "force_save", lua_force_save);
 
     lua_register(L, "set_rds_pi", lua_set_rds_pi);
     lua_register(L, "get_rds_pi", lua_get_rds_pi);
@@ -509,11 +552,11 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "set_rds_rt_type", lua_set_rds_rt_type);
     lua_register(L, "get_rds_rt_type", lua_get_rds_rt_type);
 
-    lua_register(L, "set_rds_rds2mod", lua_set_rds_rds2mod);
-    lua_register(L, "get_rds_rds2mod", lua_get_rds_rds2mod);
+    lua_register(L, "set_rds2_mode", lua_set_rds2_mode);
+    lua_register(L, "get_rds2_mode", lua_get_rds2_mode);
 
-    lua_register(L, "set_rds_rdsgen", lua_set_rds_rdsgen);
-    lua_register(L, "get_rds_rdsgen", lua_get_rds_rdsgen);
+    lua_register(L, "set_rds_streams", lua_set_rds_streams);
+    lua_register(L, "get_rds_streams", lua_get_rds_streams);
 
     lua_register(L, "set_rds_grpseq", lua_set_rds_grp_sqc);
     lua_register(L, "get_rds_grpseq", lua_get_rds_grp_sqc);
@@ -570,12 +613,12 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "register_oda", lua_register_oda);
     lua_register(L, "set_oda_handler", lua_set_oda_handler);
 
-    char path[128];
-    const char *home = getenv("HOME");
-    if (!home) return;
-    snprintf(path, sizeof(path), "%s/.rds95.command.lua", home);
+    lua_register(L, "set_userdata", lua_set_userdata);
+    lua_register(L, "set_userdata_offset", lua_set_userdata_offset);
+    lua_register(L, "get_userdata", lua_get_userdata);
+    lua_register(L, "get_userdata_offset", lua_get_userdata_offset);
 
-    if (luaL_loadfile(L, path) != LUA_OK) {
+    if (luaL_loadfile(L, "/etc/rds95.lua") != LUA_OK) {
         fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(L, -1));
         lua_pop(L, 1);
         return;
@@ -585,7 +628,6 @@ void init_lua(RDSModulator* rds_mod) {
             lua_pop(L, 1);
         }
     }
-    lua_pushvalue(L, 1);
     if(mutex_initialized == 0) {
         pthread_mutex_init(&lua_mutex, NULL);
         mutex_initialized = 1;
