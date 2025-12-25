@@ -22,19 +22,48 @@ install(CODE
 "
   # Define the paths for the source and destination files
   set(PREFIX_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/.script_prefix.lua\")
+  set(SCRIPTS_DIR \"${CMAKE_CURRENT_SOURCE_DIR}/scripts\")
   set(SCRIPT_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/src/script.lua\")
   set(DEST_FILE \"/etc/rds95.lua\")
 
+  # Initialize content variable
+  set(FINAL_CONTENT \"\")
+
   # Check if the optional prefix file exists
   if(EXISTS \${PREFIX_FILE})
-    message(STATUS \"Prefix file found. Combining with script.lua.\")
+    message(STATUS \"Prefix file found. Adding .script_prefix.lua.\")
     file(READ \${PREFIX_FILE} PREFIX_CONTENT)
-    file(READ \${SCRIPT_FILE} SCRIPT_CONTENT)
-    set(FINAL_CONTENT \"\${PREFIX_CONTENT}\n\${SCRIPT_CONTENT}\")
+    set(FINAL_CONTENT \"\${PREFIX_CONTENT}\")
   else()
-    message(STATUS \"Prefix file not found. Using script.lua directly.\")
-    file(READ \${SCRIPT_FILE} FINAL_CONTENT)
+    message(STATUS \"Prefix file not found.\")
   endif()
+
+  # Check if scripts directory exists and contains .lua files
+  if(EXISTS \${SCRIPTS_DIR} AND IS_DIRECTORY \${SCRIPTS_DIR})
+    file(GLOB LUA_SCRIPTS \"\${SCRIPTS_DIR}/*.lua\")
+    list(LENGTH LUA_SCRIPTS SCRIPT_COUNT)
+    
+    if(SCRIPT_COUNT GREATER 0)
+      message(STATUS \"Found \${SCRIPT_COUNT} Lua script(s) in scripts directory.\")
+      list(SORT LUA_SCRIPTS)
+      
+      foreach(LUA_SCRIPT \${LUA_SCRIPTS})
+        get_filename_component(SCRIPT_NAME \${LUA_SCRIPT} NAME)
+        message(STATUS \"Adding script: \${SCRIPT_NAME}\")
+        file(READ \${LUA_SCRIPT} SCRIPT_CONTENT)
+        set(FINAL_CONTENT \"\${FINAL_CONTENT}\n\${SCRIPT_CONTENT}\")
+      endforeach()
+    else()
+      message(STATUS \"No Lua scripts found in scripts directory.\")
+    endif()
+  else()
+    message(STATUS \"Scripts directory not found.\")
+  endif()
+
+  # Add the main script file
+  message(STATUS \"Adding main script.lua.\")
+  file(READ \${SCRIPT_FILE} MAIN_SCRIPT_CONTENT)
+  set(FINAL_CONTENT \"\${FINAL_CONTENT}\n\${MAIN_SCRIPT_CONTENT}\")
 
   # Write the resulting content to the destination file
   message(STATUS \"Installing script file to \${DEST_FILE}\")

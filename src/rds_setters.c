@@ -87,27 +87,6 @@ void set_rds_lps(RDSEncoder* enc, const char *lps) {
 	if(enc->state[enc->program].lps_segments > 8) enc->state[enc->program].lps_segments = 8; //make sure
 }
 
-void set_rds_ert(RDSEncoder* enc, const char *ert) {
-	uint8_t i = 0, len = 0;
-
-	enc->state[enc->program].ert_update = 1;
-
-	memset(enc->data[enc->program].ert, ' ', ERT_LENGTH);
-	while (*ert != 0 && len < ERT_LENGTH) enc->data[enc->program].ert[len++] = *ert++;
-
-	while (len > 0 && enc->data[enc->program].ert[len - 1] == ' ') len--;
-
-	if (len < ERT_LENGTH) {
-		enc->state[enc->program].ert_segments = 0;
-		enc->data[enc->program].ert[len++] = '\r';
-		while (i < len) {
-			i += 4;
-			enc->state[enc->program].ert_segments++;
-		}
-	} else enc->state[enc->program].ert_segments = 32;
-	if(enc->state[enc->program].ert_segments > 32) enc->state[enc->program].ert_segments = 32; //make sure
-}
-
 inline void set_rds_rtplus_tags(RDSEncoder* enc, uint8_t *tags) {
 	enc->rtpData[enc->program][0].type[0] = tags[0] & 0x3f;
 	enc->rtpData[enc->program][0].start[0] = tags[1] & 0x3f;

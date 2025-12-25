@@ -148,13 +148,6 @@ void get_rdsp_ertp_oda_group(RDSGroup *group) {
 	group->d = ODA_AID_ERTPLUS;
 }
 
-void get_rdsp_ert_oda_group(RDSGroup *group) {
-	group->b |= 3 << 12;
-	group->b |= 12 << 1;
-	group->c = 1; // UTF-8
-	group->d = ODA_AID_ERT;
-}
-
 void get_rdsp_oda_af_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
 	group->b |= 7 << 1;
@@ -324,22 +317,6 @@ void get_rds_eon_group(RDSEncoder* enc, RDSGroup *group) {
 			break;
 		}
 	}
-}
-
-void get_rds_ert_group(RDSEncoder* enc, RDSGroup *group) {
-	if (enc->state[enc->program].ert_state == 0 && enc->state[enc->program].ert_update) {
-		memcpy(enc->state[enc->program].ert_text, enc->data[enc->program].ert, ERT_LENGTH);
-		enc->state[enc->program].ert_update = 0;
-	}
-
-	group->b |= 12 << 12 | (enc->state[enc->program].ert_state & 31);
-	group->c = enc->state[enc->program].ert_text[enc->state[enc->program].ert_state * 4] << 8;
-	group->c |= enc->state[enc->program].ert_text[enc->state[enc->program].ert_state * 4 + 1];
-	group->d = enc->state[enc->program].ert_text[enc->state[enc->program].ert_state * 4 + 2] << 8;
-	group->d |= enc->state[enc->program].ert_text[enc->state[enc->program].ert_state * 4 + 3];
-
-	enc->state[enc->program].ert_state++;
-	if (enc->state[enc->program].ert_state >= enc->state[enc->program].ert_segments) enc->state[enc->program].ert_state = 0;
 }
 
 uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group) {

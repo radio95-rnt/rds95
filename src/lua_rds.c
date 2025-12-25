@@ -311,9 +311,6 @@ STR_SETTER(rt2, set_rds_rt2)
 STR_RAW_SETTER(lps, set_rds_lps)
 STR_RAW_GETTER(lps, LPS_LENGTH)
 
-STR_RAW_SETTER(ert, set_rds_ert)
-STR_RAW_GETTER(ert, ERT_LENGTH)
-
 STR_RAW_SETTER(grp_sqc_rds2, set_rds_grpseq2)
 STR_RAW_GETTER(grp_sqc_rds2, 24)
 
@@ -588,9 +585,6 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_lps", lua_set_rds_lps);
     lua_register(L, "get_rds_lps", lua_get_rds_lps);
-
-    lua_register(L, "set_rds_ert", lua_set_rds_ert);
-    lua_register(L, "get_rds_ert", lua_get_rds_ert);
 
     lua_register(L, "set_rds_rtplus_tags", lua_set_rds_rtplus_tags);
     lua_register(L, "get_rds_rtplus_tags", lua_get_rds_rtplus_tags);

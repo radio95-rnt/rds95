@@ -170,8 +170,10 @@ function set_rds_lps(lps) end
 ---@return string
 function get_rds_lps() end
 
+---This is implemented externally
 ---@param ert string
 function set_rds_ert(ert) end
+---This is implemented externally
 ---@return string
 function get_rds_ert() end
 

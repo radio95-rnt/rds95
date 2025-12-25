@@ -30,5 +30,6 @@
         "jit": "disable",
         "ffi": "disable",
         "package": "disable"
-    }
+    },
+    "C_Cpp.dimInactiveRegions": false
 }

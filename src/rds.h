@@ -1,6 +1,6 @@
 #pragma once
 #include "common.h"
-#define LUA_USER_DATA 	512
+#define LUA_USER_DATA 	768
 
 /* The RDS error-detection code generator polynomial is
  * x^10 + x^8 + x^7 + x^5 + x^4 + x^3 + x^0
@@ -14,7 +14,6 @@
 #define RDS_SAMPLE_RATE		4750
 
 #define RT_LENGTH	64
-#define ERT_LENGTH	128
 #define PS_LENGTH	8
 #define PTYN_LENGTH	8
 #define LPS_LENGTH	32
@@ -30,7 +29,6 @@
 
 // List of ODAs: https://www.nrscstandards.org/committees/dsm/archive/rds-oda-aids.pdf
 #define	ODA_AID_RTPLUS	0x4bd7
-#define	ODA_AID_ERT		0x6552
 #define	ODA_AID_ERTPLUS	0x4BD8
 #define ODA_AID_ODAAF	0x6365
 
@@ -78,10 +76,6 @@ typedef struct {
 	uint8_t current_rt : 1;
 	char default_rt[RT_LENGTH];
 	char rt2[RT_LENGTH];
-
-	uint8_t ert_switching_period;
-	uint8_t orignal_ert_switching_period;
-	char ert[ERT_LENGTH];
 
 	uint8_t ptyn_enabled : 1;
 	char ptyn[PTYN_LENGTH];
@@ -143,11 +137,6 @@ typedef struct {
 	uint8_t rt_ab : 1;
 	uint8_t rt_segments : 5;
 	uint8_t rt2_segments : 5;
-
-	char ert_text[ERT_LENGTH];
-	uint8_t ert_state : 6;
-	uint8_t ert_update : 1;
-	uint8_t ert_segments : 6;
 
 	char ptyn_text[PTYN_LENGTH];
 	uint8_t ptyn_state : 1;
@@ -254,7 +243,6 @@ void set_rds_rt2(RDSEncoder* enc, const char *rt2);
 void set_rds_ps(RDSEncoder* enc, const char *ps);
 void set_rds_tps(RDSEncoder* enc, const char *tps);
 void set_rds_lps(RDSEncoder* enc, const char *lps);
-void set_rds_ert(RDSEncoder *enc, const char *ert);
 void set_rds_rtplus_tags(RDSEncoder *enc, uint8_t *tags);
 void set_rds_ertplus_tags(RDSEncoder *enc, uint8_t *tags);
 void set_rds_ptyn(RDSEncoder *enc, const char *ptyn);
