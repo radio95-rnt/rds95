@@ -57,8 +57,8 @@ int lua_set_rds_program_defaults(lua_State *localL) {
     for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
     unload_refs[0] = 1;
     set_rds_defaults(mod->enc, mod->enc->program);
-    lua_call_function("on_init");
-    lua_call_function("on_state");
+    lua_call_function_nolock("on_init");
+    lua_call_function_nolock("on_state");
     in_set_defaults = 0;
     return 0;
 }
@@ -73,7 +73,7 @@ int lua_reset_rds(lua_State *localL) {
 	encoder_loadFromFile(mod->enc);
 	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(mod->enc, i);
 	Modulator_loadFromFile(&mod->params);
-    lua_call_function("on_state");
+    lua_call_function_nolock("on_state");
     return 0;
 }
 
@@ -724,12 +724,7 @@ void lua_group_ref(RDSGroup* group, int ref) {
     pthread_mutex_unlock(&lua_mutex);
 }
 
-void lua_call_function(const char* function) {
-    int need_lock = (pthread_mutex_trylock(&lua_mutex) == 0);
-    if (!need_lock) {
-        fprintf(stderr, "Warning: lua_mutex already locked when calling %s\n", function);
-        return;
-    }
+void lua_call_function_nolock(const char* function) {
     lua_getglobal(L, function);
 
     if (lua_isfunction(L, -1)) {
@@ -738,6 +733,14 @@ void lua_call_function(const char* function) {
             lua_pop(L, 1);
         }
     } else lua_pop(L, 1);
+}
+void lua_call_function(const char* function) {
+    int need_lock = (pthread_mutex_trylock(&lua_mutex) == 0);
+    if (!need_lock) {
+        fprintf(stderr, "Warning: lua_mutex already locked when calling %s\n", function);
+        return;
+    }
+    lua_call_function_nolock(function);
     pthread_mutex_unlock(&lua_mutex);
 }
 
