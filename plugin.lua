@@ -263,6 +263,7 @@ function set_rds_udg(xy, groups) end
 function set_rds_udg2(xy, groups) end
 
 ---Registers an ODA to be used in the O of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
+---Groups 14, 15, 2, 0 cannot be registered either version, groups 10, 4, 3, 1 can be only registered as B
 ---@param group integer
 ---@param group_version boolean
 ---@param id integer
@@ -276,6 +277,7 @@ function register_oda(group, group_version, id, id_data) end
 ---Sets a function to handle the ODA data generation. 
 ---The handler is called when the group sequence 'K' slot is processed.
 ---The function must return 3 integers representing RDS Blocks B, C, and D.
+---Please note that you do not need to compute the block A to indentify the group and group version, that will be done for you and EVERY SINGLE group has PTY and TP inserted (and also PI if its a B)
 ---@param oda_id integer The ID returned by register_oda
 ---@param fun ODAHandler
 function set_oda_handler(oda_id, fun) end

@@ -421,7 +421,19 @@ int lua_register_oda(lua_State *localL) {
 	if(mod->enc->state[mod->enc->program].user_oda.oda_len >= 32) return luaL_error(localL, "There can't be more than 32 registered ODAs");
 	if(mod->enc->state[mod->enc->program].user_oda.odas[id].group != 0) return luaL_error(localL, "internal error");
     mod->enc->state[mod->enc->program].user_oda.odas[id].group = luaL_checkinteger(localL, 1);
-    if(mod->enc->state[mod->enc->program].user_oda.odas[id].group == 0) return luaL_error(localL, "Invalid group");
+    switch (mod->enc->state[mod->enc->program].user_oda.odas[id].group) {
+    case 14:
+    case 15:
+    case 2:
+    case 0: return luaL_error(localL, "Invalid group");
+    case 10:
+    case 4:
+    case 3:
+    case 1:
+    default:
+        if(mod->enc->state[mod->enc->program].user_oda.odas[id].group_version == 0) return luaL_error(localL, "Invalid group");
+        break;
+    }
     mod->enc->state[mod->enc->program].user_oda.odas[id].group_version = lua_toboolean(localL, 2);
     mod->enc->state[mod->enc->program].user_oda.odas[id].id = luaL_checkinteger(localL, 3);
     mod->enc->state[mod->enc->program].user_oda.odas[id].id_data = luaL_checkinteger(localL, 4);
