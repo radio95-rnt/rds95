@@ -5,6 +5,7 @@ static RDSModulator* mod = NULL;
 static lua_State *L = NULL;
 static pthread_mutex_t lua_mutex;
 static uint8_t unload_refs[33] = {LUA_REFNIL};
+static int in_set_defaults = 0;
 
 int lua_get_userdata(lua_State *localL) {
     lua_pushlstring(localL, (const char*)&mod->enc->data[mod->enc->program].lua_data, LUA_USER_DATA);
@@ -48,11 +49,17 @@ int lua_force_save(lua_State *localL) {
 
 int lua_set_rds_program_defaults(lua_State *localL) {
     (void)localL;
+    if (in_set_defaults) {
+        fprintf(stderr, "Warning: Recursive call to lua_set_rds_program_defaults blocked\n");
+        return 0;
+    }
+    in_set_defaults = 1;
     for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
     unload_refs[0] = 1;
-	set_rds_defaults(mod->enc, mod->enc->program);
+    set_rds_defaults(mod->enc, mod->enc->program);
     lua_call_function("on_init");
     lua_call_function("on_state");
+    in_set_defaults = 0;
     return 0;
 }
 
@@ -455,7 +462,7 @@ int lua_register_oda(lua_State *localL) {
     case 14:
     case 15:
     case 2:
-    case 0: 
+    case 0:
         return luaL_error(localL, "Invalid group");
         break;
     case 10:
@@ -718,7 +725,11 @@ void lua_group_ref(RDSGroup* group, int ref) {
 }
 
 void lua_call_function(const char* function) {
-    pthread_mutex_lock(&lua_mutex);
+    int need_lock = (pthread_mutex_trylock(&lua_mutex) == 0);
+    if (!need_lock) {
+        fprintf(stderr, "Warning: lua_mutex already locked when calling %s\n", function);
+        return;
+    }
     lua_getglobal(L, function);
 
     if (lua_isfunction(L, -1)) {
