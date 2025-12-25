@@ -7,14 +7,14 @@ static pthread_mutex_t lua_mutex;
 static uint8_t unload_refs[33] = {LUA_REFNIL};
 
 int lua_get_userdata(lua_State *localL) {
-    lua_pushlstring(localL, &mod->enc->data[mod->enc->program].lua_data, LUA_USER_DATA);
+    lua_pushlstring(localL, (const char*)&mod->enc->data[mod->enc->program].lua_data, LUA_USER_DATA);
     return 1;
 }
 int lua_get_userdata_offset(lua_State *localL) {
-    uint8_t offset = luaL_checkinteger(localL, 1);
-    uint8_t size = luaL_checkinteger(localL, 2);
+    uint16_t offset = luaL_checkinteger(localL, 1);
+    uint16_t size = luaL_checkinteger(localL, 2);
     if((offset+size) > LUA_USER_DATA) return luaL_error(localL, "data exceeds limit");
-    lua_pushlstring(localL, (&mod->enc->data[mod->enc->program].lua_data)+offset, size);
+    lua_pushlstring(localL, (const char*)&mod->enc->data[mod->enc->program].lua_data[offset], size);
     return 1;
 }
 int lua_set_userdata(lua_State *localL) {
@@ -27,8 +27,8 @@ int lua_set_userdata(lua_State *localL) {
     return 0;
 }
 int lua_set_userdata_offset(lua_State *localL) {
-    uint8_t offset = luaL_checkinteger(localL, 1);
-    uint8_t size = luaL_checkinteger(localL, 2);
+    uint16_t offset = luaL_checkinteger(localL, 1);
+    uint16_t size = luaL_checkinteger(localL, 2);
 
     size_t len;
     const char *data = luaL_checklstring(localL, 3, &len);
@@ -493,7 +493,7 @@ void init_lua(RDSModulator* rds_mod) {
     static int mutex_initialized = 0;
     mod = rds_mod;
     L = luaL_newstate();
-    print("Initializing %s\n", LUA_COPYRIGHT);
+    printf("Initializing %s\n", LUA_COPYRIGHT);
 
     luaL_requiref(L, "_G", luaopen_base, 1);
     luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1);
