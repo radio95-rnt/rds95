@@ -272,6 +272,7 @@ function data_handle(data)
         if not program then return "-" end
         if program < 1 or program > max_programs then return "-" end
         set_rds_program(program-1)
+        set_rds_ta(false)
         return "+"
     elseif cmd == "level" then
         local level = tonumber(value)
