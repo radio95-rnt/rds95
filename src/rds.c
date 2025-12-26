@@ -157,18 +157,20 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 	if(utc->tm_sec != enc->state[enc->program].last_second) {
 		enc->state[enc->program].last_second = utc->tm_sec;
 
-		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].current_rt == 0 && enc->state[enc->program].rt_text_timeout_state) {
+		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].current_rt == 0 && enc->state[enc->program].rt_text_timeout_state != 0) {
 			enc->state[enc->program].rt_text_timeout_state--;
 			if(enc->state[enc->program].rt_text_timeout_state == 0) {
 				enc->state[enc->program].rt_update = 1;
+				memset(enc->state[enc->program].rt_text, 0, RT_LENGTH);
 				memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].default_rt, RT_LENGTH);
 				enc->state[enc->program].rt_segments = enc->state[enc->program].default_rt_segments;
 			}
 		}
-		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].rt2_enabled && enc->state[enc->program].rt_switching_period_state) {
+		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].rt2_enabled && enc->state[enc->program].rt_switching_period_state != 0) {
 			enc->state[enc->program].rt_switching_period_state--;
 			if(enc->state[enc->program].rt_switching_period_state == 0) {
 				TOGGLE(enc->data[enc->program].current_rt);
+				memset(enc->state[enc->program].rt_text, 0, RT_LENGTH);
 				if (enc->data[enc->program].current_rt == 1) memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt2, RT_LENGTH);
 				else memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt1, RT_LENGTH);
 				enc->state[enc->program].rt_state = 0;
@@ -373,7 +375,9 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 	strcpy((char *)enc->data[program].ps, "* RDS * ");
 	enc->data[program].rt1_enabled = 1;
 
-	memset(enc->data[program].rt1, ' ', 59);
+	memset(enc->data[program].rt1, ' ', 64);
+	memset(enc->data[program].rt2, ' ', 64);
+	memset(enc->data[program].default_rt, ' ', 64);
 
 	enc->data[program].rt_type = 2;
 
