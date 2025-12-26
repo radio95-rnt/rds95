@@ -1,6 +1,6 @@
 #pragma once
 #include "common.h"
-#define LUA_USER_DATA 	768
+#define LUA_USER_DATA 	1024
 
 /* The RDS error-detection code generator polynomial is
  * x^10 + x^8 + x^7 + x^5 + x^4 + x^3 + x^0
@@ -17,7 +17,7 @@
 #define PS_LENGTH	8
 #define PTYN_LENGTH	8
 #define LPS_LENGTH	32
-#define DEFAULT_GRPSQC "002222XY"
+#define DEFAULT_GRPSQC "002222XYOK"
 #define MAX_AFS 25
 
 #define AF_CODE_FILLER		205
@@ -28,8 +28,6 @@
 #define EONs 4
 
 // List of ODAs: https://www.nrscstandards.org/committees/dsm/archive/rds-oda-aids.pdf
-#define	ODA_AID_RTPLUS	0x4bd7
-#define	ODA_AID_ERTPLUS	0x4BD8
 #define ODA_AID_ODAAF	0x6365
 
 typedef struct {
@@ -155,9 +153,6 @@ typedef struct {
 	uint8_t rt_switching_period_state;
 	uint8_t rt_text_timeout_state;
 
-	uint8_t rtp_oda : 1;
-	uint8_t ertp_oda : 1;
-	uint8_t ert_oda : 1;
 	uint8_t af_oda : 1;
 	uint8_t data_ecc : 1;
 	uint8_t grp_seq_idx[4];
@@ -188,17 +183,6 @@ typedef struct {
 } RDSState;
 
 typedef struct {
-	uint8_t enabled : 1;
-	uint8_t running : 1;
-	uint8_t type[2];
-	uint8_t start[2];
-	uint8_t len[2];
-} RDSRTPlusData;
-typedef struct {
-	uint8_t toggle : 1;
-} RDSRTPlusState;
-
-typedef struct {
 	uint16_t special_features;
 	uint8_t rds2_mode : 1;
 	// uint8_t rds2_buffer[16384];
@@ -207,14 +191,11 @@ typedef struct {
 	RDSEncoderData encoder_data;
 	RDSData data[PROGRAMS];
 	RDSState state[PROGRAMS];
-	RDSRTPlusData rtpData[PROGRAMS][2];
-	RDSRTPlusState rtpState[PROGRAMS][2];
 	uint8_t program : 3;
 } RDSEncoder;
 typedef struct {
 	uint8_t file_starter; // Always is 225 first polish radio programme am frequency
 	RDSData data[PROGRAMS];
-	RDSRTPlusData rtpData[PROGRAMS][2];
 	uint8_t file_middle; // Always is 160, average of both
 	RDSEncoderData encoder_data;
 	uint8_t program : 3;
@@ -245,8 +226,6 @@ void set_rds_default_rt(RDSEncoder* enc, const char *rt);
 void set_rds_ps(RDSEncoder* enc, const char *ps);
 void set_rds_tps(RDSEncoder* enc, const char *tps);
 void set_rds_lps(RDSEncoder* enc, const char *lps);
-void set_rds_rtplus_tags(RDSEncoder *enc, uint8_t *tags);
-void set_rds_ertplus_tags(RDSEncoder *enc, uint8_t *tags);
 void set_rds_ptyn(RDSEncoder *enc, const char *ptyn);
 void set_rds_grpseq(RDSEncoder* enc, const char *grpseq);
 void set_rds_grpseq2(RDSEncoder* enc, const char *grpseq2);

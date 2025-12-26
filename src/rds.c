@@ -12,8 +12,6 @@ uint16_t get_next_af_eon(RDSEncoder* enc, uint8_t eon_index);
 void get_rds_ps_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_fasttuning_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_rt_group(RDSEncoder* enc, RDSGroup *group);
-void get_rdsp_rtp_oda_group(RDSGroup *group);
-void get_rdsp_ertp_oda_group(RDSGroup *group);
 void get_rdsp_oda_af_oda_group(RDSGroup *group);
 void get_rds_oda_af_group(RDSEncoder* enc, RDSGroup *group);
 void get_rdsp_ct_group(RDSGroup *group, time_t now);
@@ -21,8 +19,6 @@ void get_rds_lps_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_ecc_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_slcdata_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_ptyn_group(RDSEncoder* enc, RDSGroup *group);
-void get_rds_rtplus_group(RDSEncoder* enc, RDSGroup *group);
-void get_rds_ertplus_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_eon_group(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group);
@@ -88,16 +84,6 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 		case 'Y':
 			HANDLE_UDG_STREAM(1, udg2);
 			break;
-		case 'R':
-			if(enc->state[enc->program].rtp_oda == 0) get_rds_rtplus_group(enc, group);
-			else get_rdsp_rtp_oda_group(group);
-			TOGGLE(enc->state[enc->program].rtp_oda);
-			break;
-		case 'P':
-			if(enc->state[enc->program].ert_oda == 0) get_rds_ertplus_group(enc, group);
-			else get_rdsp_ertp_oda_group(group);
-			TOGGLE(enc->state[enc->program].ert_oda);
-			break;
 		case 'F':
 			get_rds_lps_group(enc, group);
 			break;
@@ -110,6 +96,8 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 		case 'O':
 			get_rds_user_oda_group(enc, group);
 			break;
+		case 'R':
+		case 'P':
 		case 'S':
 		case 'K':
 			if(get_rds_user_oda_group_content(enc, group) == 0) get_rds_ps_group(enc, group);
@@ -138,8 +126,6 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	}
 	if(*grp == 'X' && enc->data[enc->program].udg1_len != 0) good_group = 1;
 	if(*grp == 'Y' && enc->data[enc->program].udg2_len != 0) good_group = 1;
-	if(*grp == 'R' && enc->rtpData[enc->program][0].enabled) good_group = 1;
-	if(*grp == 'P' && enc->rtpData[enc->program][1].enabled) good_group = 1;
 	if(*grp == 'F' && enc->data[enc->program].lps[0] != '\0') good_group = 1;
 	if(*grp == 'T') good_group = 1;
 	if(*grp == 'L') good_group = 1;
@@ -352,7 +338,6 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	RDSEncoder tempCoder;
 	tempCoder.program = program;
 	memset(&(tempCoder.state[program]), 0, sizeof(RDSState));
-	memset(&(tempCoder.rtpState[program]), 0, sizeof(RDSRTPlusState)*2);
 
 	tempCoder.state[program].rt_ab = 1;
 	tempCoder.state[program].ptyn_ab = 1;
@@ -375,12 +360,10 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	for(int i = 0; i < EONs; i++) tempCoder.data[program].eon[i].ta = 0;
 
 	memcpy(&(enc->state[program]), &(tempCoder.state[program]), sizeof(RDSState));
-	memcpy(&(enc->rtpState[program]), &(tempCoder.rtpState[program]), sizeof(RDSRTPlusState));
 }
 
 void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 	memset(&(enc->data[program]), 0, sizeof(RDSData));
-	memset(&(enc->rtpData[program]), 0, sizeof(RDSRTPlusData)*2);
 	memset(&(enc->encoder_data), 0, sizeof(RDSEncoderData));
 
 	enc->data[program].ct = 1;

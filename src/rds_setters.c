@@ -106,32 +106,6 @@ void set_rds_lps(RDSEncoder* enc, const char *lps) {
 	if(enc->state[enc->program].lps_segments > 8) enc->state[enc->program].lps_segments = 8; //make sure
 }
 
-inline void set_rds_rtplus_tags(RDSEncoder* enc, uint8_t *tags) {
-	enc->rtpData[enc->program][0].type[0] = tags[0] & 0x3f;
-	enc->rtpData[enc->program][0].start[0] = tags[1] & 0x3f;
-	enc->rtpData[enc->program][0].len[0] = tags[2] & 0x3f;
-	enc->rtpData[enc->program][0].type[1] = tags[3] & 0x3f;
-	enc->rtpData[enc->program][0].start[1] = tags[4] & 0x3f;
-	enc->rtpData[enc->program][0].len[1] = tags[5] & 0x1f;
-
-	TOGGLE(enc->rtpState[enc->program][0].toggle);
-	enc->rtpData[enc->program][0].running = 1;
-	enc->rtpData[enc->program][0].enabled = 1;
-}
-
-inline void set_rds_ertplus_tags(RDSEncoder* enc, uint8_t *tags) {
-	enc->rtpData[enc->program][1].type[0] = tags[0] & 0x3f;
-	enc->rtpData[enc->program][1].start[0] = tags[1] & 0x3f;
-	enc->rtpData[enc->program][1].len[0] = tags[2] & 0x3f;
-	enc->rtpData[enc->program][1].type[1] = tags[3] & 0x3f;
-	enc->rtpData[enc->program][1].start[1] = tags[4] & 0x3f;
-	enc->rtpData[enc->program][1].len[1] = tags[5] & 0x1f;
-
-	TOGGLE(enc->rtpState[enc->program][1].toggle);
-	enc->rtpData[enc->program][1].running = 1;
-	enc->rtpData[enc->program][1].enabled = 1;
-}
-
 void set_rds_ptyn(RDSEncoder* enc, const char *ptyn) {
 	uint8_t len = 0;
 

@@ -14,13 +14,11 @@ void encoder_saveToFile(RDSEncoder *enc) {
 	} else memcpy(&tempEncoder, enc, sizeof(RDSEncoder));
 
     memcpy(tempEncoder.data, enc->data, sizeof(RDSData) * PROGRAMS);
-    memcpy(tempEncoder.rtpData, enc->rtpData, sizeof(RDSRTPlusData) * PROGRAMS * 2);
     memcpy(&tempEncoder.encoder_data, &enc->encoder_data, sizeof(RDSEncoderData));
 	tempEncoder.program = enc->program;
 
 	RDSEncoderFile rdsEncoderfile = {.file_starter = 225, .file_middle = 160, .file_ender = 95, .program = tempEncoder.program};
 	memcpy(&rdsEncoderfile.data, &tempEncoder.data, sizeof(RDSData)*PROGRAMS);
-	memcpy(&rdsEncoderfile.rtpData, &tempEncoder.rtpData, sizeof(RDSRTPlusData) * 2 * PROGRAMS);
 	memcpy(&rdsEncoderfile.encoder_data, &tempEncoder.encoder_data, sizeof(RDSEncoderData));
 
 	rdsEncoderfile.crc = crc16_ccitt((char *)&rdsEncoderfile, offsetof(RDSEncoderFile, crc));
@@ -59,7 +57,6 @@ int encoder_loadFromFile(RDSEncoder *enc) {
 	}
 
 	memcpy(&(enc->data), &(rdsEncoderfile.data), sizeof(RDSData)*PROGRAMS);
-	memcpy(&(enc->rtpData), &(rdsEncoderfile.rtpData), sizeof(RDSRTPlusData)*2*PROGRAMS);
 	memcpy(&(enc->encoder_data), &(rdsEncoderfile.encoder_data), sizeof(RDSEncoderData));
 	enc->program = rdsEncoderfile.program;
 	return 0;

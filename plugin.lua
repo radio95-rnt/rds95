@@ -220,18 +220,20 @@ function put_rds_custom_group(b, c, d) end
 ---@param d integer
 function put_rds2_custom_group(a, b, c, d) end
 
+---This is implemented externally
 ---Toggles RTP or ERTP's toggle switch
 ---@param ertp boolean
 function toggle_rds_rtp(ertp) end
 
+---This is implemented externally
 ---Sets the metadata of RTP or ERTP
 ---@param ertp boolean
----@param enabled boolean
 ---@param running boolean
-function set_rds_rtp_meta(ertp, enabled, running) end
+function set_rds_rtp_meta(ertp, running) end
+---This is implemented externally
 ---Gets the metadata of RTP and ERTP
 ---@param ertp boolean
----@return boolean enabled, boolean running
+---@return boolean running
 function get_rds_rtp_meta(ertp) end
 
 ---Sets the AFs included in group 0

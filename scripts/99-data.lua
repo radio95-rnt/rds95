@@ -36,12 +36,12 @@ function data_handle(data)
             local t1, s1, l1, t2, s2, l2 = get_rds_rtplus_tags(true)
             return string.format("ERTP=%d,%d,%d,%d,%d,%d\r\n", t1, s1, l1, t2, s2, l2)
         elseif data == "rtprun" then
-            local enabled, running = get_rds_rtp_meta(false)
-            local f1 = enabled and 2 or (running and 1 or 0)
+            local running = get_rds_rtp_meta(false)
+            local f1 = 2 or (running and 1 or 0)
             return string.format("RTPRUN=%d\r\n", f1)
         elseif data == "ertprun" then
-            local enabled, running = get_rds_rtp_meta(true)
-            local f1 = enabled and 2 or (running and 1 or 0)
+            local running = get_rds_rtp_meta(true)
+            local f1 = 2 or (running and 1 or 0)
             return string.format("ERTPRUN=%d\r\n", f1)
         elseif data == "lps" then return string.format("LPS=%s\r\n", get_rds_lps())
         elseif data == "ert" then return string.format("ERT=%s\r\n", get_rds_ert())
@@ -322,10 +322,9 @@ function data_handle(data)
 
         local f1 = tonumber(f1_str) or 0
         local f2 = tonumber(f2_str) or 0
-        local enabled = (f1 == 2)
         local running = (f1 & 1) ~= 0
 
-        set_rds_rtp_meta(is_ertp, enabled, running)
+        set_rds_rtp_meta(is_ertp, running)
         if f2 ~= 0 then toggle_rds_rtp(is_ertp) end
         return "+"
     elseif cmd == "af" then

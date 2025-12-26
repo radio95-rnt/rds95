@@ -136,18 +136,6 @@ void get_rds_rt_group(RDSEncoder* enc, RDSGroup *group) {
 	if (enc->state[enc->program].rt_state == segments) enc->state[enc->program].rt_state = 0;
 }
 
-void get_rdsp_rtp_oda_group(RDSGroup *group) {
-	group->b |= 3 << 12;
-	group->b |= 11 << 1;
-	group->d = ODA_AID_RTPLUS;
-}
-
-void get_rdsp_ertp_oda_group(RDSGroup *group) {
-	group->b |= 3 << 12;
-	group->b |= 13 << 1;
-	group->d = ODA_AID_ERTPLUS;
-}
-
 void get_rdsp_oda_af_oda_group(RDSGroup *group) {
 	group->b |= 3 << 12;
 	group->b |= 7 << 1;
@@ -234,36 +222,6 @@ void get_rds_ptyn_group(RDSEncoder* enc, RDSGroup *group) {
 
 	enc->state[enc->program].ptyn_state++;
 	if (enc->state[enc->program].ptyn_state == 2) enc->state[enc->program].ptyn_state = 0;
-}
-
-void get_rds_rtplus_group(RDSEncoder* enc, RDSGroup *group) {
-	group->b |= 11 << 12;
-	group->b |= enc->rtpState[enc->program][0].toggle << 4 | enc->rtpData[enc->program][0].running << 3;
-	group->b |= (enc->rtpData[enc->program][0].type[0] & 0xf8) >> 3;
-
-	group->c =  (enc->rtpData[enc->program][0].type[0] & 0x07) << 13;
-	group->c |= (enc->rtpData[enc->program][0].start[0] & 0x3f) << 7;
-	group->c |= (enc->rtpData[enc->program][0].len[0] & 0x3f) << 1;
-	group->c |= (enc->rtpData[enc->program][0].type[1] & 0xe0) >> 5;
-
-	group->d =  (enc->rtpData[enc->program][0].type[1] & 0x1f) << 11;
-	group->d |= (enc->rtpData[enc->program][0].start[1] & 0x3f) << 5;
-	group->d |= enc->rtpData[enc->program][0].len[1] & 0x1f;
-}
-
-void get_rds_ertplus_group(RDSEncoder* enc, RDSGroup *group) {
-	group->b |= 13 << 12;
-	group->b |= enc->rtpState[enc->program][1].toggle << 4 | enc->rtpData[enc->program][1].running << 3;
-	group->b |= (enc->rtpData[enc->program][1].type[0] & 0xf8) >> 3;
-
-	group->c =  (enc->rtpData[enc->program][1].type[0] & 0x07) << 13;
-	group->c |= (enc->rtpData[enc->program][1].start[0] & 0x3f) << 7;
-	group->c |= (enc->rtpData[enc->program][1].len[0] & 0x3f) << 1;
-	group->c |= (enc->rtpData[enc->program][1].type[1] & 0xe0) >> 5;
-
-	group->d =  (enc->rtpData[enc->program][1].type[1] & 0x1f) << 11;
-	group->d |= (enc->rtpData[enc->program][1].start[1] & 0x3f) << 5;
-	group->d |= enc->rtpData[enc->program][1].len[1] & 0x1f;
 }
 
 void get_rds_eon_group(RDSEncoder* enc, RDSGroup *group) {
