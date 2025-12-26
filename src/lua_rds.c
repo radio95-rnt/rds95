@@ -417,7 +417,6 @@ int lua_register_oda(lua_State *localL) {
         break;
     case 10:
     case 4:
-    case 3:
     case 1:
         if(mod->enc->state[mod->enc->program].user_oda.odas[id].group_version == 0) return luaL_error(localL, "Invalid group");
     default:
@@ -434,6 +433,7 @@ int lua_set_oda_handler(lua_State *localL) {
     uint8_t idx = luaL_checkinteger(localL, 1);
 	if(idx >= 32) return luaL_error(localL, "There can't be more than 32 registered ODAs");
 	if(mod->enc->state[mod->enc->program].user_oda.odas[idx].group == 0) return luaL_error(localL, "this oda is not registered");
+	if(mod->enc->state[mod->enc->program].user_oda.odas[idx].group == 3) return luaL_error(localL, "this oda cannot have a handler");
     luaL_checktype(localL, 2, LUA_TFUNCTION);
     lua_pushvalue(localL, 2);
     if(mod->enc->state[mod->enc->program].user_oda.odas[idx].lua_handler != 0) luaL_unref(localL, LUA_REGISTRYINDEX, mod->enc->state[mod->enc->program].user_oda.odas[idx].lua_handler);

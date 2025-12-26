@@ -319,8 +319,10 @@ void get_rds_user_oda_group(RDSEncoder* enc, RDSGroup *group) {
 	RDSODA oda = enc->state[enc->program].user_oda.odas[pointer];
 
 	group->b |= 3 << 12;
-	group->b |= oda.group << 1;
-	group->b |= oda.group_version;
+	if(oda.group != 3) {
+		group->b |= oda.group << 1;
+		group->b |= oda.group_version;
+	}
 	group->c = oda.id_data;
 	group->d = oda.id;
 }
@@ -333,7 +335,7 @@ int get_rds_user_oda_group_content(RDSEncoder* enc, RDSGroup *group) {
 
         oda_state->oda_runner_pointer = (oda_state->oda_runner_pointer + 1) % oda_state->oda_len;
 
-        if (oda_state->odas[current_idx].lua_handler != 0) {
+        if (oda_state->odas[current_idx].lua_handler != 0 && oda_state->odas[current_idx].group != 3) {
             lua_group_ref(group, oda_state->odas[current_idx].lua_handler);
 			group->b |= oda_state->odas[current_idx].group << 12;
 			group->b |= oda_state->odas[current_idx].group_version << 11;
