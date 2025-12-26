@@ -360,6 +360,9 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	tempCoder.state[program].last_second = utc->tm_sec;
 
 	memcpy(&enc->state[program], &tempCoder.state[program], sizeof(RDSState));
+
+	for(int i = 0; i < EONs; i++) enc->data[program]->eon[i].ta = 0;
+	enc->data[program].ta = 0;
 }
 
 void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
