@@ -3,7 +3,7 @@ _Ert_oda_id = nil
 
 local function init_ert()
     if _Ert_oda_id == nil then
-        _Ert_oda_id = register_oda(12, false, 0x6552, 1)
+        _Ert_oda_id = register_oda(13, false, 0x6552, 1)
         set_oda_handler(_Ert_oda_id, function ()
             if string.byte(get_userdata_offset(258, 1)) == 1 then
                 local new_data = get_userdata_offset(0, 128)
