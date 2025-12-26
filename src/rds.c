@@ -365,7 +365,7 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 
 	memcpy(&enc->state[program], &tempCoder.state[program], sizeof(RDSState));
 
-	for(int i = 0; i < EONs; i++) enc->data[program]->eon[i].ta = 0;
+	for(int i = 0; i < EONs; i++) enc->data[program].eon[i].ta = 0;
 	enc->data[program].ta = 0;
 }
 
