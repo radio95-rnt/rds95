@@ -284,13 +284,18 @@ function set_rds_udg(xy, groups) end
 function set_rds_udg2(xy, groups) end
 
 ---Registers an ODA to be used in the O of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
----Groups 14, 15, 2, 0 cannot be registered either version, groups 10, 4, 3, 1 can be only registered as B, any other is free to take
+---Groups 14, 15, 2, 0 cannot be registered either version, groups 10, 4, 1 can be only registered as B, any other is free to take
+---Group 3A will mean that there will be no group handler for this ODA, meaning it can only be interacted with via the 3A AID group, handler set is not possible with such groups
 ---@param group integer
 ---@param group_version boolean
 ---@param id integer
 ---@param id_data integer
 ---@return integer oda_id
 function register_oda(group, group_version, id, id_data) end
+---Sets the id_data for a existing ODA group
+---@param oda_id integer
+---@param data integer
+function set_oda_id_data(oda_id, data) end
 
 ---The callback function for an ODA handler
 ---@alias ODAHandler fun(): (integer, integer, integer)

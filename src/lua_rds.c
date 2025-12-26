@@ -429,6 +429,14 @@ int lua_register_oda(lua_State *localL) {
     return 1;
 }
 
+int lua_set_oda_id_data(lua_State *localL) {
+    uint8_t idx = luaL_checkinteger(localL, 1);
+	if(idx >= 32) return luaL_error(localL, "There can't be more than 32 registered ODAs");
+	if(mod->enc->state[mod->enc->program].user_oda.odas[idx].group == 0) return luaL_error(localL, "this oda is not registered");
+    mod->enc->state[mod->enc->program].user_oda.odas[idx].id_data = luaL_checkinteger(localL, 2);
+    return 0;
+}
+
 int lua_set_oda_handler(lua_State *localL) {
     uint8_t idx = luaL_checkinteger(localL, 1);
 	if(idx >= 32) return luaL_error(localL, "There can't be more than 32 registered ODAs");
@@ -557,6 +565,7 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "set_rds_udg2", lua_set_rds_udg2);
 
     lua_register(L, "register_oda", lua_register_oda);
+    lua_register(L, "set_oda_id_data", lua_set_oda_id_data);
     lua_register(L, "set_oda_handler", lua_set_oda_handler);
 
     lua_register(L, "set_userdata", lua_set_userdata);

@@ -319,10 +319,8 @@ void get_rds_user_oda_group(RDSEncoder* enc, RDSGroup *group) {
 	RDSODA oda = enc->state[enc->program].user_oda.odas[pointer];
 
 	group->b |= 3 << 12;
-	if(oda.group != 3) {
-		group->b |= oda.group << 1;
-		group->b |= oda.group_version;
-	}
+	group->b |= oda.group << 1;
+	group->b |= oda.group_version;
 	group->c = oda.id_data;
 	group->d = oda.id;
 }
