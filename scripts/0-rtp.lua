@@ -1,7 +1,7 @@
 _Rtp_oda_id = nil
 _Ertp_oda_id = nil
-_Rtp_toggle = true
-_Ertp_toggle = true
+_Rtp_toggle = false
+_Ertp_toggle = false
 
 local function init_rtp()
     if _Rtp_oda_id == nil then
@@ -69,6 +69,7 @@ end
 
 function set_rds_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2)
     set_rds_rtp_meta(ertp, true)
+    toggle_rds_rtp(ertp)
     set_userdata_offset(ertp and 267 or 260, 6, string.char(t1, s1, l1, t2, s2, l2))
 end
 function get_rds_rtplus_tags(ertp)
