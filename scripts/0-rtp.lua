@@ -68,6 +68,7 @@ function toggle_rds_rtp(ertp)
 end
 
 function set_rds_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2)
+    set_rds_rtp_meta(ertp, true)
     set_userdata_offset(ertp and 267 or 260, 6, string.char(t1, s1, l1, t2, s2, l2))
 end
 function get_rds_rtplus_tags(ertp)
