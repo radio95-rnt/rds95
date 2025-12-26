@@ -9,6 +9,8 @@ eon_count = 0
 max_programs = 0
 ---@type integer
 user_data_len = 0
+---@type integer
+oda_count = 0
 
 ---Starts the initialization sequence, also calls the on_init function
 ---@return nil

@@ -405,7 +405,7 @@ int lua_set_rds_udg2(lua_State *localL) {
 int lua_register_oda(lua_State *localL) {
     if (!lua_isboolean(localL, 2)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 2));
     uint8_t id = mod->enc->state[mod->enc->program].user_oda.oda_len++;
-	if(mod->enc->state[mod->enc->program].user_oda.oda_len >= 32) return luaL_error(localL, "There can't be more than 32 registered ODAs");
+	if(mod->enc->state[mod->enc->program].user_oda.oda_len >= ODAS) return luaL_error(localL, "There can't be more than %d registered ODAs", ODAS);
 	if(mod->enc->state[mod->enc->program].user_oda.odas[id].group != 0) return luaL_error(localL, "internal error");
     mod->enc->state[mod->enc->program].user_oda.odas[id].group = luaL_checkinteger(localL, 1);
     switch (mod->enc->state[mod->enc->program].user_oda.odas[id].group) {
@@ -431,7 +431,7 @@ int lua_register_oda(lua_State *localL) {
 
 int lua_set_oda_id_data(lua_State *localL) {
     uint8_t idx = luaL_checkinteger(localL, 1);
-	if(idx >= 32) return luaL_error(localL, "There can't be more than 32 registered ODAs");
+	if(idx >= ODAS) return luaL_error(localL, "There can't be more than %d registered ODAs", ODAS);
 	if(mod->enc->state[mod->enc->program].user_oda.odas[idx].group == 0) return luaL_error(localL, "this oda is not registered");
     mod->enc->state[mod->enc->program].user_oda.odas[idx].id_data = luaL_checkinteger(localL, 2);
     return 0;
@@ -439,7 +439,7 @@ int lua_set_oda_id_data(lua_State *localL) {
 
 int lua_set_oda_handler(lua_State *localL) {
     uint8_t idx = luaL_checkinteger(localL, 1);
-	if(idx >= 32) return luaL_error(localL, "There can't be more than 32 registered ODAs");
+	if(idx >= ODAS) return luaL_error(localL, "There can't be more than %d registered ODAs", ODAS);
 	if(mod->enc->state[mod->enc->program].user_oda.odas[idx].group == 0) return luaL_error(localL, "this oda is not registered");
 	if(mod->enc->state[mod->enc->program].user_oda.odas[idx].group == 3) return luaL_error(localL, "this oda cannot have a handler");
     luaL_checktype(localL, 2, LUA_TFUNCTION);
@@ -474,6 +474,8 @@ void init_lua(RDSModulator* rds_mod) {
     lua_setglobal(L, "eon_count");
     lua_pushinteger(L, LUA_USER_DATA);
     lua_setglobal(L, "user_data_len");
+    lua_pushinteger(L, ODAS);
+    lua_setglobal(L, "oda_count");
 
     lua_register(L, "set_rds_program_defaults", lua_set_rds_program_defaults);
     lua_register(L, "reset_rds", lua_reset_rds);
