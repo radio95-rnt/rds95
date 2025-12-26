@@ -73,7 +73,10 @@ void get_rds_ps_group(RDSEncoder* enc, RDSGroup *group) {
 	group->b |= enc->data[enc->program].ta << 4;
 	if(enc->state[enc->program].ps_csegment == 0) group->b |= enc->data[enc->program].dpty << 2;
 	group->b |= enc->state[enc->program].ps_csegment;
-	group->c = get_next_af(enc);
+
+	if(enc->data[enc->program].af.num_afs) group->c = get_next_af(enc);
+	else group->b |= 1 << 11; // set to b
+
 	if(enc->data[enc->program].ta && enc->state[enc->program].tps_text[0] != '\0') group->d = enc->state[enc->program].tps_text[enc->state[enc->program].ps_csegment * 2] << 8 | enc->state[enc->program].tps_text[enc->state[enc->program].ps_csegment * 2 + 1];
 	else group->d = enc->state[enc->program].ps_text[enc->state[enc->program].ps_csegment * 2] << 8 |  enc->state[enc->program].ps_text[enc->state[enc->program].ps_csegment * 2 + 1];
 
