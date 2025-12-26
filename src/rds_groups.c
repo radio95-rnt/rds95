@@ -133,7 +133,7 @@ void get_rds_rt_group(RDSEncoder* enc, RDSGroup *group) {
 
 	uint8_t segments = (enc->data[enc->program].current_rt == 1) ? enc->state[enc->program].rt2_segments : enc->state[enc->program].rt_segments;
 	enc->state[enc->program].rt_state++;
-	if (enc->state[enc->program].rt_state == segments) enc->state[enc->program].rt_state = 0;
+	if (enc->state[enc->program].rt_state >= segments || enc->state[enc->program].rt_state >= 16) enc->state[enc->program].rt_state = 0;
 }
 
 void get_rdsp_oda_af_oda_group(RDSGroup *group) {
