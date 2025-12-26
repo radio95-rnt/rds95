@@ -96,7 +96,7 @@ void get_rds_fasttuning_group(RDSEncoder* enc, RDSGroup *group) {
 }
 
 void get_rds_rt_group(RDSEncoder* enc, RDSGroup *group) {
-	if (enc->state[enc->program].rt_update && enc->data[enc->program].rt1_enabled && !enc->data[enc->program].current_rt) {
+	if (enc->state[enc->program].rt_update && enc->data[enc->program].rt1_enabled && enc->data[enc->program].current_rt == 0) {
 		memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt1, RT_LENGTH);
 		TOGGLE(enc->state[enc->program].rt_ab);
 		enc->state[enc->program].rt_update = 0;

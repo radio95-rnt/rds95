@@ -339,7 +339,7 @@ void get_rds_bits(RDSEncoder* enc, uint8_t *bits, uint8_t stream) {
 void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	RDSEncoder tempCoder;
 	tempCoder.program = program;
-	memset(&(tempCoder.state[program]), 0, sizeof(RDSState));
+	memset(&tempCoder.state[program], 0, sizeof(RDSState));
 
 	tempCoder.state[program].rt_ab = 1;
 	tempCoder.state[program].ptyn_ab = 1;
@@ -359,9 +359,7 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	tempCoder.state[program].last_minute = utc->tm_min;
 	tempCoder.state[program].last_second = utc->tm_sec;
 
-	for(int i = 0; i < EONs; i++) tempCoder.data[program].eon[i].ta = 0;
-
-	memcpy(&(enc->state[program]), &(tempCoder.state[program]), sizeof(RDSState));
+	memcpy(&enc->state[program], &tempCoder.state[program], sizeof(RDSState));
 }
 
 void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
