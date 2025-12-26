@@ -1,6 +1,6 @@
 #pragma once
 #include "common.h"
-#define LUA_USER_DATA 	1024
+#define LUA_USER_DATA 	1280
 
 /* The RDS error-detection code generator polynomial is
  * x^10 + x^8 + x^7 + x^5 + x^4 + x^3 + x^0
@@ -183,8 +183,7 @@ typedef struct {
 } RDSState;
 
 typedef struct {
-	uint16_t special_features;
-	uint8_t rds2_mode : 1;
+	uint8_t rds2_mode : 2;
 	// uint8_t rds2_buffer[16384];
 } RDSEncoderData;
 typedef struct {

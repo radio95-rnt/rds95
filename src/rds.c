@@ -246,6 +246,10 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 			get_rds_sequence_group(enc, group, &grp, stream);
 
 			goto group_coded_rds2;
+		} else if(enc->encoder_data.rds2_mode == 2) {
+			lua_rds2_group(group, stream);
+			if(group->a == 0) group->is_type_b = (IS_TYPE_B(group->b) != 0);
+			goto group_coded_rds2;
 		}
 	}
 

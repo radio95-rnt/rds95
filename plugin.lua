@@ -44,16 +44,23 @@ function tick() end
 ---@return string
 function data_handle(data) end
 ---This function is called when the group "L" is in the sequence
+---Please remember that the core always fills in PTY and TP and PI in C if this is an B group
 ---It should be defined by the user in the script.
 ---@param group string group this was called in from the group sequence
----@param b integer
----@param c integer
----@param d integer
 ---@return boolean generated
 ---@return integer b
 ---@return integer c
 ---@return integer d
-function group(group, b, c, d) end
+function group(group) end
+---This function is called when an RDS2 group is to be generated on mode 3
+---If a was returned 0, PTY and TP will be filled in, along with the PI code in C if needed
+---It should be defined by the user in the script.
+---@param stream integer
+---@return integer a
+---@return integer b
+---@return integer c
+---@return integer d
+function rds2_group(stream) end
 
 ---@param pi integer
 function set_rds_pi(pi) end
@@ -117,9 +124,9 @@ function set_rds_rt_type(rt_type) end
 function get_rds_rt_type() end
 
 -- Modulation & Generation
----@param mode boolean
+---@param mode integer
 function set_rds2_mode(mode) end
----@return boolean
+---@return integer
 function get_rds2_mode() end
 
 ---@param streams integer

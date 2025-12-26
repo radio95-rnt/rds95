@@ -177,12 +177,11 @@ INT_SETTER(rt_type)
 INT_GETTER(rt_type)
 
 int lua_set_rds2_mode(lua_State *localL) {
-    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
-	mod->enc->encoder_data.rds2_mode = lua_toboolean(localL, 1);
+	mod->enc->encoder_data.rds2_mode = luaL_checkinteger(localL, 1);
     return 0;
 }
 int lua_get_rds2_mode(lua_State *localL) {
-    lua_pushboolean(localL, mod->enc->encoder_data.rds2_mode);
+    lua_pushinteger(localL, mod->enc->encoder_data.rds2_mode);
     return 1;
 }
 int lua_set_rds_streams(lua_State *localL) {
@@ -601,10 +600,7 @@ int lua_group(RDSGroup* group, const char grp) {
 
     if (lua_isfunction(L, -1)) {
         lua_pushstring(L, &grp);
-        lua_pushinteger(L, group->b);
-        lua_pushinteger(L, group->c);
-        lua_pushinteger(L, group->d);
-        if (lua_pcall(L, 4, 4, 0) == LUA_OK) {
+        if (lua_pcall(L, 1, 4, 0) == LUA_OK) {
             if (!lua_isboolean(L, -1)) {
                 pthread_mutex_unlock(&lua_mutex);
                 return 0;
@@ -630,6 +626,41 @@ int lua_group(RDSGroup* group, const char grp) {
             group->b = luaL_checkinteger(L, -4);
             lua_pop(L, 3);
         } else fprintf(stderr, "Lua error: %s at 'group'\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+    } else lua_pop(L, 1);
+    pthread_mutex_unlock(&lua_mutex);
+    return 1;
+}
+
+int lua_rds2_group(RDSGroup* group, int stream) {
+    pthread_mutex_lock(&lua_mutex);
+    lua_getglobal(L, "rds2_group");
+
+    if (lua_isfunction(L, -1)) {
+        lua_pushinteger(L, stream);
+        if (lua_pcall(L, 1, 4, 0) == LUA_OK) {
+            if (!lua_isinteger(L, -1)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return 0;
+            }
+            if (!lua_isinteger(L, -2)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return 0;
+            }
+            if (!lua_isinteger(L, -3)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return 0;
+            }
+            if (!lua_isinteger(L, -4)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return 0;
+            }
+            group->d = luaL_checkinteger(L, -1);
+            group->c = luaL_checkinteger(L, -2);
+            group->b = luaL_checkinteger(L, -3);
+            group->a = luaL_checkinteger(L, -4);
+            lua_pop(L, 3);
+        } else fprintf(stderr, "Lua error: %s at 'rds2_group'\n", lua_tostring(L, -1));
         lua_pop(L, 1);
     } else lua_pop(L, 1);
     pthread_mutex_unlock(&lua_mutex);
