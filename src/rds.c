@@ -170,6 +170,26 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 
 	if(utc->tm_sec != enc->state[enc->program].last_second) {
 		enc->state[enc->program].last_second = utc->tm_sec;
+
+		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].current_rt == 0 && enc->state[enc->program].rt_text_timeout_state) {
+			enc->state[enc->program].rt_text_timeout_state--;
+			if(enc->state[enc->program].rt_text_timeout_state == 0) {
+				enc->state[enc->program].rt_update = 1;
+				memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].default_rt, RT_LENGTH);
+				enc->state[enc->program].rt_segments = enc->state[enc->program].default_rt_segments;
+			}
+		}
+		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].rt2_enabled && enc->state[enc->program].rt_switching_period_state) {
+			enc->state[enc->program].rt_switching_period_state--;
+			if(enc->state[enc->program].rt_switching_period_state == 0) {
+				TOGGLE(enc->data[enc->program].current_rt);
+				if (enc->data[enc->program].current_rt == 1) memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt2, RT_LENGTH);
+				else memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt1, RT_LENGTH);
+				enc->state[enc->program].rt_state = 0;
+				enc->state[enc->program].rt_switching_period_state = enc->data[enc->program].rt_switching_period;
+			}
+		}
+
 		lua_call_function("tick");
 	}
 
@@ -189,25 +209,6 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 				enc->data[enc->program].ta = 0;
 				enc->state[enc->program].ta_timeout_state = enc->state[enc->program].ta_timeout;
 			};
-		}
-
-		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].rt2_enabled && enc->state[enc->program].rt_switching_period_state) {
-			enc->state[enc->program].rt_switching_period_state--;
-			if(enc->state[enc->program].rt_switching_period_state == 0) {
-				TOGGLE(enc->data[enc->program].current_rt);
-				if (enc->data[enc->program].current_rt == 1) memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt2, RT_LENGTH);
-				else memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt1, RT_LENGTH);
-				enc->state[enc->program].rt_state = 0;
-				enc->state[enc->program].rt_switching_period_state = enc->data[enc->program].rt_switching_period;
-			}
-		}
-
-		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].current_rt == 0 && enc->state[enc->program].rt_text_timeout_state) {
-			enc->state[enc->program].rt_text_timeout_state--;
-			if(enc->state[enc->program].rt_text_timeout_state == 0) {
-				enc->state[enc->program].rt_update = 1;
-				memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].default_rt, RT_LENGTH);
-			}
 		}
 
 		if(enc->data[enc->program].ct && stream == 0) {

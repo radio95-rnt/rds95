@@ -23,6 +23,25 @@ void set_rds_rt1(RDSEncoder* enc, const char *rt1) {
 	if(enc->state[enc->program].rt_segments > 16) enc->state[enc->program].rt_segments = 16; //make sure
 }
 
+void set_rds_default_rt(RDSEncoder* enc, const char *rt) {
+	uint8_t i = 0, len = 0;
+
+	memset(enc->data[enc->program].default_rt, ' ', RT_LENGTH);
+	while (*rt != 0 && len < RT_LENGTH) enc->data[enc->program].default_rt[len++] = *rt++;
+
+	while (len > 0 && enc->data[enc->program].default_rt[len - 1] == ' ') len--;
+
+	if (len < RT_LENGTH) {
+		enc->state[enc->program].default_rt_segments = 0;
+		enc->data[enc->program].default_rt[len++] = '\r';
+		while (i < len) {
+			i += 4;
+			enc->state[enc->program].default_rt_segments++;
+		}
+	} else enc->state[enc->program].default_rt_segments = 16;
+	if(enc->state[enc->program].default_rt_segments > 16) enc->state[enc->program].default_rt_segments = 16; //make sure
+}
+
 void set_rds_rt2(RDSEncoder* enc, const char *rt2) {
 	uint8_t i = 0, len = 0;
 
@@ -131,25 +150,25 @@ void set_rds_grpseq(RDSEncoder* enc, const char *grpseq) {
 	uint8_t len = 0;
 
 	if(grpseq[0] == '\0') {
-		while (DEFAULT_GRPSQC[len] != 0 && len < 24) {
+		while (DEFAULT_GRPSQC[len] != 0 && len < 32) {
 			enc->data[enc->program].grp_sqc[len] = DEFAULT_GRPSQC[len];
 			len++;
 		}
 		return;
 	}
 
-	memset(enc->data[enc->program].grp_sqc, 0, 24);
-	while (*grpseq != 0 && len < 24) enc->data[enc->program].grp_sqc[len++] = *grpseq++;
+	memset(enc->data[enc->program].grp_sqc, 0, 32);
+	while (*grpseq != 0 && len < 32) enc->data[enc->program].grp_sqc[len++] = *grpseq++;
 }
 void set_rds_grpseq2(RDSEncoder* enc, const char *grpseq2) {
 	uint8_t len = 0;
 
 	if(grpseq2[0] == '\0') {
-		memset(enc->data[enc->program].grp_sqc_rds2, 0, 24);
-		memcpy(enc->data[enc->program].grp_sqc_rds2, enc->data[enc->program].grp_sqc, 24);
+		memset(enc->data[enc->program].grp_sqc_rds2, 0, 32);
+		memcpy(enc->data[enc->program].grp_sqc_rds2, enc->data[enc->program].grp_sqc, 32);
 		return;
 	}
 
-	memset(enc->data[enc->program].grp_sqc_rds2, 0, 24);
-	while (*grpseq2 != 0 && len < 24) enc->data[enc->program].grp_sqc_rds2[len++] = *grpseq2++;
+	memset(enc->data[enc->program].grp_sqc_rds2, 0, 32);
+	while (*grpseq2 != 0 && len < 32) enc->data[enc->program].grp_sqc_rds2[len++] = *grpseq2++;
 }

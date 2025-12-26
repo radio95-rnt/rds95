@@ -144,12 +144,13 @@ function set_rds_program(program_idx) end
 function get_rds_program() end
 
 -- Timeouts and Periods
----@param period integer
+---@param period integer in seconds
 function set_rds_rt_switching_period(period) end
 ---@return integer
 function get_rds_rt_switching_period() end
 
----@param timeout integer
+---For a RT1, this sets the timeout period before setting RT1 into "Default RT"
+---@param timeout integer in seconds
 function set_rds_rt_text_timeout(timeout) end
 ---@return integer
 function get_rds_rt_text_timeout() end
@@ -165,6 +166,8 @@ function set_rds_tps(tps) end
 function set_rds_rt1(rt1) end
 ---@param rt2 string Radio Text 2 (max 64 chars)
 function set_rds_rt2(rt2) end
+---@param rt string Default radio text - max 64 characters
+function set_rds_default_rt(rt) end
 
 ---@param lps string
 function set_rds_lps(lps) end
@@ -292,7 +295,7 @@ function register_oda(group, group_version, id, id_data) end
 ---@param fun ODAHandler
 function set_oda_handler(oda_id, fun) end
 
----Data is allocated in each program's data for lua data, note that this overwrites existing data
+---Data is allocated in each program's data for lua data (per program, diffrent program, diffrent data), note that this overwrites existing data
 ---@param data string
 function set_userdata(data) end
 ---Writes to the userdata at the offset, size does not have to match the length of the string, if the string is less than size then the rest of the string will be padded with zeroes until it is size

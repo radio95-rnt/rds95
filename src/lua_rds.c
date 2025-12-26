@@ -314,12 +314,13 @@ STR_SETTER(ps, set_rds_ps)
 STR_SETTER(tps, set_rds_tps)
 STR_SETTER(rt1, set_rds_rt1)
 STR_SETTER(rt2, set_rds_rt2)
+STR_SETTER(default_rt, set_rds_default_rt)
 
 STR_RAW_SETTER(lps, set_rds_lps)
 STR_RAW_GETTER(lps, LPS_LENGTH)
 
 STR_RAW_SETTER(grp_sqc_rds2, set_rds_grpseq2)
-STR_RAW_GETTER(grp_sqc_rds2, 24)
+STR_RAW_GETTER(grp_sqc_rds2, 32)
 
 int lua_set_rds_grp_sqc(lua_State *localL) {
 	const char* str = luaL_checklstring(localL, 1, NULL);
@@ -327,7 +328,7 @@ int lua_set_rds_grp_sqc(lua_State *localL) {
     else set_rds_grpseq(mod->enc, str);
     return 0;
 }
-STR_RAW_GETTER(grp_sqc, 24)
+STR_RAW_GETTER(grp_sqc, 32)
 
 AF_SETTER(af_group0, af, RDSAFs, add_rds_af)
 AF_SETTER(af_oda, af_oda, RDSAFsODA, add_rds_af_oda)
@@ -589,6 +590,7 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "set_rds_tps", lua_set_rds_tps);
     lua_register(L, "set_rds_rt1", lua_set_rds_rt1);
     lua_register(L, "set_rds_rt2", lua_set_rds_rt2);
+    lua_register(L, "set_rds_default_rt", lua_set_rds_default_rt);
 
     lua_register(L, "set_rds_lps", lua_set_rds_lps);
     lua_register(L, "get_rds_lps", lua_get_rds_lps);

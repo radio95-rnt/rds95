@@ -265,7 +265,7 @@ function data_handle(data)
     elseif cmd == "rtper" then
         local period = tonumber(value)
         if not period then return "-" end
-        set_rds_rt_switching_period(period)
+        set_rds_rt_switching_period(period*60)
         return "+"
     elseif cmd == "program" then
         local program = tonumber(value)
@@ -281,7 +281,7 @@ function data_handle(data)
     elseif cmd == "dttmout" then
         local timeout = tonumber(value)
         if not timeout then return "-" end
-        set_rds_rt_text_timeout(timeout)
+        set_rds_rt_text_timeout(timeout*60)
         return "+"
     elseif cmd == "grpseq" then
         set_rds_grpseq(value)

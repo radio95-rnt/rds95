@@ -87,8 +87,8 @@ typedef struct {
 
 	char lps[LPS_LENGTH];
 
-	char grp_sqc[24];
-	char grp_sqc_rds2[24];
+	char grp_sqc[32];
+	char grp_sqc_rds2[32];
 
 	uint8_t udg1_len : 4;
 	uint8_t udg2_len : 4;
@@ -137,6 +137,7 @@ typedef struct {
 	uint8_t rt_ab : 1;
 	uint8_t rt_segments : 5;
 	uint8_t rt2_segments : 5;
+	uint8_t default_rt_segments : 5;
 
 	char ptyn_text[PTYN_LENGTH];
 	uint8_t ptyn_state : 1;
@@ -240,6 +241,7 @@ void get_rds_bits(RDSEncoder* enc, uint8_t *bits, uint8_t stream);
 
 void set_rds_rt1(RDSEncoder* enc, const char *rt1);
 void set_rds_rt2(RDSEncoder* enc, const char *rt2);
+void set_rds_default_rt(RDSEncoder* enc, const char *rt);
 void set_rds_ps(RDSEncoder* enc, const char *ps);
 void set_rds_tps(RDSEncoder* enc, const char *tps);
 void set_rds_lps(RDSEncoder* enc, const char *lps);
