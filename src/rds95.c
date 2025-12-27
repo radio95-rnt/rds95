@@ -82,8 +82,8 @@ int main(int argc, char **argv) {
 	};
 
 	pa_simple *rds_device = NULL;
-	pa_sample_spec format;
-	pa_buffer_attr buffer;
+	pa_sample_spec format = {0};
+	pa_buffer_attr buffer = {0};
 
 	pthread_attr_t attr;
 	pthread_t udp_server_thread;
