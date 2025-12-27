@@ -124,7 +124,7 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	if(*grp == 'Y' && enc->data[enc->program].udg2_len != 0) good_group = 1;
 	if(*grp == 'F' && enc->data[enc->program].lps[0] != '\0') good_group = 1;
 	if(*grp == 'T') good_group = 1;
-	if(*grp == 'L' || *grp = 'R' || *grp = 'P' || *grp = 'S' || *grp = 'O' || *grp = 'K') good_group = 1;
+	if(*grp == 'L' || *grp == 'R' || *grp == 'P' || *grp == 'S' || *grp == 'O' || *grp == 'K') good_group = 1;
 	if(*grp == 'U' && enc->data[enc->program].af_oda.num_afs) good_group = 1;
 	return good_group;
 }
