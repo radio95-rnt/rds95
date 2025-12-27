@@ -414,6 +414,7 @@ void init_lua(RDSModulator* rds_mod) {
     luaL_requiref(L, LUA_UTF8LIBNAME, luaopen_utf8, 1);
     luaL_requiref(L, LUA_COLIBNAME, luaopen_coroutine, 1);
     luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1);
+    luaL_requiref(L, LUA_IOLIBNAME, luaopen_io, 1);
     lua_pop(L, 6);
 
     lua_pushstring(L, VERSION);

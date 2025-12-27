@@ -1,13 +1,13 @@
-local ODA = { group = 0, group_version = false, aid = 0, data = 0, handler = false }
+local _ODA = { group = 0, group_version = false, aid = 0, data = 0, handler = false }
 
-function ODA.new(group, group_version, aid, data, handler)
+function _ODA.new(group, group_version, aid, data, handler)
     local instance = { group = group or 0, group_version = group_version or false, aid = aid or 0, data = data or 0, handler = handler or false }
-    setmetatable(instance, { __index = ODA })
+    setmetatable(instance, { __index = _ODA })
     return instance
 end
 
-local RDS_ODAs = {}
-local RDS_ODA_pointer = 1
+local _RDS_ODAs = {}
+local _RDS_ODA_pointer = 1
 
 ---Registers an ODA to be used in the O of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
 ---Groups 14, 15, 2, 0 cannot be registered either version, groups 10, 4, 1 can be only registered as B, any other is free to take
@@ -20,17 +20,17 @@ local RDS_ODA_pointer = 1
 function register_oda(group, group_version, aid, data)
     if group == 14 or group == 15 or group == 2 or group == 0 then error("Group is incorrect", 2) end
     if (group == 10 or group == 4 or group == 1) and group_version then error("Group is incorrect", 2) end
-    local oda = ODA.new(group, group_version, aid, data, false)
-    table.insert(RDS_ODAs, oda)
-    return #RDS_ODAs
+    local oda = _ODA.new(group, group_version, aid, data, false)
+    table.insert(_RDS_ODAs, oda)
+    return #_RDS_ODAs
 end
 
 ---Sets the id_data for a existing ODA group
 ---@param oda_id integer
 ---@param data integer
 function set_oda_id_data(oda_id, data)
-    if oda_id > #RDS_ODAs then return end
-    RDS_ODAs[oda_id].data = data
+    if oda_id > #_RDS_ODAs then return end
+    _RDS_ODAs[oda_id].data = data
 end
 
 ---Sets a function to handle the ODA data generation. 
@@ -41,36 +41,36 @@ end
 ---@param oda_id integer The ID returned by register_oda
 ---@param fun ODAHandler
 function set_oda_handler(oda_id, fun)
-    if oda_id > #RDS_ODAs then return end
-    RDS_ODAs[oda_id].handler = fun
+    if oda_id > #_RDS_ODAs then return end
+    _RDS_ODAs[oda_id].handler = fun
 end
 
 local function get_aid()
-    local oda = RDS_ODAs[RDS_ODA_pointer]
+    local oda = _RDS_ODAs[_RDS_ODA_pointer]
     local b = 3 << 12 | oda.group << 1 | (oda.group_version and 1 or 0)
     local data, aid = oda.data, oda.aid
 
-    RDS_ODA_pointer = (RDS_ODA_pointer % #RDS_ODAs) + 1
+    _RDS_ODA_pointer = (_RDS_ODA_pointer % #_RDS_ODAs) + 1
 
     return b, data, aid
 end
 
 local function get_data()
     local checked_count = 0
-    local total_odas = #RDS_ODAs
+    local total_odas = #_RDS_ODAs
 
     while checked_count < total_odas do
-        local oda = RDS_ODAs[RDS_ODA_pointer]
+        local oda = _RDS_ODAs[_RDS_ODA_pointer]
 
         if type(oda.handler) == "function" then
             local generated, b, c, d = oda.handler()
-            RDS_ODA_pointer = (RDS_ODA_pointer % #RDS_ODAs) + 1
+            _RDS_ODA_pointer = (_RDS_ODA_pointer % #_RDS_ODAs) + 1
             b = b | oda.group << 12
             b = b | (oda.group_version and 1 or 0) << 11
             return generated, b, c, d
         end
 
-        RDS_ODA_pointer = (RDS_ODA_pointer % #RDS_ODAs) + 1
+        _RDS_ODA_pointer = (_RDS_ODA_pointer % #_RDS_ODAs) + 1
         checked_count = checked_count + 1
     end
 
@@ -79,8 +79,8 @@ end
 
 function group(group_type)
     if group_type == "O" or group_type == "K" then
-        if #RDS_ODAs == 0 then return false, 0, 0, 0 end
-        if RDS_ODA_pointer > #RDS_ODAs or RDS_ODA_pointer < 1 then RDS_ODA_pointer = 1 end
+        if #_RDS_ODAs == 0 then return false, 0, 0, 0 end
+        if _RDS_ODA_pointer > #_RDS_ODAs or _RDS_ODA_pointer < 1 then _RDS_ODA_pointer = 1 end
 
         if group_type == "O" then
             local b, c, d = get_aid()

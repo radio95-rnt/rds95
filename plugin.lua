@@ -286,6 +286,7 @@ function set_rds_udg(xy, groups) end
 ---@param groups table Table of tables, this should be up to 8 tables containing 4 integers
 function set_rds_udg2(xy, groups) end
 
+---This function is defined externally
 ---Registers an ODA to be used in the O of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
 ---Groups 14, 15, 2, 0 cannot be registered either version, groups 10, 4, 1 can be only registered as B, any other is free to take
 ---Group 3A will mean that there will be no group handler for this ODA, meaning it can only be interacted with via the 3A AID group, handler set is not possible with such groups
@@ -295,6 +296,7 @@ function set_rds_udg2(xy, groups) end
 ---@param id_data integer
 ---@return integer oda_id
 function register_oda(group, group_version, id, id_data) end
+---This function is defined externally
 ---Sets the id_data for a existing ODA group
 ---@param oda_id integer
 ---@param data integer
@@ -346,5 +348,6 @@ function set_oda_id_data_rds2(oda_id, data) end
 ---This function is defined externally
 ---@param aid integer
 ---@param data integer
+---@param file_related boolean
 ---@return integer oda_id
-function register_oda_rds2(aid, data) end
+function register_oda_rds2(aid, data, file_related) end

@@ -24,7 +24,6 @@
     },
     "Lua.runtime.plugin": "plugin.lua",
     "Lua.runtime.builtin": {
-        "io": "disable",
         "debug": "disable",
         "os": "disable",
         "jit": "disable",
