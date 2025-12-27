@@ -554,7 +554,7 @@ int lua_group(RDSGroup* group, const char grp) {
     lua_getglobal(L, "group");
 
     if (lua_isfunction(L, -1)) {
-        lua_pushstring(L, &grp);
+        lua_pushlstring(L, &grp, 1);
         if (lua_pcall(L, 1, 4, 0) == LUA_OK) {
             if (!lua_isboolean(L, -1)) {
                 pthread_mutex_unlock(&lua_mutex);
