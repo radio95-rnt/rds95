@@ -16,7 +16,10 @@ void init_rds_modulator(RDSModulator* rdsMod, RDSEncoder* enc, uint8_t num_strea
 		return;
 	}
 
-	for (uint8_t i = 0; i < num_streams; i++) rdsMod->data[i].symbol_shift = i * M_PI / 2.0f;
+	for (uint8_t i = 0; i < num_streams; i++) {
+		rdsMod->data[i].symbol_shift = i * M_PI / 2.0f;
+		rdsMod->data[i].bit_pos = BITS_PER_GROUP;
+	}
 
 	if(modulatorsaved()) Modulator_loadFromFile(&rdsMod->params);
 	else Modulator_saveToFile(&rdsMod->params);
