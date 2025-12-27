@@ -334,29 +334,32 @@ void get_rds_bits(RDSEncoder* enc, uint8_t *bits, uint8_t stream) {
 }
 
 void reset_rds_state(RDSEncoder* enc, uint8_t program) {
-    memset(&enc->state[program], 0, sizeof(RDSState));
+	RDSEncoder tempCoder = {0};
+	tempCoder.program = program;
+	memset(&tempCoder.state[program], 0, sizeof(RDSState));
 
-    enc->state[program].rt_ab = 1;
-    enc->state[program].ptyn_ab = 1;
+	tempCoder.state[program].rt_ab = 1;
+	tempCoder.state[program].ptyn_ab = 1;
+	set_rds_rt1(&tempCoder, enc->data[program].rt1);
+	set_rds_rt2(&tempCoder, enc->data[program].rt2);
+	set_rds_ps(&tempCoder, enc->data[program].ps);
+	set_rds_tps(&tempCoder, enc->data[program].tps);
+	set_rds_ptyn(&tempCoder, enc->data[program].ptyn);
+	set_rds_lps(&tempCoder, enc->data[program].lps);
+	set_rds_grpseq(&tempCoder, enc->data[program].grp_sqc);
+	set_rds_grpseq2(&tempCoder, enc->data[program].grp_sqc_rds2);
 
-    set_rds_rt1(enc, enc->data[program].rt1);
-    set_rds_rt2(enc, enc->data[program].rt2);
-    set_rds_ps(enc, enc->data[program].ps);
-    set_rds_tps(enc, enc->data[program].tps);
-    set_rds_ptyn(enc, enc->data[program].ptyn);
-    set_rds_lps(enc, enc->data[program].lps);
-    set_rds_grpseq(enc, enc->data[program].grp_sqc);
-    set_rds_grpseq2(enc, enc->data[program].grp_sqc_rds2);
+	struct tm *utc;
+	time_t now;
+	time(&now);
+	utc = gmtime(&now);
+	tempCoder.state[program].last_minute = utc->tm_min;
+	tempCoder.state[program].last_second = utc->tm_sec;
 
-    struct tm *utc;
-    time_t now;
-    time(&now);
-    utc = gmtime(&now);
-    enc->state[program].last_minute = utc->tm_min;
-    enc->state[program].last_second = utc->tm_sec;
+	memcpy(&enc->state[program], &tempCoder.state[program], sizeof(RDSState));
 
-    for(int i = 0; i < EONs; i++) enc->data[program].eon[i].ta = 0;
-    enc->data[program].ta = 0;
+	for(int i = 0; i < EONs; i++) enc->data[program].eon[i].ta = 0;
+	enc->data[program].ta = 0;
 }
 
 void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
