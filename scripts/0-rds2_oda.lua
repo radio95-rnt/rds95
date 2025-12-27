@@ -42,7 +42,7 @@ function rds2_group(stream)
     if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end
 
     local oda = _RDS2_ODAs[_RDS2_ODA_pointer]
-    local channel_offset = 16 * (oda.file_related and 1 or 0)
+    local channel_offset = 16 * ((not oda.file_related) and 1 or 0)
     local channel = ((_RDS2_ODA_pointer - 1 + channel_offset) & 0x3F)
 
     _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
