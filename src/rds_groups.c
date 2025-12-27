@@ -21,21 +21,6 @@ uint16_t get_next_af(RDSEncoder* enc) {
 	return out;
 }
 
-void get_next_af_oda(RDSEncoder* enc, uint16_t* af_group) {
-	uint8_t offset = 0;
-	if (enc->state[enc->program].af_oda_state == 0) af_group[0] = (AF_CODE_NUM_AFS_BASE + enc->data[enc->program].af_oda.num_afs);
-	else {
-		af_group[0] = enc->data[enc->program].af_oda.afs[enc->state[enc->program].af_oda_state++];
-		offset++;
-	}
-	for(int i = 0; i < 3; i++) {
-		if (enc->data[enc->program].af_oda.afs[enc->state[enc->program].af_oda_state + offset]) af_group[i + 1] = enc->data[enc->program].af_oda.afs[enc->state[enc->program].af_oda_state + offset];
-		else af_group[i + 1] = AF_CODE_FILLER;
-		enc->state[enc->program].af_oda_state++;
-	}
-	if (enc->state[enc->program].af_oda_state >= enc->data[enc->program].af_oda.num_entries) enc->state[enc->program].af_oda_state = 0;
-}
-
 uint16_t get_next_af_eon(RDSEncoder* enc, uint8_t eon_index) {
 	uint16_t out;
 
@@ -140,26 +125,6 @@ void get_rds_rt_group(RDSEncoder* enc, RDSGroup *group) {
 	uint8_t segments = (enc->data[enc->program].current_rt == 1) ? enc->state[enc->program].rt2_segments : enc->state[enc->program].rt_segments;
 	enc->state[enc->program].rt_state++;
 	if (enc->state[enc->program].rt_state >= segments || enc->state[enc->program].rt_state >= 16) enc->state[enc->program].rt_state = 0;
-}
-
-void get_rdsp_oda_af_oda_group(RDSGroup *group) {
-	group->b |= 3 << 12;
-	group->b |= 7 << 1;
-	group->d = ODA_AID_ODAAF;
-}
-
-void get_rds_oda_af_group(RDSEncoder* enc, RDSGroup *group) {
-	uint16_t af[4];
-	get_next_af_oda(enc, af);
-
-	group->b |= 7 << 12;
-	for (int i = 0; i < 4; i++) group->b |= ((af[i] >> 8) & 1) << i;
-
-	group->c = (af[0] & 0xFF) << 8;
-	group->c |= af[1] & 0xFF;
-
-	group->d = (af[2] & 0xFF) << 8;
-	group->d |= af[3] & 0xFF;
 }
 
 void get_rdsp_ct_group(RDSGroup *group, time_t now) {

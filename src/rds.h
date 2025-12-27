@@ -27,14 +27,6 @@
 #define PROGRAMS 3
 #define EONs 4
 
-// List of ODAs: https://www.nrscstandards.org/committees/dsm/archive/rds-oda-aids.pdf
-#define ODA_AID_ODAAF	0x6365
-
-typedef struct {
-	uint8_t num_entries : 6;
-	uint8_t num_afs : 5;
-	uint16_t afs[MAX_AFS]; // 9 bit, there was no uint9_t
-} RDSAFsODA;
 typedef struct {
 	uint8_t num_entries : 6;
 	uint8_t num_afs : 5;
@@ -79,7 +71,6 @@ typedef struct {
 	char ptyn[PTYN_LENGTH];
 
 	RDSAFs af;
-	RDSAFsODA af_oda;
 
 	uint8_t ct : 1;
 
@@ -139,7 +130,6 @@ typedef struct {
 	uint8_t rt_switching_period_state;
 	uint8_t rt_text_timeout_state;
 
-	uint8_t af_oda : 1;
 	uint8_t data_ecc : 1;
 	uint8_t grp_seq_idx[4];
 	uint8_t udg_idxs[2];
@@ -158,7 +148,6 @@ typedef struct {
 	RDSEONState eon_states[4];
 
 	uint8_t af_state : 6;
-	uint8_t af_oda_state : 6;
 
 	uint8_t eon_linkage : 1;
 

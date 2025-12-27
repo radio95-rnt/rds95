@@ -7,13 +7,10 @@
 
 // declarations (stupid c)
 uint16_t get_next_af(RDSEncoder* enc);
-void get_next_af_oda(RDSEncoder* enc, uint16_t* af_group);
 uint16_t get_next_af_eon(RDSEncoder* enc, uint8_t eon_index);
 void get_rds_ps_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_fasttuning_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_rt_group(RDSEncoder* enc, RDSGroup *group);
-void get_rdsp_oda_af_oda_group(RDSGroup *group);
-void get_rds_oda_af_group(RDSEncoder* enc, RDSGroup *group);
 void get_rdsp_ct_group(RDSGroup *group, time_t now);
 void get_rds_lps_group(RDSEncoder* enc, RDSGroup *group);
 void get_rds_ecc_group(RDSEncoder* enc, RDSGroup *group);
@@ -23,8 +20,6 @@ void get_rds_eon_group(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group);
 int get_rdsp_lua_group(RDSGroup *group, const char grp);
-void get_rds_user_oda_group(RDSEncoder* enc, RDSGroup *group);
-int get_rds_user_oda_group_content(RDSEncoder* enc, RDSGroup *group);
 
 #define HANDLE_UDG_STREAM(chan_idx, udg_prefix) \
     do { \
@@ -96,12 +91,8 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 		case 'S':
 		case 'O':
 		case 'K':
-			if(get_rdsp_lua_group(group, *grp) == 0) get_rds_ps_group(enc, group);
-			break;
 		case 'U':
-			if(enc->state[enc->program].af_oda == 0) get_rds_oda_af_group(enc, group);
-			else get_rdsp_oda_af_oda_group(group);
-			TOGGLE(enc->state[enc->program].af_oda);
+			if(get_rdsp_lua_group(group, *grp) == 0) get_rds_ps_group(enc, group);
 			break;
 	}
 }
@@ -124,8 +115,7 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	if(*grp == 'Y' && enc->data[enc->program].udg2_len != 0) good_group = 1;
 	if(*grp == 'F' && enc->data[enc->program].lps[0] != '\0') good_group = 1;
 	if(*grp == 'T') good_group = 1;
-	if(*grp == 'L' || *grp == 'R' || *grp == 'P' || *grp == 'S' || *grp == 'O' || *grp == 'K') good_group = 1;
-	if(*grp == 'U' && enc->data[enc->program].af_oda.num_afs) good_group = 1;
+	if(*grp == 'L' || *grp == 'R' || *grp == 'P' || *grp == 'S' || *grp == 'O' || *grp == 'K' || *grp == 'U') good_group = 1;
 	return good_group;
 }
 

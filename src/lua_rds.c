@@ -280,7 +280,6 @@ int lua_set_rds_grp_sqc(lua_State *localL) {
 STR_RAW_GETTER(grp_sqc, 32)
 
 AF_SETTER(af_group0, af, RDSAFs, add_rds_af)
-AF_SETTER(af_oda, af_oda, RDSAFsODA, add_rds_af_oda)
 
 int lua_set_rds_eon(lua_State *localL) {
     int eon = luaL_checkinteger(localL, 1);
@@ -507,7 +506,6 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "put_rds2_custom_group", lua_put_rds2_custom_group);
 
     lua_register(L, "set_rds_af_group0", lua_set_rds_af_group0);
-    lua_register(L, "set_rds_af_oda", lua_set_rds_af_oda);
 
     lua_register(L, "set_rds_eon", lua_set_rds_eon);
     lua_register(L, "get_rds_eon", lua_get_rds_eon);

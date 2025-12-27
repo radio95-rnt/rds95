@@ -3,6 +3,8 @@ _Af_Oda_state = 0
 _Af_Oda_len = 0
 _Af_Oda_afs = {}
 
+local USERDATA_OFFSET = 270
+
 ---@param freq number
 ---@return table
 local function encode_af(freq)
@@ -13,10 +15,10 @@ local function encode_af(freq)
         table.insert(out, math.tointeger((freq * 10) - 384))
     elseif freq >= 153 and freq <= 279 then
         table.insert(out, 250) -- LFMF incoming
-        table.insert(out, (freq - 153) / 9 + 1)
+        table.insert(out, math.tointeger((freq - 153) / 9 + 1))
     elseif freq >= 531 and freq <= 1602 then
         table.insert(out, 250) -- LFMF incoming
-        table.insert(out, (freq - 531) / 9 + 16)
+        table.insert(out, math.tointeger((freq - 531) / 9 + 16))
     end
     return out
 end
@@ -61,9 +63,16 @@ local function init_af_oda()
     end
 end
 
----Sets the AFs included in the ODA
----@param afs table List of numbers (e.g., {98.1, 102.5})
-function set_rds_af_oda(afs)
+local function save_af_to_userdata(afs)
+    local count = #afs
+    if count > 25 then count = 25 end
+
+    local payload = string.pack("B", count)
+    for i = 1, count do payload = payload .. string.pack("f", afs[i]) end
+    set_userdata_offset(USERDATA_OFFSET, #payload, payload)
+end
+
+local function _process_af_list(afs)
     _Af_Oda_afs = {}
     _Af_Oda_len = #afs
     for _, f in ipairs(afs) do
@@ -73,9 +82,36 @@ function set_rds_af_oda(afs)
         end
     end
     _Af_Oda_state = 0
-    if _Af_Oda_id == nil then init_af_oda() end
+    init_af_oda()
+end
+
+local function load_af_from_userdata()
+    local header = get_userdata_offset(USERDATA_OFFSET, 1)
+    if header == "" or header == nil then return end
+
+    local count = string.unpack("B", header)
+    if count == 0 or count > 25 then return end
+
+    local data = get_userdata_offset(USERDATA_OFFSET + 1, count * 4)
+    if #data < (count * 4) then return end
+
+    local afs = {}
+    for i = 1, count do
+        local val = string.unpack("f", data, (i-1)*4 + 1)
+        table.insert(afs, val)
+    end
+
+    _process_af_list(afs)
+end
+
+---Sets the AFs included in the ODA and saves them
+---@param afs table List of numbers (e.g., {98.1, 102.5})
+function set_rds_af_oda(afs)
+    _process_af_list(afs)
+    save_af_to_userdata(afs)
 end
 
 function on_state()
-    init_af_oda()
+    load_af_from_userdata()
+    if _Af_Oda_len ~= 0 then init_af_oda() end
 end
