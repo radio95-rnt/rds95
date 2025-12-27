@@ -292,10 +292,10 @@ function set_rds_udg2(xy, groups) end
 ---Group 3A will mean that there will be no group handler for this ODA, meaning it can only be interacted with via the 3A AID group, handler set is not possible with such groups
 ---@param group integer
 ---@param group_version boolean
----@param id integer
----@param id_data integer
+---@param aid integer
+---@param data integer
 ---@return integer oda_id
-function register_oda(group, group_version, id, id_data) end
+function register_oda(group, group_version, aid, data) end
 ---This function is defined externally
 ---Sets the id_data for a existing ODA group
 ---@param oda_id integer
