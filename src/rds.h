@@ -1,7 +1,6 @@
 #pragma once
 #include "common.h"
-#define LUA_USER_DATA 	1280
-#define ODAS 	32
+#define LUA_USER_DATA 	1152
 
 /* The RDS error-detection code generator polynomial is
  * x^10 + x^8 + x^7 + x^5 + x^4 + x^3 + x^0
@@ -109,20 +108,6 @@ typedef struct {
 } RDSEONState;
 
 typedef struct {
-	uint8_t group : 4;
-	uint8_t group_version : 1;
-	uint16_t id;
-	uint16_t id_data;
-	int lua_handler;
-} RDSODA;
-typedef struct {
-	uint8_t oda_len;
-	uint8_t oda_pointer;
-	uint8_t oda_runner_pointer;
-	RDSODA odas[ODAS];
-} RDSODAState;
-
-typedef struct {
 	uint8_t ps_update : 1;
 	uint8_t tps_update : 1;
 	char ps_text[PS_LENGTH];
@@ -179,8 +164,6 @@ typedef struct {
 
 	uint16_t last_stream0_group[3];
 	uint8_t last_stream0_group_type_b : 1;
-
-	RDSODAState user_oda;
 } RDSState;
 
 typedef struct {

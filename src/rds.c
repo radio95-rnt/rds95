@@ -91,16 +91,12 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 			get_rds_fasttuning_group(enc, group);
 			break;
 		case 'L':
-			if(get_rdsp_lua_group(group, *grp) == 0) get_rds_ps_group(enc, group);
-			break;
-		case 'O':
-			get_rds_user_oda_group(enc, group);
-			break;
 		case 'R':
 		case 'P':
 		case 'S':
+		case 'O':
 		case 'K':
-			if(get_rds_user_oda_group_content(enc, group) == 0) get_rds_ps_group(enc, group);
+			if(get_rdsp_lua_group(group, *grp) == 0) get_rds_ps_group(enc, group);
 			break;
 		case 'U':
 			if(enc->state[enc->program].af_oda == 0) get_rds_oda_af_group(enc, group);
@@ -128,16 +124,7 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	if(*grp == 'Y' && enc->data[enc->program].udg2_len != 0) good_group = 1;
 	if(*grp == 'F' && enc->data[enc->program].lps[0] != '\0') good_group = 1;
 	if(*grp == 'T') good_group = 1;
-	if(*grp == 'L') good_group = 1;
-	if(*grp == 'O' && enc->state[enc->program].user_oda.oda_len != 0) good_group = 1;
-	if(*grp == 'K') {
-		for (int i = 0; i < enc->state->user_oda.oda_len; i++) {
-			if (enc->state->user_oda.odas[i].lua_handler != 0) {
-				good_group = 1;
-				break;
-			}
-		}
-	}
+	if(*grp == 'L' || *grp = 'R' || *grp = 'P' || *grp = 'S' || *grp = 'O' || *grp = 'K') good_group = 1;
 	if(*grp == 'U' && enc->data[enc->program].af_oda.num_afs) good_group = 1;
 	return good_group;
 }
@@ -247,8 +234,14 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 
 			goto group_coded_rds2;
 		} else if(enc->encoder_data.rds2_mode == 2) {
-			lua_rds2_group(group, stream);
-			if(group->a == 0) group->is_type_b = (IS_TYPE_B(group->b) != 0);
+			int generated = lua_rds2_group(group, stream);
+			if(group->a == 0 && generated) group->is_type_b = (IS_TYPE_B(group->b) != 0);
+			else if(generated == 0) {
+				group->b = enc->state[enc->program].last_stream0_group[0];
+				group->c = enc->state[enc->program].last_stream0_group[1];
+				group->d = enc->state[enc->program].last_stream0_group[2];
+				group->is_type_b = enc->state[enc->program].last_stream0_group_type_b;
+			}
 			goto group_coded_rds2;
 		}
 	}

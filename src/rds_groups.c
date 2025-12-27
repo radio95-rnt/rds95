@@ -312,35 +312,3 @@ int get_rdsp_lua_group(RDSGroup *group, const char grp) {
 	if(generated) group->is_type_b = (IS_TYPE_B(group->b) != 0);
 	return generated;
 }
-
-void get_rds_user_oda_group(RDSEncoder* enc, RDSGroup *group) {
-	uint8_t pointer = enc->state[enc->program].user_oda.oda_pointer++;
-	if(enc->state[enc->program].user_oda.oda_pointer >= enc->state[enc->program].user_oda.oda_len) enc->state[enc->program].user_oda.oda_pointer = 0;
-	RDSODA oda = enc->state[enc->program].user_oda.odas[pointer];
-
-	group->b |= 3 << 12;
-	group->b |= oda.group << 1;
-	group->b |= oda.group_version;
-	group->c = oda.id_data;
-	group->d = oda.id;
-}
-int get_rds_user_oda_group_content(RDSEncoder* enc, RDSGroup *group) {
-    RDSODAState *oda_state = &enc->state[enc->program].user_oda;
-    
-    if (oda_state->oda_len == 0) return 0;
-    for (uint8_t i = 0; i < oda_state->oda_len; i++) {
-        uint8_t current_idx = oda_state->oda_runner_pointer;
-
-        oda_state->oda_runner_pointer = (oda_state->oda_runner_pointer + 1) % oda_state->oda_len;
-
-        if (oda_state->odas[current_idx].lua_handler != 0 && oda_state->odas[current_idx].group != 3) {
-            lua_group_ref(group, oda_state->odas[current_idx].lua_handler);
-			group->b |= oda_state->odas[current_idx].group << 12;
-			group->b |= oda_state->odas[current_idx].group_version << 11;
-			group->is_type_b = (IS_TYPE_B(group->b) != 0);
-            return 1;
-        }
-    }
-
-    return 0;
-}

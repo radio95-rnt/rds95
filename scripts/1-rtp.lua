@@ -21,7 +21,7 @@ local function init_rtp()
             d = d | (string.byte(data_1, 2) & 0x3f) << 5
             d = d | (string.byte(data_1, 3) & 0x1f)
 
-            return b, c, d
+            return true, b, c, d
         end)
     end
 end
@@ -44,7 +44,7 @@ local function init_ertp()
             d = d | (string.byte(data_1, 2) & 0x3f) << 5
             d = d | (string.byte(data_1, 3) & 0x1f)
 
-            return b, c, d
+            return true, b, c, d
         end)
     end
 end

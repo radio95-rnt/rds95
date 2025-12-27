@@ -58,6 +58,7 @@ function group(group) end
 ---If a was returned 0, PTY and TP will be filled in, along with the PI code in C if needed
 ---It should be defined by the user in the script.
 ---@param stream integer
+---@return boolean generated
 ---@return integer a
 ---@return integer b
 ---@return integer c
@@ -300,7 +301,7 @@ function register_oda(group, group_version, id, id_data) end
 function set_oda_id_data(oda_id, data) end
 
 ---The callback function for an ODA handler
----@alias ODAHandler fun(): (integer, integer, integer)
+---@alias ODAHandler fun(): (boolean, integer, integer, integer)
 
 ---Sets a function to handle the ODA data generation. 
 ---The handler is called when the group sequence 'K' slot is processed.
@@ -328,3 +329,22 @@ function get_userdata() end
 ---@param size integer
 ---@return string
 function get_userdata_offset(offset, size) end
+
+---The callback function for an ODA handler
+---@alias RDS2_ODAHandler fun(): (boolean, integer, integer, integer, integer)
+
+---This function is defined externally
+---@param oda_id integer
+---@param func RDS2_ODAHandler
+function set_oda_handler_rds2(oda_id, func) end
+
+---This function is defined externally
+---@param oda_id integer
+---@param data integer
+function set_oda_id_data_rds2(oda_id, data) end
+
+---This function is defined externally
+---@param aid integer
+---@param data integer
+---@return integer oda_id
+function register_oda_rds2(aid, data) end

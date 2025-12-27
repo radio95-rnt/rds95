@@ -402,56 +402,6 @@ int lua_set_rds_udg2(lua_State *localL) {
     return 0;
 }
 
-int lua_register_oda(lua_State *localL) {
-    if (!lua_isboolean(localL, 2)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 2));
-    uint8_t id = mod->enc->state[mod->enc->program].user_oda.oda_len++;
-	if(mod->enc->state[mod->enc->program].user_oda.oda_len >= ODAS) return luaL_error(localL, "There can't be more than %d registered ODAs", ODAS);
-	if(mod->enc->state[mod->enc->program].user_oda.odas[id].group != 0) return luaL_error(localL, "internal error");
-    mod->enc->state[mod->enc->program].user_oda.odas[id].group = luaL_checkinteger(localL, 1);
-    switch (mod->enc->state[mod->enc->program].user_oda.odas[id].group) {
-    case 14:
-    case 15:
-    case 2:
-    case 0:
-        return luaL_error(localL, "Invalid group");
-        break;
-    case 10:
-    case 4:
-    case 1:
-        if(mod->enc->state[mod->enc->program].user_oda.odas[id].group_version == 0) return luaL_error(localL, "Invalid group");
-    default:
-        break;
-    }
-    mod->enc->state[mod->enc->program].user_oda.odas[id].group_version = lua_toboolean(localL, 2);
-    mod->enc->state[mod->enc->program].user_oda.odas[id].id = luaL_checkinteger(localL, 3);
-    mod->enc->state[mod->enc->program].user_oda.odas[id].id_data = luaL_checkinteger(localL, 4);
-    lua_pushinteger(localL, id);
-    return 1;
-}
-
-int lua_set_oda_id_data(lua_State *localL) {
-    uint8_t idx = luaL_checkinteger(localL, 1);
-	if(idx >= ODAS) return luaL_error(localL, "There can't be more than %d registered ODAs", ODAS);
-	if(mod->enc->state[mod->enc->program].user_oda.odas[idx].group == 0) return luaL_error(localL, "this oda is not registered");
-    mod->enc->state[mod->enc->program].user_oda.odas[idx].id_data = luaL_checkinteger(localL, 2);
-    return 0;
-}
-
-int lua_set_oda_handler(lua_State *localL) {
-    uint8_t idx = luaL_checkinteger(localL, 1);
-	if(idx >= ODAS) return luaL_error(localL, "There can't be more than %d registered ODAs", ODAS);
-	if(mod->enc->state[mod->enc->program].user_oda.odas[idx].group == 0) return luaL_error(localL, "this oda is not registered");
-	if(mod->enc->state[mod->enc->program].user_oda.odas[idx].group == 3) return luaL_error(localL, "this oda cannot have a handler");
-    luaL_checktype(localL, 2, LUA_TFUNCTION);
-    lua_pushvalue(localL, 2);
-    if(mod->enc->state[mod->enc->program].user_oda.odas[idx].lua_handler != 0) luaL_unref(localL, LUA_REGISTRYINDEX, mod->enc->state[mod->enc->program].user_oda.odas[idx].lua_handler);
-    mod->enc->state[mod->enc->program].user_oda.odas[idx].lua_handler = luaL_ref(localL, LUA_REGISTRYINDEX);
-    int index = *unload_refs;
-    unload_refs[index] = mod->enc->state[mod->enc->program].user_oda.odas[idx].lua_handler;
-    (*unload_refs)++;
-    return 0;
-}
-
 void init_lua(RDSModulator* rds_mod) {
     static int mutex_initialized = 0;
     mod = rds_mod;
@@ -474,8 +424,6 @@ void init_lua(RDSModulator* rds_mod) {
     lua_setglobal(L, "eon_count");
     lua_pushinteger(L, LUA_USER_DATA);
     lua_setglobal(L, "user_data_len");
-    lua_pushinteger(L, ODAS);
-    lua_setglobal(L, "oda_count");
 
     lua_register(L, "set_rds_program_defaults", lua_set_rds_program_defaults);
     lua_register(L, "reset_rds", lua_reset_rds);
@@ -566,10 +514,6 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "set_rds_udg", lua_set_rds_udg);
     lua_register(L, "set_rds_udg2", lua_set_rds_udg2);
 
-    lua_register(L, "register_oda", lua_register_oda);
-    lua_register(L, "set_oda_id_data", lua_set_oda_id_data);
-    lua_register(L, "set_oda_handler", lua_set_oda_handler);
-
     lua_register(L, "set_userdata", lua_set_userdata);
     lua_register(L, "set_userdata_offset", lua_set_userdata_offset);
     lua_register(L, "get_userdata", lua_get_userdata);
@@ -649,8 +593,8 @@ int lua_rds2_group(RDSGroup* group, int stream) {
 
     if (lua_isfunction(L, -1)) {
         lua_pushinteger(L, stream);
-        if (lua_pcall(L, 1, 4, 0) == LUA_OK) {
-            if (!lua_isinteger(L, -1)) {
+        if (lua_pcall(L, 1, 5, 0) == LUA_OK) {
+            if (!lua_isboolean(L, -1)) {
                 pthread_mutex_unlock(&lua_mutex);
                 return 0;
             }
@@ -666,11 +610,19 @@ int lua_rds2_group(RDSGroup* group, int stream) {
                 pthread_mutex_unlock(&lua_mutex);
                 return 0;
             }
-            group->d = luaL_checkinteger(L, -1);
-            group->c = luaL_checkinteger(L, -2);
-            group->b = luaL_checkinteger(L, -3);
-            group->a = luaL_checkinteger(L, -4);
-            lua_pop(L, 3);
+            if (!lua_isinteger(L, -5)) {
+                pthread_mutex_unlock(&lua_mutex);
+                return 0;
+            }
+            if(lua_toboolean(L, -1) == 0) {
+                pthread_mutex_unlock(&lua_mutex);
+                return 0;
+            }
+            group->d = luaL_checkinteger(L, -2);
+            group->c = luaL_checkinteger(L, -3);
+            group->b = luaL_checkinteger(L, -4);
+            group->a = luaL_checkinteger(L, -5);
+            lua_pop(L, 4);
         } else fprintf(stderr, "Lua error: %s at 'rds2_group'\n", lua_tostring(L, -1));
         lua_pop(L, 1);
     } else lua_pop(L, 1);

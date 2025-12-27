@@ -16,7 +16,7 @@ local function init_ert()
 
             local segments = string.byte(get_userdata_offset(257, 1))
 
-            if segments == 0 then return 0, 0, 0 end
+            if segments == 0 then return false, 0, 0, 0 end
 
             if _Ert_state >= segments then _Ert_state = 0 end
 
@@ -26,7 +26,7 @@ local function init_ert()
             local d = (string.byte(chunk, 3) << 8) | string.byte(chunk, 4)
 
             _Ert_state = (_Ert_state + 1) % segments
-            return b, c, d
+            return true, b, c, d
         end)
     end
 end
