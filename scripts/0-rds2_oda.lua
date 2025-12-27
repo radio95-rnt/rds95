@@ -52,12 +52,12 @@ function rds2_group(stream)
 
     if _RDS2_ODA_aid == 0 then
         _RDS2_ODA_aid = 1
-        local block1_base = (1 << 15) | channel
+        local block1_base = (2 << 14) | (0 << 8) | channel
 
-        if next_oda ~= nil and next_oda.data ~= 0 and oda.data <= 0xffff then
+        if next_oda and oda.data > 0 and oda.data <= 0xFFFF and next_oda.data == 0 then
             _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
             return true, block1_base | (1 << 6), oda.aid, oda.data, next_oda.aid
-        elseif next_oda ~= nil and oda.data == 0 and next_oda.data <= 0xffff and next_oda.data ~= 0 then
+        elseif next_oda and oda.data == 0 and next_oda.data > 0 and next_oda.data <= 0xFFFF then
             _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
             return true, block1_base | (2 << 6), oda.aid, next_oda.aid, next_oda.data
         elseif next_oda ~= nil and oda.data == 0 and next_oda.data == 0 then
