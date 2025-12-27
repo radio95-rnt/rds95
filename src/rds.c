@@ -235,7 +235,7 @@ static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 			goto group_coded_rds2;
 		} else if(enc->encoder_data.rds2_mode == 2) {
 			int generated = lua_rds2_group(group, stream);
-			if(group->a == 0 && generated) group->is_type_b = (IS_TYPE_B(group->b) != 0);
+			if(group->a == 0 && generated == 1) group->is_type_b = (IS_TYPE_B(group->b) != 0);
 			else if(generated == 0) {
 				group->b = enc->state[enc->program].last_stream0_group[0];
 				group->c = enc->state[enc->program].last_stream0_group[1];
