@@ -53,9 +53,7 @@ local function start_rft()
             local word4 = (b(3) << 8) | b(4)
 
             _Rft_file_segment = seg + 1
-            if _Rft_file_segment >= total_segments then
-                _Rft_file_segment = 0
-            end
+            if _Rft_file_segment >= total_segments then _Rft_file_segment = 0 end
 
             return true, (2 << 12) | word1, word2, word3, word4
         end)
@@ -83,16 +81,61 @@ function load_station_logo(path, id, crc)
     _Rft_crc_data = "" -- Clear previous CRC data
     _Rft_crc = (crc ~= false)
 
-    if crc and (crc == 0 or crc == true) then
+    if crc and crc == 0 then
         _Rft_crc_mode = 0
         _Rft_crc_full_file = crc16(_Rft_file)
-    elseif crc and crc == 1 then
+    elseif crc and crc == 1 and #_Rft_file <= 40960 then
         _Rft_crc_mode = 1
         local chunk_size = 5 * 16 -- 80 bytes
         for i = 1, #_Rft_file, chunk_size do
             local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
             local crc_val = crc16(chunk)
             _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
+        end
+    elseif crc and crc == 2 and #_Rft_file < 40960 and #_Rft_file >= 81920 then
+        _Rft_crc_mode = 2
+        local chunk_size = 5 * 32
+        for i = 1, #_Rft_file, chunk_size do
+            local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
+            local crc_val = crc16(chunk)
+            _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
+        end
+    elseif crc and crc == 3 and #_Rft_file > 81960 then
+        _Rft_crc_mode = 3
+        local chunk_size = 5 * 64
+        for i = 1, #_Rft_file, chunk_size do
+            local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
+            local crc_val = crc16(chunk)
+            _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
+        end
+    elseif crc and crc == 4 and #_Rft_file > 81960 then
+        _Rft_crc_mode = 4
+        local chunk_size = 5 * 128
+        for i = 1, #_Rft_file, chunk_size do
+            local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
+            local crc_val = crc16(chunk)
+            _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
+        end
+    elseif crc and crc == 5 and #_Rft_file > 81960 then
+        _Rft_crc_mode = 5
+        local chunk_size = 5 * 256
+        for i = 1, #_Rft_file, chunk_size do
+            local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
+            local crc_val = crc16(chunk)
+            _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
+        end
+    elseif crc and (crc == 7 or crc == true) then
+        _Rft_crc_mode = 7
+        local chunk_size = 0
+        if #_Rft_file <= 40960 then chunk_size = 5*16
+        elseif #_Rft_file > 40960 and #_Rft_file <= 81920 then chunk_size = 5*32
+        elseif #_Rft_file > 81960 then chunk_size = 5*64 end
+        if chunk_size ~= 0 then
+            for i = 1, #_Rft_file, chunk_size do
+                local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
+                local crc_val = crc16(chunk)
+                _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
+            end
         end
     else
         _Rft_crc = false
