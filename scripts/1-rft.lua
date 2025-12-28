@@ -23,10 +23,18 @@ local function start_rft()
 
             if not _Rft_crc_sent and _Rft_crc and (seg % 16 == 0) then
                 _Rft_crc_sent = true
-                local c = (1 << 12) | (_Rft_crc_mode & 7) << 9 | (_Rft_crc_segment & 0x1ff)
-                _Rft_crc_segment = _Rft_crc_segment + 1
-                if _Rft_crc_segment > #_Rft_crc_data then _Rft_crc_segment = 0 end
-                return true, (2 << 14), _Rft_aid, c, string.byte(_Rft_crc_data, _Rft_crc_segment)
+                local chunk_address = math.floor((_Rft_crc_segment - 1) / 2)
+                local c = (1 << 12) | (_Rft_crc_mode & 7) << 9 | (chunk_address & 0x1ff)
+
+                local high_byte = string.byte(_Rft_crc_data, _Rft_crc_segment) or 0
+                local low_byte = string.byte(_Rft_crc_data, _Rft_crc_segment + 1) or 0
+
+                local crc_word = (high_byte << 8) | low_byte
+
+                _Rft_crc_segment = _Rft_crc_segment + 2
+                if _Rft_crc_segment > #_Rft_crc_data then _Rft_crc_segment = 1 end
+                
+                return true, (2 << 14), _Rft_aid, c, crc_word
             else
                 _Rft_crc_sent = false
             end
