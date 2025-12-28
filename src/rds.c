@@ -318,6 +318,10 @@ void add_checkwords(RDSGroup *group, uint8_t *bits)
 }
 
 void get_rds_bits(RDSEncoder* enc, uint8_t *bits, uint8_t stream) {
+	if((rdsMod->params.rdsgen > stream ? 1 : 0) == 0) {
+		memset(bits, 0, BITS_PER_GROUP);
+		return;
+	}
 	RDSGroup group;
 	get_rds_group(enc, &group, stream);
 	add_checkwords(&group, bits);
