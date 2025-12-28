@@ -22,6 +22,7 @@ local function start_rft()
             local base = seg * 5 + 1
 
             if not _Rft_crc_sent and _Rft_crc and (seg % 16 == 0) then
+                _Rft_crc_sent = true
                 local c = (1 << 12) | (_Rft_crc_mode & 7) << 9 | (_Rft_crc_segment & 0x1ff)
                 _Rft_crc_segment = _Rft_crc_segment + 1
                 if _Rft_crc_segment > #_Rft_crc_data then _Rft_crc_segment = 0 end
