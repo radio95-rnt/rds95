@@ -42,6 +42,7 @@ end
 ---@param fun ODAHandler
 function set_oda_handler(oda_id, fun)
     if oda_id > #_RDS_ODAs then return end
+    if _RDS_ODAs.group == 3 then error("3A ODAs cannot have handlers.") end
     _RDS_ODAs[oda_id].handler = fun
 end
 
@@ -90,4 +91,11 @@ function group(group_type)
         end
     end
     return false, 0, 0, 0
+end
+
+local _old_on_state_oda = on_state
+function on_state()
+    _RDS_ODAs = {}
+    _RDS_ODA_pointer = 1
+    if type(_old_on_state_oda) == "function" then _old_on_state_oda() end
 end
