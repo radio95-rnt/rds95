@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(rds95 VERSION 1.6)
+project(rds95 VERSION 1.7)
 
 add_compile_options(-Wall -Werror -Wextra -pedantic -O2 -std=c18 -march=native -DVERSION=\"${PROJECT_VERSION}\")
 
@@ -21,7 +21,7 @@ install(TARGETS rds95 DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 install(CODE
 "
   # Define the paths for the source and destination files
-  set(PREFIX_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/.script_prefix.lua\")
+  set(PREFIX_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/.script.lua\")
   set(SCRIPTS_DIR \"${CMAKE_CURRENT_SOURCE_DIR}/scripts\")
   set(DEST_FILE \"/etc/rds95.lua\")
 

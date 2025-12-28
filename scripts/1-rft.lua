@@ -37,15 +37,16 @@ end
 ---@param path string
 ---@param id integer
 function load_station_logo(path, id)
+    local file = io.open(path, "rb")
+    if not file then error("Could not open file") end
+    _Rft_file = file:read("*a")
+    file:close()
+
     if id == _Rft_last_id then 
         _Rft_toggle = not _Rft_toggle
         _Rft_version = _Rft_version + 1
         if _Rft_version > 7 then _Rft_version = 0 end
     end
-    local file = io.open(path, "rb")
-    if not file then error("Could not open file") end
-    _Rft_file = file:read("*a")
-    file:close()
 
     if #_Rft_file > 262143 then error("The file is too large", 2) end
     if _Rft_oda_id == nil then start_rft() end

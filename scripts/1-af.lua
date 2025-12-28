@@ -3,7 +3,7 @@ _Af_Oda_state = 0
 _Af_Oda_len = 0
 _Af_Oda_afs = {}
 
-local USERDATA_OFFSET = 270
+local USERDATA_ODA_OFFSET = 274
 
 ---@param freq number
 ---@return table
@@ -19,7 +19,7 @@ local function encode_af(freq)
     elseif freq >= 531 and freq <= 1602 then
         table.insert(out, 250) -- LFMF incoming
         table.insert(out, math.tointeger((freq - 531) / 9 + 16))
-    end
+    else error(string.format("Invalid AF frequency: %.1f", freq), 2) end
     return out
 end
 
@@ -69,7 +69,7 @@ local function save_af_to_userdata(afs)
 
     local payload = string.pack("B", count)
     for i = 1, count do payload = payload .. string.pack("f", afs[i]) end
-    set_userdata_offset(USERDATA_OFFSET, #payload, payload)
+    set_userdata_offset(USERDATA_ODA_OFFSET, #payload, payload)
 end
 
 local function _process_af_list(afs)
@@ -86,13 +86,13 @@ local function _process_af_list(afs)
 end
 
 local function load_af_from_userdata()
-    local header = get_userdata_offset(USERDATA_OFFSET, 1)
+    local header = get_userdata_offset(USERDATA_ODA_OFFSET, 1)
     if header == "" or header == nil then return end
 
     local count = string.unpack("B", header)
     if count == 0 or count > 25 then return end
 
-    local data = get_userdata_offset(USERDATA_OFFSET + 1, count * 4)
+    local data = get_userdata_offset(USERDATA_ODA_OFFSET + 1, count * 4)
     if #data < (count * 4) then return end
 
     local afs = {}

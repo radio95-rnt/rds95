@@ -29,7 +29,7 @@ end
 ---@param oda_id integer
 ---@param data integer
 function set_oda_id_data(oda_id, data)
-    if oda_id > #_RDS_ODAs then return end
+    if oda_id < 1 or oda_id > #_RDS_ODAs then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS_ODAs[oda_id].data = data
 end
 
@@ -41,8 +41,8 @@ end
 ---@param oda_id integer The ID returned by register_oda
 ---@param fun ODAHandler
 function set_oda_handler(oda_id, fun)
-    if oda_id > #_RDS_ODAs then return end
-    if _RDS_ODAs.group == 3 then error("3A ODAs cannot have handlers.") end
+    if oda_id < 1 or oda_id > #_RDS_ODAs then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
+    if _RDS_ODAs[oda_id].group == 3 then error("3A ODAs cannot have handlers.", 2) end
     _RDS_ODAs[oda_id].handler = fun
 end
 

@@ -25,7 +25,7 @@ end
 ---@param oda_id integer
 ---@param data integer
 function set_oda_id_data_rds2(oda_id, data)
-    if oda_id > #_RDS2_ODAs then return end
+    if oda_id < 1 or oda_id > #_RDS2_ODAs then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS2_ODAs[oda_id].data = data
 end
 
@@ -33,7 +33,7 @@ end
 ---@param oda_id integer
 ---@param func RDS2_ODAHandler
 function set_oda_handler_rds2(oda_id, func)
-    if oda_id > #_RDS2_ODAs then return end
+    if oda_id < 1 or oda_id > #_RDS2_ODAs then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS2_ODAs[oda_id].handler = func
 end
 
