@@ -26,15 +26,17 @@ inline int _strncpy(char *dest, const char *src, int n) {
 	return i;
 }
 uint16_t crc16_ccitt(const char* data, uint16_t len) {
-	uint16_t i, crc=0xFFFF;
-	for (i=0; i < len; i++ ) {
-		crc = (unsigned char)(crc >> 8) | (crc << 8);
+	uint16_t crc = 0xffff;
+
+	for (size_t i = 0; i < len; i++) {
+		crc = (crc >> 8) | (crc << 8);
 		crc ^= data[i];
-		crc ^= (unsigned char)(crc & 0xff) >> 4;
+		crc ^= (crc & 0xff) >> 4;
 		crc ^= (crc << 8) << 4;
 		crc ^= ((crc & 0xff) << 4) << 1;
 	}
-	return ((crc ^= 0xFFFF) & 0xFFFF);
+
+	return crc ^ 0xffff;
 }
 
 inline uint16_t get_block_from_group(RDSGroup *group, uint8_t block) {

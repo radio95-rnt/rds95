@@ -5,7 +5,6 @@ _Rft_toggle = false
 _Rft_last_id = -1
 _Rft_version = 0
 _Rft_crc_mode = -1
-_Rft_crc_state = 0
 _Rft_crc_sent = false
 _Rft_aid = 0xFF7F
 
@@ -24,7 +23,7 @@ local function start_rft()
                 _Rft_crc_sent = true
                 if _Rft_crc_mode ~= 0 then warn("rft: No other crc than mode 0 is supported as of now") end
                 _Rft_crc_mode = 0
-                return true, (2 << 14), _Rft_aid, (1 << 12) | (_Rft_crc_mode & 7) << 9 | (seg & 511), crc16(_Rft_file)
+                return true, (2 << 14), _Rft_aid, (1 << 12) | (0 & 7) << 9 | (0 & 0x1ff), crc16(_Rft_file)
             else
                 _Rft_crc_sent = false
             end
@@ -59,7 +58,7 @@ function load_station_logo(path, id, crc)
 
     if id == _Rft_last_id then 
         _Rft_toggle = not _Rft_toggle
-        _Rft_crc_state = 0
+        _Rft_crc_sent = 0
         _Rft_version = _Rft_version + 1
         if _Rft_version > 7 then _Rft_version = 0 end
     end
