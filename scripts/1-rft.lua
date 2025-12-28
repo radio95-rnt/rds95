@@ -24,8 +24,8 @@ local function start_rft()
             if not _Rft_crc_sent and _Rft_crc and (seg % 16 == 0) then
                 local c = (1 << 12) | (_Rft_crc_mode & 7) << 9 | (_Rft_crc_segment & 0x1ff)
                 _Rft_crc_segment = _Rft_crc_segment + 1
-                if _Rft_crc_segment > #_Rft_crc_segment then _Rft_crc_segment = 0 end
-                return true, (2 << 14), _Rft_aid, c, crc16(_Rft_file)
+                if _Rft_crc_segment > #_Rft_crc_data then _Rft_crc_segment = 0 end
+                return true, (2 << 14), _Rft_aid, c, string.byte(_Rft_crc_data, _Rft_crc_segment)
             else
                 _Rft_crc_sent = false
             end
