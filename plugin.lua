@@ -352,6 +352,8 @@ function set_oda_id_data_rds2(oda_id, data) end
 ---@return integer oda_id
 function register_oda_rds2(aid, data, file_related) end
 
+---This function is defined externally
 ---Loads the file into RFT and initializes it if needed, note that this needs RDR2 mode 2
 ---@param path string
-function load_rft_file(path) end
+---@param id integer
+function load_rft_file(path, id) end

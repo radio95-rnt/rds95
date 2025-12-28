@@ -34,7 +34,11 @@ local function start_rft()
     end
 end
 
-function load_rft_file(path)
+---This function is defined externally
+---Loads the file into RFT and initializes it if needed, note that this needs RDR2 mode 2
+---@param path string
+---@param id integer
+function load_rft_file(path, id)
     local file = io.open(path, "rb")
     if not file then error("Could not open file") end
     _Rft_file = file:read("*a")
@@ -42,5 +46,5 @@ function load_rft_file(path)
     if #_Rft_file > 262143 then error("The file is too large", 2) end
     if _Rft_oda_id == nil then start_rft() end
 ---@diagnostic disable-next-line: param-type-mismatch
-    set_oda_id_data_rds2(_Rft_oda_id, #_Rft_file | 0 << 18)
+    set_oda_id_data_rds2(_Rft_oda_id, #_Rft_file | id << 18)
 end
