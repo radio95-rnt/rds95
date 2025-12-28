@@ -351,3 +351,7 @@ function set_oda_id_data_rds2(oda_id, data) end
 ---@param file_related boolean
 ---@return integer oda_id
 function register_oda_rds2(aid, data, file_related) end
+
+---Loads the file into RFT and initializes it if needed, note that this needs RDR2 mode 2
+---@param path string
+function load_rft_file(path) end
