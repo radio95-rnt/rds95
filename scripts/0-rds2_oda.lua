@@ -50,7 +50,7 @@ function rds2_group(stream)
     local next_oda = nil
     if _RDS2_ODA_pointer <= #_RDS2_ODAs then next_oda = _RDS2_ODAs[_RDS2_ODA_pointer] end
 
-    if _RDS2_ODA_aid == 0 then
+    if _RDS2_ODA_aid == 0 and stream == 1 then
         _RDS2_ODA_aid = 1
         local block1_base = (2 << 14) | channel
 
