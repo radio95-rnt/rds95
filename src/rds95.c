@@ -181,13 +181,13 @@ int main(int argc, char **argv) {
 	init_rds_encoder(&rdsEncoder);
 
 	if(open_udp_server(config.udp_port, &rdsModulator) == 0) {
-		fprintf(stderr, "Reading control commands on UDP:%d.\n", config.udp_port);
+		printf("Reading control commands on UDP:%d.\n", config.udp_port);
 		int r = pthread_create(&udp_server_thread, &attr, udp_server_worker, NULL);
 		if (r < 0) {
 			fprintf(stderr, "Could not create UDP server thread.\n");
 			config.udp_port = 0;
 			goto exit;
-		} else fprintf(stderr, "Created UDP server thread.\n");
+		} else printf("Created UDP server thread.\n");
 	} else {
 		fprintf(stderr, "Failed to open UDP server\n");
 		config.udp_port = 0;
