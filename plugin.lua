@@ -12,6 +12,11 @@ user_data_len = 0
 
 --#region Functions implemented or used in C
 
+---Executes a CRC-16 CCIIT
+---@param data string
+---@return integer
+function crc16(data) end
+
 ---Starts the initialization sequence, also calls the on_init function
 ---@return nil
 function set_rds_program_defaults() end

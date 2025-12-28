@@ -44,6 +44,7 @@ function rds2_group(stream)
     local oda = _RDS2_ODAs[_RDS2_ODA_pointer]
     local channel_offset = 16 * ((not oda.file_related) and 1 or 0)
     local channel = ((_RDS2_ODA_pointer - 1 + channel_offset) & 0x3F)
+    if oda.file_related then channel = channel & 0xF end
 
     _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
 
@@ -78,9 +79,11 @@ function rds2_group(stream)
             local channel_bitshift = 8
             local fid = (a & 0xC000) >> 14
             local fn_msb = (a >> 13) & 1
-            if fid == 0 and fn_msb == 0 then return true, 0, b, c, d
-            elseif fid == 0 and fn_msb == 1 then channel = channel & 0xF
+            if fid == 0 and fn_msb == 0 then
+                warn("RDS2 ODA is tunneling (A or B) over C")
+                return true, 0, b, c, d -- Tunnel, not sure why but sure
             --FID = 1 means a normal ODA group
+            --FID = 2 means a RFT file
             elseif fid == 2 and fn_msb == 0 then channel_bitshift = 0 end -- This is AID
             return generated, (channel << channel_bitshift) | a, b, c, d
         end

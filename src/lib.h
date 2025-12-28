@@ -8,7 +8,7 @@ void msleep(unsigned long ms);
 int _strnlen(const char *s, int maxlen);
 int _strncpy(char *dest, const char *src, int n);
 
-uint16_t crc16_ccitt(char *data, uint16_t len);
+uint16_t crc16_ccitt(const char *data, uint16_t len);
 
 uint16_t get_block_from_group(RDSGroup *group, uint8_t block);
 

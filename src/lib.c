@@ -25,7 +25,7 @@ inline int _strncpy(char *dest, const char *src, int n) {
 	}
 	return i;
 }
-uint16_t crc16_ccitt(char* data, uint16_t len) {
+uint16_t crc16_ccitt(const char* data, uint16_t len) {
 	uint16_t i, crc=0xFFFF;
 	for (i=0; i < len; i++ ) {
 		crc = (unsigned char)(crc >> 8) | (crc << 8);

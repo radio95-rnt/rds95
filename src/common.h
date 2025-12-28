@@ -4,9 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef _WIN32
 #include <unistd.h>
-#endif
 #include <string.h>
 #include <math.h>
 #include <stdbool.h>

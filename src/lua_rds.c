@@ -406,6 +406,13 @@ int lua_get_available_rds_streams(lua_State *localL) {
     return 1;
 }
 
+int lua_crc16(lua_State *localL) {
+    size_t len;
+    const char* data = luaL_checklstring(localL, 1, &len);
+    lua_pushinteger(localL, crc16_ccitt(data, len));
+    return 1;
+}
+
 void init_lua(RDSModulator* rds_mod) {
     static int mutex_initialized = 0;
     mod = rds_mod;
@@ -523,6 +530,8 @@ void init_lua(RDSModulator* rds_mod) {
     lua_register(L, "set_userdata_offset", lua_set_userdata_offset);
     lua_register(L, "get_userdata", lua_get_userdata);
     lua_register(L, "get_userdata_offset", lua_get_userdata_offset);
+
+    lua_register(L, "crc16", lua_crc16);
 
     if (luaL_loadfile(L, "/etc/rds95.lua") != LUA_OK) {
         fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(L, -1));
