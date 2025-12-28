@@ -40,7 +40,7 @@ local function start_rft()
 
             return true, word1, word2, word3, word4
         end)
-        set_rds2_mode(3)
+        set_rds2_mode(2)
     end
 end
 
