@@ -7,6 +7,7 @@ _Rft_toggle = false
 _Rft_last_id = -1
 _Rft_version = 0
 _Rft_crc = false
+_Rft_crc_full_file = 0
 _Rft_crc_mode = 0
 _Rft_crc_sent = false
 _Rft_aid = 0xFF7F
@@ -26,15 +27,20 @@ local function start_rft()
                 local chunk_address = math.floor((_Rft_crc_segment - 1) / 2)
                 local c = (1 << 12) | (_Rft_crc_mode & 7) << 9 | (chunk_address & 0x1ff)
 
-                local high_byte = string.byte(_Rft_crc_data, _Rft_crc_segment) or 0
-                local low_byte = string.byte(_Rft_crc_data, _Rft_crc_segment + 1) or 0
-
-                local crc_word = (high_byte << 8) | low_byte
+                local high_byte = 0
+                local low_byte = 0
+                if _Rft_crc_mode ~= 0 then
+                    high_byte = string.byte(_Rft_crc_data, _Rft_crc_segment) or 0
+                    low_byte = string.byte(_Rft_crc_data, _Rft_crc_segment + 1) or 0
+                else
+                    high_byte = _Rft_crc_full_file >> 8
+                    low_byte = _Rft_crc_full_file & 0xff
+                end
 
                 _Rft_crc_segment = _Rft_crc_segment + 2
                 if _Rft_crc_segment > #_Rft_crc_data then _Rft_crc_segment = 1 end
                 
-                return true, (2 << 14), _Rft_aid, c, crc_word
+                return true, (2 << 14), _Rft_aid, c, (high_byte << 8) | low_byte
             else
                 _Rft_crc_sent = false
             end
@@ -79,8 +85,7 @@ function load_station_logo(path, id, crc)
 
     if crc and (crc == 0 or crc == true) then
         _Rft_crc_mode = 0
-        local crc_val = crc16(_Rft_file)
-        _Rft_crc_data = string.char(math.floor(crc_val / 256), crc_val % 256)
+        _Rft_crc_full_file = crc16(_Rft_file)
     elseif crc and crc == 1 then
         _Rft_crc_mode = 1
         local chunk_size = 5 * 16 -- 80 bytes
