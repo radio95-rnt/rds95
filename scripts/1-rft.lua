@@ -19,12 +19,14 @@ local function start_rft()
             local seg = _Rft_file_segment
             local base = seg * 5 + 1
 
-            if not _Rft_crc_sent and _Rft_crc_mode ~= -1 then
+            if not _Rft_crc_sent and _Rft_crc_mode ~= -1 and (seg % 8 == 0) then
                 --- TODO: warn that if we have over 511 segments, we can't have CRC if we want per-segment crc
                 _Rft_crc_sent = true
                 if _Rft_crc_mode ~= 0 then warn("rft: No other crc than mode 0 is supported as of now") end
                 _Rft_crc_mode = 0
                 return true, (2 << 14), _Rft_aid, (1 << 28) | (_Rft_crc_mode & 7) << 25 | (seg & 511), crc16(_Rft_file)
+            else
+                _Rft_crc_sent = false
             end
 
             local function b(i) return string.byte(_Rft_file, base + i) or 0 end
@@ -37,7 +39,6 @@ local function start_rft()
             _Rft_file_segment = seg + 1
             if _Rft_file_segment >= total_segments then
                 _Rft_file_segment = 0
-                _Rft_crc_sent = false
             end
 
             return true, (2 << 12) | word1, word2, word3, word4
@@ -59,7 +60,6 @@ function load_station_logo(path, id, crc)
     if id == _Rft_last_id then 
         _Rft_toggle = not _Rft_toggle
         _Rft_crc_state = 0
-        _Rft_crc_sent = false
         _Rft_version = _Rft_version + 1
         if _Rft_version > 7 then _Rft_version = 0 end
     end
