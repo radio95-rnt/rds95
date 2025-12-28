@@ -44,7 +44,7 @@ local function start_rft()
     end
 end
 
-function load_rft_file()
+local function load_rft_file()
     local file = io.open("/tmp/rft_test", "rb")
     if not file then error("Could not open file") end
     _Rft_file = file:read("*a")
