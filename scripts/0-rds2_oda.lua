@@ -75,8 +75,23 @@ function rds2_group(stream)
         if _RDS2_ODA_aid > 8 then _RDS2_ODA_aid = 0 end
         if oda.handler then
             local generated, a, b, c, d = oda.handler(stream)
-            return generated, (channel << 8) | a, b, c, d
+            local channel_bitshift = 8
+            local fid = (a & 0xC000) >> 14
+            local fn_msb = (a >> 15) & 1
+            if fid == 0 and fn_msb == 0 then return true, 0, b, c, d
+            elseif fid == 0 and fn_msb == 1 then channel = channel & 0xF
+            --FID = 1 means a normal ODA group
+            elseif fid == 2 and fn_msb == 0 then channel_bitshift = 0 end -- This is AID
+            return generated, (channel << channel_bitshift) | a, b, c, d
         end
         return true, (2 << 14) | channel, oda.aid, (oda.data >> 16) & 0xffff, oda.data & 0xffff
     end
+end
+
+local _old_on_state_oda_rds2 = on_state
+function on_state()
+    _RDS2_ODAs = {}
+    _RDS2_ODA_aid = 0
+    _RDS2_ODA_pointer = 1
+    if type(_old_on_state_oda_rds2) == "function" then _old_on_state_oda_rds2() end
 end

@@ -401,6 +401,11 @@ int lua_set_rds_udg2(lua_State *localL) {
     return 0;
 }
 
+int lua_get_available_rds_streams(lua_State *localL) {
+    lua_pushinteger(localL, mod->num_streams);
+    return 1
+}
+
 void init_lua(RDSModulator* rds_mod) {
     static int mutex_initialized = 0;
     mod = rds_mod;
@@ -470,6 +475,7 @@ void init_lua(RDSModulator* rds_mod) {
 
     lua_register(L, "set_rds_streams", lua_set_rds_streams);
     lua_register(L, "get_rds_streams", lua_get_rds_streams);
+    lua_register(L, "get_available_rds_streams", lua_get_available_rds_streams);
 
     lua_register(L, "set_rds_grpseq", lua_set_rds_grp_sqc);
     lua_register(L, "get_rds_grpseq", lua_get_rds_grp_sqc);
