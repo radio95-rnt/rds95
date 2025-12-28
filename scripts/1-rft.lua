@@ -71,16 +71,10 @@ function load_station_logo(path, id, crc)
         _Rft_crc_data = string.char(crc16(_Rft_file))
         _Rft_crc_mode = 0
     elseif crc and crc == 1 then
-        for i = 1, #_Rft_file, 5*16 do _Rft_crc_data = _Rft_crc_data .. crc16(string.char(string.byte(_Rft_file, i, 5*16))) end
+        for i = 1, #_Rft_file, 5*16 do _Rft_crc_data = _Rft_crc_data .. string.char(crc16(string.sub(_Rft_file, i, 5*32))) end
         _Rft_crc_mode = 1
-    elseif crc and crc == 2 then
-        for i = 1, #_Rft_file, 5*32 do _Rft_crc_data = _Rft_crc_data .. crc16(string.char(string.byte(_Rft_file, i, 5*32))) end
-        _Rft_crc_mode = 2
-    elseif crc and crc == 3 then
-        for i = 1, #_Rft_file, 5*64 do _Rft_crc_data = _Rft_crc_data .. crc16(string.char(string.byte(_Rft_file, i, 5*64))) end
-        _Rft_crc_mode = 3
-    elseif crc and crc == 4 then
-        for i = 1, #_Rft_file, 5*128 do _Rft_crc_data = _Rft_crc_data .. crc16(string.char(string.byte(_Rft_file, i, 5*128))) end
+    else
+        error("TODO")
     end
 
     if #_Rft_file > 262143 then error("The file is too large", 2) end
