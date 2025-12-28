@@ -38,7 +38,7 @@ local function start_rft()
                 _Rft_toggle = not _Rft_toggle
             end
 
-            return true, word1, word2, word3, word4
+            return true, (2 << 12) | word1, word2, word3, word4
         end)
         set_rds2_mode(2)
     end

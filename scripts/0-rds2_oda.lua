@@ -75,7 +75,7 @@ function rds2_group(stream)
         if _RDS2_ODA_aid > 8 then _RDS2_ODA_aid = 0 end
         if oda.handler then
             local generated, a, b, c, d = oda.handler(stream)
-            return generated, (1 << 14) | (channel << 8) | a, b, c, d
+            return generated, (channel << 8) | a, b, c, d
         end
         return true, (2 << 14) | channel, oda.aid, (oda.data >> 16) & 0xffff, oda.data & 0xffff
     end
