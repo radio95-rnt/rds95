@@ -35,7 +35,10 @@ local function start_rft()
             local word4 = (b(3) << 8) | b(4)
 
             _Rft_file_segment = seg + 1
-            if _Rft_file_segment >= total_segments then _Rft_file_segment = 0 end
+            if _Rft_file_segment >= total_segments then
+                _Rft_file_segment = 0
+                _Rft_crc_sent = false
+            end
 
             return true, (2 << 12) | word1, word2, word3, word4
         end)
