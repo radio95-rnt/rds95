@@ -24,7 +24,7 @@ local function start_rft()
                 _Rft_crc_sent = true
                 if _Rft_crc_mode ~= 0 then warn("rft: No other crc than mode 0 is supported as of now") end
                 _Rft_crc_mode = 0
-                return true, (2 << 14), _Rft_aid, (1 << 12) | (_Rft_crc_mode & 7) << 11, crc16(_Rft_file)
+                return true, (2 << 14), _Rft_aid, (1 << 12) | (_Rft_crc_mode & 7) << 9 | (seg & 511), crc16(_Rft_file)
             else
                 _Rft_crc_sent = false
             end
