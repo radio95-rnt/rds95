@@ -41,6 +41,7 @@ static inline void show_help(char *name) {
 		"Usage: %s [options]\n"
 		"\n"
 		"\t-c,--config\tSet the config path [default: %s]\n"
+		"\t-b,--bitstream\tEnable bitstream mode where the RDS modulator will be disabled and encoded RDS bits with checkwords will be sent from stderr\n"
 		"\n",
 		name,
 		DEFAULT_CONFIG_PATH
@@ -51,7 +52,8 @@ typedef struct
 {
 	uint16_t udp_port;
 	char rds_device_name[48];
-	uint8_t num_streams;
+	uint8_t num_streams : 3;
+	uint8_t bitstream : 1;
 } RDS95_Config;
 
 static int config_handler(void* user, const char* section, const char* name, const char* value) {
@@ -67,6 +69,10 @@ static int config_handler(void* user, const char* section, const char* name, con
         int streams = atoi(value);
         if (streams > MAX_STREAMS || streams == 0) return 0;
         config->num_streams = (uint8_t)streams;
+    } else if (MATCH("rds95", "bitstream")) {
+		int bitstream = atoi(value);
+        if (bitstream > 1 || bitstream < 0) return 0;
+        config->bitstream = (uint8_t)bitstream;
     } else return 0;
     return 1;
 }
@@ -78,7 +84,8 @@ int main(int argc, char **argv) {
 	RDS95_Config config = {
 		.udp_port = 0,
 		.rds_device_name = "\0",
-		.num_streams = DEFAULT_STREAMS
+		.num_streams = DEFAULT_STREAMS,
+		.bitstream = false
 	};
 
 	pa_simple *rds_device = NULL;
@@ -88,11 +95,12 @@ int main(int argc, char **argv) {
 	pthread_attr_t attr;
 	pthread_t udp_server_thread;
 
-	const char	*short_opt = "c:h";
+	const char	*short_opt = "c:bh";
 
 	struct option	long_opt[] =
 	{
 		{"config",		required_argument, NULL, 'c'},
+		{"bitstream",		no_argument, NULL, 'b'},
 		{"help",	no_argument,       NULL, 'h'},
 		{ 0,		0,		0,	0 }
 	};
@@ -102,7 +110,10 @@ int main(int argc, char **argv) {
 		switch (opt) {
 			case 'c':
 				memcpy(config_path, optarg, 62);
-				config_path[63] = '\0';
+				config_path[48] = '\0';
+				break;
+			case 'b':
+				config.bitstream = 1;
 				break;
 			case 'h':
 				show_help(argv[0]);
@@ -144,30 +155,31 @@ int main(int argc, char **argv) {
 	buffer.prebuf = 0;
 	buffer.tlength = buffer.maxlength = NUM_MPX_FRAMES * config.num_streams;
 
-	rds_device = pa_simple_new(
-		NULL,
-		"rds95",
-		PA_STREAM_PLAYBACK,
-		config.rds_device_name,
-		"RDS Generator",
-		&format,
-		NULL,
-		&buffer,
-		NULL
-	);
-	if (rds_device == NULL) {
-		fprintf(stderr, "Error: cannot open sound device.\n");
-		goto exit;
+	if(config.bitstream == 0) {
+		rds_device = pa_simple_new(
+			NULL,
+			"rds95",
+			PA_STREAM_PLAYBACK,
+			config.rds_device_name,
+			"RDS Generator",
+			&format,
+			NULL,
+			&buffer,
+			NULL
+		);
+		if (rds_device == NULL) {
+			fprintf(stderr, "Error: cannot open sound device.\n");
+			goto exit;
+		}
 	}
 
-	RDSModulator rdsModulator;
+	RDSModulator rdsModulator = {0};
     init_lua(&rdsModulator);
 	
-	RDSEncoder rdsEncoder;
+	RDSEncoder rdsEncoder = {0};
 	init_rds_modulator(&rdsModulator, &rdsEncoder, config.num_streams);
 	init_rds_encoder(&rdsEncoder);
 
-	if(config.udp_port == 0) config.udp_port = 5000;
 	if(open_udp_server(config.udp_port, &rdsModulator) == 0) {
 		fprintf(stderr, "Reading control commands on UDP:%d.\n", config.udp_port);
 		int r = pthread_create(&udp_server_thread, &attr, udp_server_worker, NULL);
@@ -181,24 +193,42 @@ int main(int argc, char **argv) {
 		config.udp_port = 0;
 	}
 
-	int pulse_error;
+	if(config.bitstream == 0) {
+		int pulse_error;
 
-	float *rds_buffer = (float*)malloc(NUM_MPX_FRAMES * config.num_streams * sizeof(float));
-	if (rds_buffer == NULL) {
-		fprintf(stderr, "Error: Could not allocate memory for RDS buffer\n");
-		goto exit;
-	}
+		float *rds_buffer = (float*)malloc(NUM_MPX_FRAMES * config.num_streams * sizeof(float));
+		if (rds_buffer == NULL) {
+			fprintf(stderr, "Error: Could not allocate memory for RDS buffer\n");
+			goto exit;
+		}
 
-	while(!stop_rds) {
-		for (uint16_t i = 0; i < NUM_MPX_FRAMES * config.num_streams; i++) rds_buffer[i] = get_rds_sample(&rdsModulator, i % config.num_streams);
+		while(!stop_rds) {
+			for (uint16_t i = 0; i < NUM_MPX_FRAMES * config.num_streams; i++) rds_buffer[i] = get_rds_sample(&rdsModulator, i % config.num_streams);
 
-		if (pa_simple_write(rds_device, rds_buffer, NUM_MPX_FRAMES * config.num_streams * sizeof(float), &pulse_error) != 0) {
-			fprintf(stderr, "Error: could not play audio. (%s : %d)\n", pa_strerror(pulse_error), pulse_error);
-			break;
+			if (pa_simple_write(rds_device, rds_buffer, NUM_MPX_FRAMES * config.num_streams * sizeof(float), &pulse_error) != 0) {
+				fprintf(stderr, "Error: could not play audio. (%s : %d)\n", pa_strerror(pulse_error), pulse_error);
+				break;
+			}
+		}
+
+		free(rds_buffer);
+	} else {
+		uint8_t bit_buffer[BITS_PER_GROUP] = {0};
+		#ifdef _WIN32
+		_setmode(_fileno(stderr), _O_BINARY);
+		#endif
+		setvbuf(stderr, NULL, _IONBF, 0);
+		while(!stop_rds) {
+			unsigned char end = 0xff;
+			for(uint8_t i = 0; i < config.num_streams; i++) {
+				get_rds_bits(&rdsEncoder, bit_buffer, i);
+				fwrite(&i, 1, 1, stderr);
+				fwrite(bit_buffer, 1, BITS_PER_GROUP, stderr);
+				fwrite(&end, 1, 1, stderr);
+				fflush(stderr);
+			}
 		}
 	}
-
-	free(rds_buffer);
 
 exit:
 	if(config.udp_port) {
@@ -212,7 +242,7 @@ exit:
 
 	cleanup_rds_modulator(&rdsModulator);
 	pthread_attr_destroy(&attr);
-	if (rds_device != NULL) pa_simple_free(rds_device);
+	if (rds_device != NULL && config.bitstream == 0) pa_simple_free(rds_device);
 
 	return 0;
 }
