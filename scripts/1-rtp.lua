@@ -76,7 +76,9 @@ function get_rds_rtplus_tags(ertp)
     return string.byte(get_userdata_offset(ertp and 267 or 260, 6), 1, 6)
 end
 
+local _old_on_state_rtp = on_state
 function on_state()
     if get_rds_rtp_meta(false) then init_rtp() end
     if get_rds_rtp_meta(true) then init_ertp() end
+    if type(_old_on_state_rtp) == "function" then _old_on_state_rtp() end
 end

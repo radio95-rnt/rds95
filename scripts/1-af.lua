@@ -111,7 +111,9 @@ function set_rds_af_oda(afs)
     save_af_to_userdata(afs)
 end
 
+local _old_on_state_af = on_state
 function on_state()
     load_af_from_userdata()
     if _Af_Oda_len ~= 0 then init_af_oda() end
+    if type(_old_on_state_af) == "function" then _old_on_state_af() end
 end

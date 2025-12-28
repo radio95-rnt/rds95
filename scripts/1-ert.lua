@@ -68,6 +68,8 @@ function get_rds_ert()
     return data:match("^(.-)[\r%z]*") or ""
 end
 
+local _old_on_state_ert = on_state
 function on_state()
     if string.byte(get_userdata_offset(257, 1)) ~= 0 then init_ert() end
+    if type(_old_on_state_ert) == "function" then _old_on_state_ert() end
 end

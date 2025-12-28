@@ -52,7 +52,7 @@ function rds2_group(stream)
 
     if _RDS2_ODA_aid == 0 then
         _RDS2_ODA_aid = 1
-        local block1_base = (2 << 14) | (0 << 8) | channel
+        local block1_base = (2 << 14) | channel
 
         if next_oda and oda.data > 0 and oda.data <= 0xFFFF and next_oda.data == 0 then
             _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
@@ -72,7 +72,7 @@ function rds2_group(stream)
         return true, block1_base, oda.aid, (oda.data >> 16) & 0xffff, oda.data & 0xffff
     else
         _RDS2_ODA_aid = _RDS2_ODA_aid + 1
-        if _RDS2_ODA_aid > 2 then _RDS2_ODA_aid = 0 end
+        if _RDS2_ODA_aid > 8 then _RDS2_ODA_aid = 0 end
         if oda.handler then
             local generated, a, b, c, d = oda.handler(stream)
             return generated, (1 << 14) | (channel << 8) | a, b, c, d
