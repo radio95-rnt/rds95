@@ -16,11 +16,8 @@ local function start_rft()
             local function b(i) return string.byte(_Rft_file, base + i) or 0 end
 
             local word1 = (((_Rft_toggle and 1 or 0) << 7) | ((seg >> 8) & 0x7F))
-
             local word2 = ((seg & 0xFF) << 8) | b(0)
-
             local word3 = (b(1) << 8) | b(2)
-
             local word4 = (b(3) << 8) | b(4)
 
             _Rft_file_segment = seg + 1
@@ -43,6 +40,7 @@ function load_rft_file(path, id)
     if not file then error("Could not open file") end
     _Rft_file = file:read("*a")
     file:close()
+
     if #_Rft_file > 262143 then error("The file is too large", 2) end
     if _Rft_oda_id == nil then start_rft() end
 ---@diagnostic disable-next-line: param-type-mismatch

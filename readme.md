@@ -35,6 +35,12 @@ You wanna make an ODA? Sure go for it, look in the scripts folder to see `0-ert.
 Wanna do scrolling PS without C stuff and no external scripts? Just do it with the `tick` function!
 Don't wanna run a bash script to send your station's data to the encoder when defaults take over? I'll welcome you to the `on_init` function
 
+### RFT
+
+For a long time there was no RFT in RDS95, but on 28th December 2025 that changed when i implemented it in lua, just call the load function with the path and id 0 and set rds2 mode to 2, and see the your station's logo in the decoder
+
+And yes, it is implemented in only Lua and the ODA engine which is also in Lua
+
 ## Disclaimer
 
 RDS95 is "based" on [Anthony96922](https://github.com/Anthony96922/)'s [MiniRDS](https://github.com/Anthony96922/MiniRDS) licensed under GPLv3
