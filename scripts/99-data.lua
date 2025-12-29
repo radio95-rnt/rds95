@@ -1,11 +1,11 @@
 function data_handle(data)
     if string.sub(data, 1, 4):lower() == "lua=" then
         local chunk, err = load(string.sub(data, 5), "udp_chunk")  -- skip "lua="
-        if not chunk then return "-" end
+        if not chunk then return string.format("-\r\n%s\r\n", err) end
         return tostring(chunk())
     elseif string.sub(data, 1, 5):lower() == "file=" then
         local chunk, err = loadfile(data:sub(6))  -- skip "file="
-        if not chunk then return "-" end
+        if not chunk then return string.format("-\r\n%s\r\n", err) end
         return tostring(chunk())
     end
 
