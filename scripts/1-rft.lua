@@ -12,6 +12,7 @@ _Rft_crc_mode = 0
 _Rft_crc_sent = false
 _Rft_aid = 0
 _Rft_send_once = false
+_Rft_paused = false
 
 local function stop_rft()
     if _Rft_oda_id ~= nil and _Rft_aid ~= 0 then
@@ -31,13 +32,14 @@ local function stop_rft()
     _Rft_crc_full_file = 0
     _Rft_crc_mode = 0
     _Rft_crc_sent = false
+    _Rft_paused = false
 end
 
 local function start_rft()
     if _Rft_oda_id == nil and _Rft_aid ~= 0 then
         _Rft_oda_id = register_oda_rds2(_Rft_aid, 0, true)
         set_oda_handler_rds2(_Rft_oda_id, function (stream)
-            if #_Rft_file == 0 then return false, 0, 0, 0, 0 end
+            if #_Rft_file == 0 or _Rft_paused then return false, 0, 0, 0, 0 end
 
             local total_segments = math.ceil(#_Rft_file / 5)
             local seg = _Rft_file_segment
@@ -62,9 +64,7 @@ local function start_rft()
                 if _Rft_crc_segment > #_Rft_crc_data then _Rft_crc_segment = 1 end
 
                 return true, (2 << 14), _Rft_aid, c, (high_byte << 8) | low_byte
-            else
-                _Rft_crc_sent = false
-            end
+            else _Rft_crc_sent = false end
 
             local function b(i) return string.byte(_Rft_file, base + i) or 0 end
 
@@ -163,7 +163,16 @@ function send_rft_file(aid, path, id, crc, once)
     set_oda_id_data_rds2(_Rft_oda_id, #_Rft_file | (id & 63) << 18 | (_Rft_version & 7) << 24 | (_Rft_crc and 1 or 0) << 27)
     _Rft_last_id = id
 
+    _Rft_paused = false
     return interrupted
+end
+
+---Pauses or resumes the process of sending of the RFT file
+---@param aid integer
+---@param paused boolean
+function set_rft_paused(aid, paused)
+    if aid ~= _Rft_aid then error("AID does not match", 2) end
+    _Rft_paused = paused
 end
 
 local _old_on_state_oda_rft = on_state

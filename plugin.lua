@@ -377,3 +377,8 @@ function unregister_oda_rds2(oda_id) end
 ---@param once boolean true means that this file will be sent once and then unregistered
 ---@return boolean interrupted
 function send_rft_file(aid, path, id, crc, once) end
+
+---Pauses or resumes the process of sending of the RFT file
+---@param aid integer
+---@param paused boolean
+function set_rft_paused(aid, paused) end
