@@ -58,9 +58,9 @@ void poll_udp_server() {
             strncpy(cmd_buf, token, BUF_SIZE - 1);
 
             memset(cmd_output, 0, BUF_SIZE);
-            run_lua(cmd_buf, cmd_output);
 
-            size_t out_len = strlen(cmd_output);
+            size_t out_len = 0;
+            run_lua(cmd_buf, cmd_output, &out_len);
             if (out_len > 0 && sendto(sockfd, cmd_output, out_len, 0, (struct sockaddr *)&client_addr, client_len) == -1) perror("sendto"); // no walrus
         }
         token = strtok(NULL, "\r\n");

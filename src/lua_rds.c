@@ -549,16 +549,16 @@ void init_lua(RDSModulator* rds_mod) {
     }
 }
 
-void run_lua(char *str, char *cmd_output) {
+void run_lua(char *str, char *cmd_output, size_t* out_len) {
     pthread_mutex_lock(&lua_mutex);
     lua_getglobal(L, "data_handle");
 
     if (lua_isfunction(L, -1)) {
         lua_pushstring(L, str);
         if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
-            if (lua_isstring(L, -1) && cmd_output) _strncpy(cmd_output, lua_tostring(L, -1), 254);
+            if (lua_isstring(L, -1) && cmd_output) _strncpy(cmd_output, lua_tolstring(L, -1, out_len), 254);
         } else fprintf(stderr, "Lua error: %s at 'data_handle'\n", lua_tostring(L, -1));
-    } else if (lua_isstring(L, -1) && cmd_output) _strncpy(cmd_output, lua_tostring(L, -1), 254);
+    } else if (lua_isstring(L, -1) && cmd_output) _strncpy(cmd_output, lua_tolstring(L, -1, out_len), 254);
     lua_pop(L, 1);
     pthread_mutex_unlock(&lua_mutex);
 }
