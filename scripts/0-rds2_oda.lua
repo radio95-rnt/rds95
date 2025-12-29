@@ -102,17 +102,29 @@ function rds2_group(stream)
         _RDS2_ODA_aid = _RDS2_ODA_aid + 1
         if _RDS2_ODA_aid > 8 then _RDS2_ODA_aid = 0 end
         if oda.handler then
-            local generated, a, b, c, d = oda.handler(stream)
-            local channel_bitshift = 8
-            local fid = (a & 0xC000) >> 14
-            local fn_msb = (a >> 13) & 1
-            if fid == 0 and fn_msb == 0 then
-                warn("RDS2 ODA is tunneling (A or B) over C")
-                return true, 0, b, c, d -- Tunnel, not sure why but sure
-            --FID = 1 means a normal ODA group
-            --FID = 2 means a RFT file
-            elseif fid == 2 and fn_msb == 0 then channel_bitshift = 0 end -- This is AID
-            return generated, (channel << channel_bitshift) | a, b, c, d
+            local generated = false
+            checked = 0
+            while generated == false and checked < #_RDS2_ODAs do
+                local generated, a, b, c, d = oda.handler(stream)
+                if not generated then
+                    _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
+                    if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end
+                    oda = _RDS2_ODAs[_RDS2_ODA_pointer]
+                    checked = checked + 1
+                else
+                    local channel_bitshift = 8
+                    local fid = (a & 0xC000) >> 14
+                    local fn_msb = (a >> 13) & 1
+                    if fid == 0 and fn_msb == 0 then
+                        warn("RDS2 ODA is tunneling (A or B) over C")
+                        return true, 0, b, c, d -- Tunnel, not sure why but sure
+                    --FID = 1 means a normal ODA group
+                    --FID = 2 means a RFT file
+                    elseif fid == 2 and fn_msb == 0 then channel_bitshift = 0 end -- This is AID
+                    return generated, (channel << channel_bitshift) | a, b, c, d
+                end
+            end
+            if checked == #_RDS2_ODAs then return false, 0, 0, 0, 0 end
         end
         return true, (2 << 14) | channel, oda.aid, (oda.data >> 16) & 0xffff, oda.data & 0xffff
     end
