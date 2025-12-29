@@ -304,6 +304,10 @@ function set_rds_af_oda(afs) end
 ---@return integer oda_id
 function register_oda(group, group_version, aid, data) end
 
+---Unregisters an ODA, this stops the handler or AID being called/sent
+---@param oda_id integer
+function unregister_oda(oda_id) end
+
 ---Sets the data for a existing ODA group
 ---@param oda_id integer
 ---@param data integer
@@ -340,7 +344,7 @@ function get_userdata() end
 function get_userdata_offset(offset, size) end
 
 ---The callback function for an ODA handler
----@alias RDS2_ODAHandler fun(): (boolean, integer, integer, integer, integer)
+---@alias RDS2_ODAHandler fun(integer): (boolean, integer, integer, integer, integer)
 
 ---This function is defined externally
 ---You are asked to not fill in the channel id in block A, however you are asked to fill in the function number (if you do not know what is that, just OR block A with (1 << 14))
@@ -359,6 +363,10 @@ function set_oda_id_data_rds2(oda_id, data) end
 ---@param file_related boolean
 ---@return integer oda_id
 function register_oda_rds2(aid, data, file_related) end
+
+---Unregisters an RDS 2 ODA, this stops the handler or AID being called/sent
+---@param oda_id integer
+function unregister_oda_rds2(oda_id) end
 
 ---This function is defined externally
 ---Loads the file into RFT and initializes it if needed, note that this needs RDR2 mode 2

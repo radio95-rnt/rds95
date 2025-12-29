@@ -10,19 +10,19 @@ _Rft_crc = false
 _Rft_crc_full_file = 0
 _Rft_crc_mode = 0
 _Rft_crc_sent = false
-_Rft_aid = 0xFF7F
+_Rft_aid = 0
 
 local function start_rft()
-    if _Rft_oda_id == nil then
+    if _Rft_oda_id == nil and _Rft_aid ~= 0 then
         _Rft_oda_id = register_oda_rds2(_Rft_aid, 0, true)
-        set_oda_handler_rds2(_Rft_oda_id, function ()
+        set_oda_handler_rds2(_Rft_oda_id, function (stream)
             if #_Rft_file == 0 then return false, 0, 0, 0, 0 end
 
             local total_segments = math.ceil(#_Rft_file / 5)
             local seg = _Rft_file_segment
             local base = seg * 5 + 1
 
-            if not _Rft_crc_sent and _Rft_crc and (seg % 16 == 0) then
+            if not _Rft_crc_sent and _Rft_crc and (seg % 16 == 0) and stream == 1 then
                 _Rft_crc_sent = true
                 local chunk_address = math.floor((_Rft_crc_segment - 1) / 2)
                 local c = (1 << 12) | (_Rft_crc_mode & 7) << 9 | (chunk_address & 0x1ff)
@@ -39,7 +39,7 @@ local function start_rft()
 
                 _Rft_crc_segment = _Rft_crc_segment + 2
                 if _Rft_crc_segment > #_Rft_crc_data then _Rft_crc_segment = 1 end
-                
+
                 return true, (2 << 14), _Rft_aid, c, (high_byte << 8) | low_byte
             else
                 _Rft_crc_sent = false
@@ -60,12 +60,35 @@ local function start_rft()
     end
 end
 
+local function stop_rft()
+    if _Rft_oda_id ~= nil and _Rft_aid ~= 0 then
+        unregister_oda_rds2(_Rft_oda_id)
+        _Rft_oda_id = nil
+        _Rft_aid = 0
+    end
+
+    _Rft_file = ""
+    _Rft_crc_data = ""
+    _Rft_file_segment = 0
+    _Rft_crc_segment = 0
+    _Rft_toggle = false
+    _Rft_last_id = -1
+    _Rft_version = 0
+    _Rft_crc = false
+    _Rft_crc_full_file = 0
+    _Rft_crc_mode = 0
+    _Rft_crc_sent = false
+end
+
 ---This function is defined externally
 ---Loads the file into RFT and initializes it if needed, note that this needs RDR2 mode 2
----@param path string
----@param id integer
----@param crc integer|boolean
+---@param path string filesystem path on the os
+---@param id integer mostly use 0 here
+---@param crc integer|boolean false for disabled, true for mode 7, and an integer for any of the modes
 function load_station_logo(path, id, crc)
+    if _Rft_aid ~= 0xFF7F then stop_rft() end
+    _Rft_aid = 0xFF7F
+
     local file = io.open(path, "rb")
     if not file then error("Could not open file") end
     _Rft_file = file:read("*a")
@@ -78,67 +101,49 @@ function load_station_logo(path, id, crc)
         if _Rft_version > 7 then _Rft_version = 0 end
     end
 
-    _Rft_crc_data = "" -- Clear previous CRC data
+    _Rft_crc_data = ""
     _Rft_crc = (crc ~= false)
 
+    local chunk_size = 0
     if crc and crc == 0 then
         _Rft_crc_mode = 0
         _Rft_crc_full_file = crc16(_Rft_file)
     elseif crc and crc == 1 and #_Rft_file <= 40960 then
         _Rft_crc_mode = 1
-        local chunk_size = 5 * 16 -- 80 bytes
-        for i = 1, #_Rft_file, chunk_size do
-            local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
-            local crc_val = crc16(chunk)
-            _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
-        end
+        chunk_size = 5 * 16
     elseif crc and crc == 2 and #_Rft_file < 40960 and #_Rft_file >= 81920 then
         _Rft_crc_mode = 2
-        local chunk_size = 5 * 32
-        for i = 1, #_Rft_file, chunk_size do
-            local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
-            local crc_val = crc16(chunk)
-            _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
-        end
+        chunk_size = 5 * 32
     elseif crc and crc == 3 and #_Rft_file > 81960 then
         _Rft_crc_mode = 3
-        local chunk_size = 5 * 64
-        for i = 1, #_Rft_file, chunk_size do
-            local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
-            local crc_val = crc16(chunk)
-            _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
-        end
+        chunk_size = 5 * 64
     elseif crc and crc == 4 and #_Rft_file > 81960 then
         _Rft_crc_mode = 4
-        local chunk_size = 5 * 128
-        for i = 1, #_Rft_file, chunk_size do
-            local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
-            local crc_val = crc16(chunk)
-            _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
-        end
+        chunk_size = 5 * 128
     elseif crc and crc == 5 and #_Rft_file > 81960 then
         _Rft_crc_mode = 5
-        local chunk_size = 5 * 256
-        for i = 1, #_Rft_file, chunk_size do
-            local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
-            local crc_val = crc16(chunk)
-            _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
-        end
+        chunk_size = 5 * 256
     elseif crc and (crc == 7 or crc == true) then
-        _Rft_crc_mode = 7
-        local chunk_size = 0
-        if #_Rft_file <= 40960 then chunk_size = 5*16
-        elseif #_Rft_file > 40960 and #_Rft_file <= 81920 then chunk_size = 5*32
-        elseif #_Rft_file > 81960 then chunk_size = 5*64 end
-        if chunk_size ~= 0 then
-            for i = 1, #_Rft_file, chunk_size do
-                local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
-                local crc_val = crc16(chunk)
-                _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
-            end
+        if #_Rft_file <= 40960 then
+            _Rft_crc_mode = 1
+            chunk_size = 5*16
+        elseif #_Rft_file > 40960 and #_Rft_file <= 81920 then
+            _Rft_crc_mode = 2
+            chunk_size = 5*32
+        elseif #_Rft_file > 81960 then
+            _Rft_crc_mode = 3
+            chunk_size = 5*64
         end
     else
         _Rft_crc = false
+    end
+
+    if _Rft_crc and chunk_size ~= 0 then
+        for i = 1, #_Rft_file, chunk_size do
+            local chunk = string.sub(_Rft_file, i, i + chunk_size - 1)
+            local crc_val = crc16(chunk)
+            _Rft_crc_data = _Rft_crc_data .. string.char(math.floor(crc_val / 256), crc_val % 256)
+        end
     end
 
     if #_Rft_file > 262143 then error("The file is too large", 2) end
@@ -146,4 +151,13 @@ function load_station_logo(path, id, crc)
 ---@diagnostic disable-next-line: param-type-mismatch
     set_oda_id_data_rds2(_Rft_oda_id, #_Rft_file | (id & 63) << 18 | (_Rft_version & 7) << 24 | (_Rft_crc and 1 or 0) << 27)
     _Rft_last_id = id
+end
+
+local _old_on_state_oda_rds2 = on_state
+function on_state()
+    stop_rft()
+    _RDS2_ODAs = {}
+    _RDS2_ODA_aid = 0
+    _RDS2_ODA_pointer = 1
+    if type(_old_on_state_oda_rds2) == "function" then _old_on_state_oda_rds2() end
 end

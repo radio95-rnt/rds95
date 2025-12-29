@@ -17,15 +17,32 @@ _RDS2_ODA_pointer = 1
 ---@return integer oda_id
 function register_oda_rds2(aid, data, file_related)
     local oda = _RDS2_ODA.new(aid, data, false, file_related)
+    for i = 1, #_RDS2_ODAs do
+        if _RDS2_ODAs[i] == false then
+            _RDS2_ODAs[i] = oda
+            return i
+        end
+    end
     table.insert(_RDS2_ODAs, oda)
     return #_RDS2_ODAs
 end
+
+---Unregisters an RDS 2 ODA, this stops the handler or AID being called/sent
+---@param oda_id integer
+function unregister_oda_rds2(oda_id)
+    if oda_id < 1 or oda_id > #_RDS2_ODAs or _RDS2_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
+
+    _RDS2_ODAs[oda_id] = false
+
+    if _RDS2_ODA_pointer == oda_id then _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1 end
+end
+
 
 ---This function is defined externally
 ---@param oda_id integer
 ---@param data integer
 function set_oda_id_data_rds2(oda_id, data)
-    if oda_id < 1 or oda_id > #_RDS2_ODAs then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
+    if oda_id < 1 or oda_id > #_RDS2_ODAs or _RDS2_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS2_ODAs[oda_id].data = data
 end
 
@@ -33,12 +50,22 @@ end
 ---@param oda_id integer
 ---@param func RDS2_ODAHandler
 function set_oda_handler_rds2(oda_id, func)
-    if oda_id < 1 or oda_id > #_RDS2_ODAs then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
+    if oda_id < 1 or oda_id > #_RDS2_ODAs or _RDS2_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS2_ODAs[oda_id].handler = func
 end
 
 function rds2_group(stream)
     if #_RDS2_ODAs == 0 then return false, 0, 0, 0, 0 end
+
+    local checked = 0
+    while checked < #_RDS2_ODAs and _RDS2_ODAs[_RDS2_ODA_pointer] == false do
+        _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
+        if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end
+        checked = checked + 1
+    end
+
+    if checked == #_RDS2_ODAs then return false, 0, 0, 0, 0 end
+
     if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end
 
     local oda = _RDS2_ODAs[_RDS2_ODA_pointer]
