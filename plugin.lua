@@ -367,18 +367,3 @@ function register_oda_rds2(aid, data, file_related) end
 ---Unregisters an RDS 2 ODA, this stops the handler or AID being called/sent
 ---@param oda_id integer
 function unregister_oda_rds2(oda_id) end
-
----This function is defined externally
----Loads the file into RFT and initializes it if needed, note that this needs RDS2 mode 2
----@param aid integer for station logo use 0xFF7F
----@param path string filesystem path on the os
----@param id integer mostly use 0 here
----@param crc integer|boolean false for disabled, true for mode 7, and an integer for any of the modes
----@param once boolean true means that this file will be sent once and then unregistered
----@return boolean interrupted
-function send_rft_file(aid, path, id, crc, once) end
-
----Pauses or resumes the process of sending of the RFT file
----@param aid integer
----@param paused boolean
-function set_rft_paused(aid, paused) end
