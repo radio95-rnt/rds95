@@ -1,4 +1,14 @@
 function data_handle(data)
+    if string.sub(data, 1, 4):lower() == "lua=" then
+        local chunk, err = load(string.sub(data, 5), "udp_chunk")  -- skip "lua="
+        if not chunk then return "-" end
+        return tostring(chunk())
+    elseif string.sub(data, 1, 5):lower() == "file=" then
+        local chunk, err = loadfile(data:sub(6))  -- skip "file="
+        if not chunk then return "-" end
+        return tostring(chunk())
+    end
+
     local cmd, value = data:match("([^=]+)=([^=]+)")
     if cmd == nil and data:sub(-1) == "=" then
         cmd = data:sub(1, -2)
