@@ -57,16 +57,14 @@ end
 function rds2_group(stream)
     if #_RDS2_ODAs == 0 then return false, 0, 0, 0, 0 end
 
+    if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end
     local checked = 0
     while checked < #_RDS2_ODAs and _RDS2_ODAs[_RDS2_ODA_pointer] == false do
         _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
         if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end
         checked = checked + 1
     end
-
     if checked == #_RDS2_ODAs then return false, 0, 0, 0, 0 end
-
-    if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end
 
     local oda = _RDS2_ODAs[_RDS2_ODA_pointer]
     local channel_offset = 16 * ((not oda.file_related) and 1 or 0)
