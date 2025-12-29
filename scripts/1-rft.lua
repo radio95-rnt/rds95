@@ -153,11 +153,8 @@ function load_station_logo(path, id, crc)
     _Rft_last_id = id
 end
 
-local _old_on_state_oda_rds2 = on_state
+local _old_on_state_oda_rft = on_state
 function on_state()
     stop_rft()
-    _RDS2_ODAs = {}
-    _RDS2_ODA_aid = 0
-    _RDS2_ODA_pointer = 1
-    if type(_old_on_state_oda_rds2) == "function" then _old_on_state_oda_rds2() end
+    if type(_old_on_state_oda_rft) == "function" then _old_on_state_oda_rft() end
 end
