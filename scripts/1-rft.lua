@@ -11,6 +11,27 @@ _Rft_crc_full_file = 0
 _Rft_crc_mode = 0
 _Rft_crc_sent = false
 _Rft_aid = 0
+_Rft_send_once = false
+
+local function stop_rft()
+    if _Rft_oda_id ~= nil and _Rft_aid ~= 0 then
+        unregister_oda_rds2(_Rft_oda_id)
+        _Rft_oda_id = nil
+        _Rft_aid = 0
+    end
+
+    _Rft_file = ""
+    _Rft_crc_data = ""
+    _Rft_file_segment = 0
+    _Rft_crc_segment = 0
+    _Rft_toggle = false
+    _Rft_last_id = -1
+    _Rft_version = 0
+    _Rft_crc = false
+    _Rft_crc_full_file = 0
+    _Rft_crc_mode = 0
+    _Rft_crc_sent = false
+end
 
 local function start_rft()
     if _Rft_oda_id == nil and _Rft_aid ~= 0 then
@@ -53,46 +74,36 @@ local function start_rft()
             local word4 = (b(3) << 8) | b(4)
 
             _Rft_file_segment = seg + 1
-            if _Rft_file_segment >= total_segments then _Rft_file_segment = 0 end
+            if _Rft_file_segment >= total_segments then
+                _Rft_file_segment = 0
+                if _Rft_send_once then stop_rft() end
+            end
 
             return true, (2 << 12) | word1, word2, word3, word4
         end)
     end
 end
 
-local function stop_rft()
-    if _Rft_oda_id ~= nil and _Rft_aid ~= 0 then
-        unregister_oda_rds2(_Rft_oda_id)
-        _Rft_oda_id = nil
-        _Rft_aid = 0
-    end
-
-    _Rft_file = ""
-    _Rft_crc_data = ""
-    _Rft_file_segment = 0
-    _Rft_crc_segment = 0
-    _Rft_toggle = false
-    _Rft_last_id = -1
-    _Rft_version = 0
-    _Rft_crc = false
-    _Rft_crc_full_file = 0
-    _Rft_crc_mode = 0
-    _Rft_crc_sent = false
-end
-
 ---This function is defined externally
----Loads the file into RFT and initializes it if needed, note that this needs RDR2 mode 2
+---Loads the file into RFT and initializes it if needed, note that this needs RDS2 mode 2
+---@param aid integer for station logo use 0xFF7F
 ---@param path string filesystem path on the os
 ---@param id integer mostly use 0 here
 ---@param crc integer|boolean false for disabled, true for mode 7, and an integer for any of the modes
-function load_station_logo(path, id, crc)
-    if _Rft_aid ~= 0xFF7F then stop_rft() end
-    _Rft_aid = 0xFF7F
+---@param once boolean true means that this file will be sent once and then unregistered
+---@return boolean interrupted
+function send_rft_file(aid, path, id, crc, once)
+    local interrupted = (#_Rft_file ~= 0)
+
+    if _Rft_aid ~= aid then stop_rft() end
+    _Rft_aid = aid
 
     local file = io.open(path, "rb")
     if not file then error("Could not open file") end
     _Rft_file = file:read("*a")
     file:close()
+
+    _Rft_send_once = once
 
     if id == _Rft_last_id then
         _Rft_toggle = not _Rft_toggle
@@ -151,6 +162,8 @@ function load_station_logo(path, id, crc)
 ---@diagnostic disable-next-line: param-type-mismatch
     set_oda_id_data_rds2(_Rft_oda_id, #_Rft_file | (id & 63) << 18 | (_Rft_version & 7) << 24 | (_Rft_crc and 1 or 0) << 27)
     _Rft_last_id = id
+
+    return interrupted
 end
 
 local _old_on_state_oda_rft = on_state
