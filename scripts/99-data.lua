@@ -2,11 +2,15 @@ function data_handle(data)
     if string.sub(data, 1, 4):lower() == "lua=" then
         local chunk, err = load("return " .. string.sub(data, 5), "udp_chunk")  -- skip "lua="
         if not chunk then return string.format("-\r\n%s\r\n", err) end
-        return table.concat({ chunk() }, ", ") .. "\r\n"
+        local results = { chunk() }
+        for i = 1, #results do results[i] = tostring(results[i]) end
+        return table.concat(results, ", ") .. "\r\n"
     elseif string.sub(data, 1, 5):lower() == "file=" then
         local chunk, err = loadfile(data:sub(6))  -- skip "file="
         if not chunk then return string.format("-\r\n%s\r\n", err) end
-        return table.concat({ chunk() }, ", ") .. "\r\n"
+        local results = { chunk() }
+        for i = 1, #results do results[i] = tostring(results[i]) end
+        return table.concat(results, ", ") .. "\r\n"
     end
 
     local cmd, value = data:match("([^=]+)=([^=]+)")
