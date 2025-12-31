@@ -6,7 +6,7 @@ function data_handle(data)
         local stat, err = pcall(function ()
             results = { chunk() }
         end)
-        if not stat then return tostring(err) end
+        if not stat then return tostring(err) .. "\r\n" end
         for i = 1, #results do results[i] = tostring(results[i]) end
         return table.concat(results, ", ") .. "\r\n"
     elseif string.sub(data, 1, 5):lower() == "file=" then
@@ -16,7 +16,7 @@ function data_handle(data)
         local stat, err = pcall(function ()
             results = { chunk() }
         end)
-        if not stat then return tostring(err) end
+        if not stat then return tostring(err) .. "\r\n" end
         for i = 1, #results do results[i] = tostring(results[i]) end
         return table.concat(results, ", ") .. "\r\n"
     elseif string.sub(data, 1, 7):lower() == "rawlua=" then
@@ -26,7 +26,7 @@ function data_handle(data)
         local stat, err = pcall(function ()
             results = { chunk() }
         end)
-        if not stat then return tostring(err) end
+        if not stat then return tostring(err) .. "\r\n" end
         for i = 1, #results do results[i] = tostring(results[i]) end
         return table.concat(results, ", ") .. "\r\n"
     end

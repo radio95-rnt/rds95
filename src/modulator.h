@@ -6,7 +6,7 @@
 typedef struct
 {
 	float level;
-	uint8_t rdsgen : 2;
+	uint8_t rdsgen : 3;
 } RDSModulatorParameters;
 
 typedef struct
