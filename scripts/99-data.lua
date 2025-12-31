@@ -19,6 +19,16 @@ function data_handle(data)
         if not stat then return tostring(err) end
         for i = 1, #results do results[i] = tostring(results[i]) end
         return table.concat(results, ", ") .. "\r\n"
+    elseif string.sub(data, 1, 7):lower() == "rawlua=" then
+        local chunk, err = load(string.sub(data, 8), "udp_chunk_raw")
+        if not chunk then return string.format("-\r\n%s\r\n", err) end
+        local results = {}
+        local stat, err = pcall(function ()
+            results = { chunk() }
+        end)
+        if not stat then return tostring(err) end
+        for i = 1, #results do results[i] = tostring(results[i]) end
+        return table.concat(results, ", ") .. "\r\n"
     end
 
     local cmd, value = data:match("([^=]+)=([^=]+)")
