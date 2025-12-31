@@ -167,7 +167,7 @@ function set_rds_rt_switching_period(period) end
 ---@return integer
 function get_rds_rt_switching_period() end
 
----For a RT1, this sets the timeout period before setting RT1 into "Default RT"
+---For a RT1, this sets the timeout period before setting RT1 into "Default RT" (not literally)
 ---@param timeout integer in seconds
 function set_rds_rt_text_timeout(timeout) end
 ---@return integer
@@ -191,13 +191,6 @@ function set_rds_default_rt(rt) end
 function set_rds_lps(lps) end
 ---@return string
 function get_rds_lps() end
-
----This is implemented externally
----@param ert string
-function set_rds_ert(ert) end
----This is implemented externally
----@return string
-function get_rds_ert() end
 
 ---@param grpseq string
 function set_rds_grpseq(grpseq) end
@@ -258,6 +251,24 @@ function set_rds_udg(xy, groups) end
 ---@param xy boolean
 ---@param groups table Table of tables, this should be up to 8 tables containing 4 integers
 function set_rds_udg2(xy, groups) end
+
+---Data is allocated in each program's data for lua data (per program, diffrent program, diffrent data), note that this overwrites existing data over the whole userdata string
+---@param data string
+function set_userdata(data) end
+---Writes to the userdata at the offset, size does not have to match the length of the string, if the string is less than size then the rest of the string will be padded with zeroes until it is size
+---@param offset integer
+---@param size integer
+---@param data string
+function set_userdata_offset(offset, size, data) end
+
+---Returns all of the data saved as user data
+---@return string
+function get_userdata() end
+---Gets data from userdata but at the specified offset
+---@param offset integer
+---@param size integer
+---@return string
+function get_userdata_offset(offset, size) end
 
 --#endregion
 
@@ -325,39 +336,18 @@ function set_oda_id_data(oda_id, data) end
 ---@param fun ODAHandler
 function set_oda_handler(oda_id, fun) end
 
----Data is allocated in each program's data for lua data (per program, diffrent program, diffrent data), note that this overwrites existing data over the whole userdata string
----@param data string
-function set_userdata(data) end
----Writes to the userdata at the offset, size does not have to match the length of the string, if the string is less than size then the rest of the string will be padded with zeroes until it is size
----@param offset integer
----@param size integer
----@param data string
-function set_userdata_offset(offset, size, data) end
-
----Returns all of the data saved as user data
----@return string
-function get_userdata() end
----Gets data from userdata but at the specified offset
----@param offset integer
----@param size integer
----@return string
-function get_userdata_offset(offset, size) end
-
 ---The callback function for an ODA handler
 ---@alias RDS2_ODAHandler fun(integer): (boolean, integer, integer, integer, integer)
 
----This function is defined externally
 ---You are asked to not fill in the channel id in block A, however you are asked to fill in the function number (if you do not know what is that, just OR block A with (1 << 14))
 ---@param oda_id integer
 ---@param func RDS2_ODAHandler
 function set_oda_handler_rds2(oda_id, func) end
 
----This function is defined externally
 ---@param oda_id integer
 ---@param data integer
 function set_oda_id_data_rds2(oda_id, data) end
 
----This function is defined externally
 ---@param aid integer
 ---@param data integer
 ---@param file_related boolean
@@ -367,3 +357,8 @@ function register_oda_rds2(aid, data, file_related) end
 ---Unregisters an RDS 2 ODA, this stops the handler or AID being called/sent
 ---@param oda_id integer
 function unregister_oda_rds2(oda_id) end
+
+---@param ert string
+function set_rds_ert(ert) end
+---@return string
+function get_rds_ert() end

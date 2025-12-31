@@ -10,7 +10,6 @@ _RDS2_ODAs = {}
 _RDS2_ODA_aid = 0
 _RDS2_ODA_pointer = 1
 
----This function is defined externally
 ---@param aid integer
 ---@param data integer
 ---@param file_related boolean
@@ -38,7 +37,6 @@ function unregister_oda_rds2(oda_id)
 end
 
 
----This function is defined externally
 ---@param oda_id integer
 ---@param data integer
 function set_oda_id_data_rds2(oda_id, data)
@@ -46,7 +44,6 @@ function set_oda_id_data_rds2(oda_id, data)
     _RDS2_ODAs[oda_id].data = data
 end
 
----This function is defined externally
 ---@param oda_id integer
 ---@param func RDS2_ODAHandler
 function set_oda_handler_rds2(oda_id, func)
