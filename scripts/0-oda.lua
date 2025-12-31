@@ -74,7 +74,7 @@ local function get_aid()
             local data, aid = oda.data, oda.aid
 
             _RDS_ODA_pointer = (_RDS_ODA_pointer % #_RDS_ODAs) + 1
-            return b, data, aid
+            return true, b, data, aid
         end
 
         _RDS_ODA_pointer = (_RDS_ODA_pointer % #_RDS_ODAs) + 1
