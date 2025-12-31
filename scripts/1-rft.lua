@@ -89,7 +89,7 @@ function RftInstance:start()
                 if self.crc_segment > #self.crc_data then self.crc_segment = 1 end
 
                 return true, (2 << 14), self.aid, c, (high_byte << 8) | low_byte
-            else self.crc_sent_this_cycle = false end
+            elseif self.crc_sent_this_cycle then self.crc_sent_this_cycle = false end
 
             local base = self.file_segment * 5 + 1
             local function b(i) return string.byte(self.file_data, base + i) or 0 end
