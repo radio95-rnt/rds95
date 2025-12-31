@@ -69,7 +69,7 @@ function RftInstance:start()
             local total_segments = math.ceil(#self.file_data / 5)
 
             local last_stream = false
-            if stream == math.min(get_available_rds_streams(), get_rds_streams()) then last_stream = true end
+            if (stream-1) == math.min(get_available_rds_streams(), get_rds_streams()) then last_stream = true end
 
             if not self.crc_sent_this_cycle and self.crc_enabled and (self.file_segment % 16 == 0) and (not last_stream) then
                 self.crc_sent_this_cycle = true
