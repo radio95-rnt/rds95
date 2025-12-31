@@ -158,7 +158,7 @@ function RftInstance:sendFile(aid, path, id, crc, once)
         end
     end
 
-    if f_size > 262143 then error("File too large") end
+    if f_size > (0x3ffff * 5) then error("File too large") end
     if self.oda_id == nil then self:start() end
 
     set_oda_id_data_rds2(self.oda_id, f_size | (id & 63) << 18 | (self.version & 7) << 24 | (self.crc_enabled and 1 or 0) << 27)
