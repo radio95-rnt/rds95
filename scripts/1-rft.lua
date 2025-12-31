@@ -69,7 +69,7 @@ function RftInstance:start()
             local total_segments = math.ceil(#self.file_data / 5)
 
             local meta_streams = math.min(get_rds_streams(), get_available_rds_streams())
-            if not self.crc_sent_this_cycle and self.crc_enabled and (self.file_segment % 16 == 0) and stream <= meta_streams then
+            if not self.crc_sent_this_cycle and self.crc_enabled and (self.file_segment % 16 == 0) and (stream < meta_streams or get_available_rds_streams() == 2) then
                 self.crc_sent_this_cycle = true
                 local chunk_address = math.floor((self.crc_segment - 1) / 2)
                 local c = (1 << 12) | (self.crc_mode & 7) << 9 | (chunk_address & 0x1ff)
