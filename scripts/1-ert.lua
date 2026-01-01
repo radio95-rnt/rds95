@@ -34,6 +34,13 @@ local function init_ert()
     end
 end
 
+local function unregister_ert()
+    if _Ert_oda_id ~= nil then
+        unregister_oda(_Ert_oda_id)
+        _Ert_oda_id = nil
+    end
+end
+
 function set_rds_ert(ert)
     if #ert == 0 then
         set_userdata_offset(USERDATA_ERT_OFFSET, 128, "")
@@ -61,6 +68,8 @@ function set_rds_ert(ert)
         set_userdata_offset(USERDATA_ERT_OFFSET+257, 1, string.char(segments))
         _Ert_state = 0
     else set_userdata_offset(USERDATA_ERT_OFFSET+258, 1, string.char(1)) end
+
+    if _Ert_oda_id == nil then init_ert() end
 end
 
 function get_rds_ert()

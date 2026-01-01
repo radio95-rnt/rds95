@@ -79,6 +79,16 @@ function get_rds_rtplus_tags(ertp)
     return string.byte(get_userdata_offset(ertp and (USERDATA_RTP_OFFSET+8) or (USERDATA_RTP_OFFSET+1), 6), 1, 6)
 end
 
+local function unregister_rtp(ertp)
+    if ertp and _Ertp_oda_id ~= nil then
+        unregister_oda(_Ertp_oda_id)
+        _Ertp_oda_id = nil
+    elseif _Rtp_oda_id ~= nil then
+        unregister_oda(_Rtp_oda_id)
+        _Rtp_oda_id = nil
+    end
+end
+
 local _old_on_state_rtp = on_state
 function on_state()
     if get_rds_rtp_meta(false) then init_rtp() end
