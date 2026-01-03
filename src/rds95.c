@@ -10,6 +10,7 @@
 #include "fs.h"
 #include "modulator.h"
 #include "udp_server.h"
+#include "tcp_server.h"
 #include "lib.h"
 
 #define DEFAULT_CONFIG_PATH "/etc/rds95.conf"
@@ -51,6 +52,7 @@ static inline void show_help(char *name) {
 typedef struct
 {
 	uint16_t udp_port;
+	uint16_t tcp_port;
 	char rds_device_name[48];
 	uint8_t num_streams : 3;
 	uint8_t asciig : 1;
@@ -62,6 +64,7 @@ static int config_handler(void* user, const char* section, const char* name, con
     #define MATCH(s, n) (strcmp(section, s) == 0 && strcmp(name, n) == 0)
 
     if (MATCH("rds95", "udp_port")) config->udp_port = (uint16_t)atoi(value);
+    else if (MATCH("rds95", "tcp_port")) config->tcp_port = (uint16_t)atoi(value);
     else if (MATCH("devices", "rds95")) {
         strncpy(config->rds_device_name, value, sizeof(config->rds_device_name) - 1);
         config->rds_device_name[sizeof(config->rds_device_name) - 1] = '\0';
@@ -83,6 +86,7 @@ int main(int argc, char **argv) {
 	char config_path[64] = DEFAULT_CONFIG_PATH;
 	RDS95_Config config = {
 		.udp_port = 0,
+		.tcp_port = 0,
 		.rds_device_name = "\0",
 		.num_streams = DEFAULT_STREAMS,
 		.asciig = 0
@@ -130,7 +134,7 @@ int main(int argc, char **argv) {
 		return res;
 	}
 
-	if(_strnlen(config.rds_device_name, 48) == 0) {
+	if(_strnlen(config.rds_device_name, 48) == 0 && config.asciig == 0) {
 		printf("Error: No output device\n");
 		return 1;
 	}
@@ -175,7 +179,7 @@ int main(int argc, char **argv) {
 
 	RDSModulator rdsModulator = {0};
     init_lua(&rdsModulator);
-	
+
 	RDSEncoder rdsEncoder = {0};
 	init_rds_modulator(&rdsModulator, &rdsEncoder, config.num_streams);
 	init_rds_encoder(&rdsEncoder);
@@ -191,6 +195,13 @@ int main(int argc, char **argv) {
 	} else {
 		fprintf(stderr, "Failed to open UDP server\n");
 		config.udp_port = 0;
+	}
+
+	if(config.asciig == 1 && config.tcp_port > 0) {
+		if (init_tcp_server(config.tcp_port) < 0) {
+			fprintf(stderr, "Failed to initialize TCP server\n");
+			goto exit;
+		}
 	}
 
 	if(config.asciig == 0) {
@@ -214,21 +225,30 @@ int main(int argc, char **argv) {
 		free(rds_buffer);
 	} else {
 		RDSGroup group;
-		#ifdef _WIN32
-		_setmode(_fileno(stderr), _O_BINARY);
-		#endif
+		char output_buffer[1024];
+
 		setvbuf(stderr, NULL, _IONBF, 0);
+
 		while(!stop_rds) {
+			if (is_tcp_server_running()) accept_tcp_clients();
+
 			char starts[4][4] = {"G:\r\n", "H:\r\n", "I:\r\n", "J:\r\n"};
 			for(uint8_t i = 0; i < config.num_streams; i++) {
 				get_rds_group(&rdsEncoder, &group, i);
-				fwrite(starts[i], 1, 4, stderr);
-				for(uint8_t j = 0; j < GROUP_LENGTH; j++) {
-					fprintf(stderr, "%04X", get_block_from_group(&group, j));
-				}
-				fprintf(stderr, "\r\n\r\n");
+
+				int offset = 0;
+				offset += snprintf(output_buffer + offset, sizeof(output_buffer) - offset, "%s", starts[i]);
+
+				for(uint8_t j = 0; j < GROUP_LENGTH; j++) offset += snprintf(output_buffer + offset, sizeof(output_buffer) - offset, "%04X", get_block_from_group(&group, j));
+				offset += snprintf(output_buffer + offset, sizeof(output_buffer) - offset, "\r\n\r\n");
+
+				fwrite(output_buffer, 1, offset, stderr);
 				fflush(stderr);
+
+				if (is_tcp_server_running()) send_to_tcp_clients(output_buffer, offset);
 			}
+
+			msleep(10);
 		}
 	}
 
@@ -237,6 +257,8 @@ exit:
 		fprintf(stderr, "Waiting for UDP thread to shut down.\n");
 		pthread_join(udp_server_thread, NULL);
 	}
+
+	if (is_tcp_server_running()) close_tcp_server();
 
 	encoder_saveToFile(&rdsEncoder);
 	Modulator_saveToFile(&rdsModulator.params);
