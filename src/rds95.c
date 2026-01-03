@@ -226,17 +226,18 @@ int main(int argc, char **argv) {
 	} else {
 		RDSGroup group;
 		char output_buffer[1024];
+		char starts[4][5] = {"G:\r\n", "H:\r\n", "I:\r\n", "J:\r\n"};
 
 		setvbuf(stderr, NULL, _IONBF, 0);
 
 		while(!stop_rds) {
 			if (is_tcp_server_running()) accept_tcp_clients();
 
-			char starts[4][4] = {"G:\r\n", "H:\r\n", "I:\r\n", "J:\r\n"};
 			for(uint8_t i = 0; i < config.num_streams; i++) {
 				get_rds_group(&rdsEncoder, &group, i);
 
 				int offset = 0;
+				memset(output_buffer, 0, sizeof(output_buffer));
 				offset += snprintf(output_buffer + offset, sizeof(output_buffer) - offset, "%s", starts[i]);
 
 				for(uint8_t j = 0; j < GROUP_LENGTH; j++) offset += snprintf(output_buffer + offset, sizeof(output_buffer) - offset, "%04X", get_block_from_group(&group, j));
