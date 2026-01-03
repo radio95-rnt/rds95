@@ -41,7 +41,7 @@ static inline void show_help(char *name) {
 		"Usage: %s [options]\n"
 		"\n"
 		"\t-c,--config\tSet the config path [default: %s]\n"
-		"\t-b,--bitstream\tEnable bitstream mode where the RDS modulator will be disabled and encoded RDS bits with checkwords will be sent from stderr\n"
+		"\t-a,--asciig\tEnable asciig mode where the RDS modulator will be disabled and encoded RDS ASCII G data will be sent from stderr\n"
 		"\n",
 		name,
 		DEFAULT_CONFIG_PATH
@@ -53,7 +53,7 @@ typedef struct
 	uint16_t udp_port;
 	char rds_device_name[48];
 	uint8_t num_streams : 3;
-	uint8_t bitstream : 1;
+	uint8_t asciig : 1;
 } RDS95_Config;
 
 static int config_handler(void* user, const char* section, const char* name, const char* value) {
@@ -69,10 +69,10 @@ static int config_handler(void* user, const char* section, const char* name, con
         int streams = atoi(value);
         if (streams > MAX_STREAMS || streams == 0) return 0;
         config->num_streams = (uint8_t)streams;
-    } else if (MATCH("rds95", "bitstream")) {
-		int bitstream = atoi(value);
-        if (bitstream > 1 || bitstream < 0) return 0;
-        config->bitstream = (uint8_t)bitstream;
+    } else if (MATCH("rds95", "asciig")) {
+		int asciig = atoi(value);
+        if (asciig > 1 || asciig < 0) return 0;
+        config->asciig = (uint8_t)asciig;
     } else return 0;
     return 1;
 }
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 		.udp_port = 0,
 		.rds_device_name = "\0",
 		.num_streams = DEFAULT_STREAMS,
-		.bitstream = false
+		.asciig = 0
 	};
 
 	pa_simple *rds_device = NULL;
@@ -95,12 +95,12 @@ int main(int argc, char **argv) {
 	pthread_attr_t attr;
 	pthread_t udp_server_thread;
 
-	const char	*short_opt = "c:bh";
+	const char	*short_opt = "c:ah";
 
 	struct option	long_opt[] =
 	{
 		{"config",		required_argument, NULL, 'c'},
-		{"bitstream",		no_argument, NULL, 'b'},
+		{"asciig",		no_argument, NULL, 'a'},
 		{"help",	no_argument,       NULL, 'h'},
 		{ 0,		0,		0,	0 }
 	};
@@ -112,8 +112,8 @@ int main(int argc, char **argv) {
 				memcpy(config_path, optarg, 62);
 				config_path[48] = '\0';
 				break;
-			case 'b':
-				config.bitstream = 1;
+			case 'a':
+				config.asciig = 1;
 				break;
 			case 'h':
 				show_help(argv[0]);
@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
 	buffer.prebuf = 0;
 	buffer.tlength = buffer.maxlength = NUM_MPX_FRAMES * config.num_streams;
 
-	if(config.bitstream == 0) {
+	if(config.asciig == 0) {
 		rds_device = pa_simple_new(
 			NULL,
 			"rds95",
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
 		config.udp_port = 0;
 	}
 
-	if(config.bitstream == 0) {
+	if(config.asciig == 0) {
 		int pulse_error;
 
 		float *rds_buffer = (float*)malloc(NUM_MPX_FRAMES * config.num_streams * sizeof(float));
@@ -213,18 +213,20 @@ int main(int argc, char **argv) {
 
 		free(rds_buffer);
 	} else {
-		uint8_t bit_buffer[BITS_PER_GROUP] = {0};
+		RDSGroup group;
 		#ifdef _WIN32
 		_setmode(_fileno(stderr), _O_BINARY);
 		#endif
 		setvbuf(stderr, NULL, _IONBF, 0);
 		while(!stop_rds) {
-			unsigned char end = 0xff;
+			char starts[4][4] = {"G:\r\n", "H:\r\n", "I:\r\n", "J:\r\n"};
 			for(uint8_t i = 0; i < config.num_streams; i++) {
-				get_rds_bits(&rdsEncoder, bit_buffer, i);
-				fwrite(&i, 1, 1, stderr);
-				fwrite(bit_buffer, 1, BITS_PER_GROUP, stderr);
-				fwrite(&end, 1, 1, stderr);
+				get_rds_group(&rdsEncoder, &group, i);
+				fwrite(starts[i], 1, 4, stderr);
+				for(uint8_t j = 0; j < GROUP_LENGTH; j++) {
+					fprintf(stderr, "%04X", get_block_from_group(&group, j));
+				}
+				fprintf(stderr, "\r\n\r\n");
 				fflush(stderr);
 			}
 		}
@@ -242,7 +244,7 @@ exit:
 
 	cleanup_rds_modulator(&rdsModulator);
 	pthread_attr_destroy(&attr);
-	if (rds_device != NULL && config.bitstream == 0) pa_simple_free(rds_device);
+	if (rds_device != NULL && config.asciig == 0) pa_simple_free(rds_device);
 
 	return 0;
 }

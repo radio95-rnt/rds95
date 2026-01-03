@@ -34,7 +34,7 @@ local function init_ert()
     end
 end
 
-local function unregister_ert()
+function unregister_ert()
     if _Ert_oda_id ~= nil then
         unregister_oda(_Ert_oda_id)
         _Ert_oda_id = nil

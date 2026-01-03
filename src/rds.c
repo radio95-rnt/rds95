@@ -119,7 +119,7 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	return good_group;
 }
 
-static void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
+void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 	group->a = enc->data[enc->program].pi;
 	group->b = 0;
 	group->c = 0;
