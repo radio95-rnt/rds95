@@ -227,13 +227,15 @@ int main(int argc, char **argv) {
 		RDSGroup group;
 		char output_buffer[1024];
 		char starts[4][5] = {"G:\r\n", "H:\r\n", "I:\r\n", "J:\r\n"};
+		uint8_t num_processed = config.num_streams;
+		if(rdsModulator.params.rdsgen < num_processed) num_processed = rdsModulator.params.rdsgen;
 
 		setvbuf(stderr, NULL, _IONBF, 0);
 
 		while(!stop_rds) {
 			if (is_tcp_server_running()) accept_tcp_clients();
 
-			for(uint8_t i = 0; i < config.num_streams; i++) {
+			for(uint8_t i = 0; i < num_processed; i++) {
 				get_rds_group(&rdsEncoder, &group, i);
 
 				int offset = 0;
