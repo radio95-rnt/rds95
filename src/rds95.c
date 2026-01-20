@@ -101,12 +101,12 @@ int main(int argc, char **argv) {
 
 	const char	*short_opt = "c:ah";
 
-	struct option	long_opt[] =
+	struct option long_opt[] =
 	{
-		{"config",		required_argument, NULL, 'c'},
-		{"asciig",		no_argument, NULL, 'a'},
-		{"help",	no_argument,       NULL, 'h'},
-		{ 0,		0,		0,	0 }
+		{"config", required_argument, NULL, 'c'},
+		{"asciig", no_argument, NULL, 'a'},
+		{"help", no_argument, NULL, 'h'},
+		{0, 0, 0, 0}
 	};
 
 	int opt;
@@ -144,7 +144,6 @@ int main(int argc, char **argv) {
 	pthread_attr_init(&attr);
 
 	struct sigaction sa_stop;
-
 	sa_stop.sa_handler = stop;
 	sigemptyset(&sa_stop.sa_mask);
 	sa_stop.sa_flags = 0;
@@ -160,17 +159,7 @@ int main(int argc, char **argv) {
 	buffer.tlength = buffer.maxlength = NUM_MPX_FRAMES * config.num_streams;
 
 	if(config.asciig == 0) {
-		rds_device = pa_simple_new(
-			NULL,
-			"rds95",
-			PA_STREAM_PLAYBACK,
-			config.rds_device_name,
-			"RDS Generator",
-			&format,
-			NULL,
-			&buffer,
-			NULL
-		);
+		rds_device = pa_simple_new(NULL, "rds95", PA_STREAM_PLAYBACK, config.rds_device_name, "RDS Generator", &format, NULL, &buffer, NULL);
 		if (rds_device == NULL) {
 			fprintf(stderr, "Error: cannot open sound device.\n");
 			goto exit;

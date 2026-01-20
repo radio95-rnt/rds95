@@ -155,7 +155,7 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 			}
 		}
 
-		lua_call_function("tick");
+		lua_call_tfunction("tick");
 	}
 
 	if (utc->tm_min != enc->state[enc->program].last_minute) {
@@ -378,10 +378,10 @@ void init_rds_encoder(RDSEncoder* enc) {
 
 	if (encoder_loadFromFile(enc)) {
 		printf("Encoder file will be reinitialized.\n");
-    	lua_call_function("on_init");
+    	lua_call_tfunction("on_init");
 	}
 	for(int i = 0; i < PROGRAMS; i++) reset_rds_state(enc, i);
-	lua_call_function("on_start");
-    lua_call_function("on_state");
+	lua_call_tfunction("on_start");
+    lua_call_tfunction("on_state");
 	encoder_saveToFile(enc);
 }

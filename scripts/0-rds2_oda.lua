@@ -14,7 +14,7 @@ _RDS2_ODA_pointer = 1
 ---@param data integer
 ---@param file_related boolean
 ---@return integer oda_id
-function register_oda_rds2(aid, data, file_related)
+function ext.register_oda_rds2(aid, data, file_related)
     local oda = _RDS2_ODA.new(aid, data, false, file_related)
     for i = 1, #_RDS2_ODAs do
         if _RDS2_ODAs[i] == false then
@@ -28,7 +28,7 @@ end
 
 ---Unregisters an RDS 2 ODA, this stops the handler or AID being called/sent
 ---@param oda_id integer
-function unregister_oda_rds2(oda_id)
+function ext.unregister_oda_rds2(oda_id)
     if oda_id < 1 or oda_id > #_RDS2_ODAs or _RDS2_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
 
     _RDS2_ODAs[oda_id] = false
@@ -39,14 +39,14 @@ end
 
 ---@param oda_id integer
 ---@param data integer
-function set_oda_id_data_rds2(oda_id, data)
+function ext.set_oda_id_data_rds2(oda_id, data)
     if oda_id < 1 or oda_id > #_RDS2_ODAs or _RDS2_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS2_ODAs[oda_id].data = data
 end
 
 ---@param oda_id integer
 ---@param func RDS2_ODAHandler
-function set_oda_handler_rds2(oda_id, func)
+function ext.set_oda_handler_rds2(oda_id, func)
     if oda_id < 1 or oda_id > #_RDS2_ODAs or _RDS2_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS2_ODAs[oda_id].handler = func
 end
@@ -125,10 +125,8 @@ function rds2_group(stream)
     end
 end
 
-local _old_on_state_oda_rds2 = on_state
-function on_state()
+table.insert(on_states, function ()
     _RDS2_ODAs = {}
     _RDS2_ODA_aid = 0
     _RDS2_ODA_pointer = 1
-    if type(_old_on_state_oda_rds2) == "function" then _old_on_state_oda_rds2() end
-end
+end)

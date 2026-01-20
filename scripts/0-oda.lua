@@ -17,7 +17,7 @@ local _RDS_ODA_pointer = 1
 ---@param aid integer
 ---@param data integer
 ---@return integer oda_id
-function register_oda(group, group_version, aid, data)
+function ext.register_oda(group, group_version, aid, data)
     if group == 14 or group == 15 or group == 2 or group == 0 then error("Group is incorrect", 2) end
     if (group == 10 or group == 4 or group == 1) and group_version then error("Group is incorrect", 2) end
     local oda = _ODA.new(group, group_version, aid, data, false)
@@ -33,7 +33,7 @@ end
 
 ---Unregisters an ODA, this stops the handler or AID being called/sent
 ---@param oda_id integer
-function unregister_oda(oda_id)
+function ext.unregister_oda(oda_id)
     if oda_id < 1 or oda_id > #_RDS_ODAs or _RDS_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
 
     _RDS_ODAs[oda_id] = false
@@ -45,7 +45,7 @@ end
 ---Sets the id_data for a existing ODA group
 ---@param oda_id integer
 ---@param data integer
-function set_oda_id_data(oda_id, data)
+function ext.set_oda_id_data(oda_id, data)
     if oda_id < 1 or oda_id > #_RDS_ODAs or _RDS_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS_ODAs[oda_id].data = data
 end
@@ -57,7 +57,7 @@ end
 ---You are asked to set groups B last 5 bits, leave rest 0
 ---@param oda_id integer The ID returned by register_oda
 ---@param fun ODAHandler
-function set_oda_handler(oda_id, fun)
+function ext.set_oda_handler(oda_id, fun)
     if oda_id < 1 or oda_id > #_RDS_ODAs or _RDS_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     if _RDS_ODAs[oda_id].group == 3 then error("3A ODAs cannot have handlers.", 2) end
     _RDS_ODAs[oda_id].handler = fun
@@ -113,18 +113,13 @@ function group(group_type)
         if #_RDS_ODAs == 0 then return false, 0, 0, 0 end
         if _RDS_ODA_pointer > #_RDS_ODAs or _RDS_ODA_pointer < 1 then _RDS_ODA_pointer = 1 end
 
-        if group_type == "O" then
-            return get_aid()
-        elseif group_type == "K" then
-            return get_data()
-        end
+        if group_type == "O" then return get_aid()
+        elseif group_type == "K" then return get_data() end
     end
     return false, 0, 0, 0
 end
 
-local _old_on_state_oda = on_state
-function on_state()
+table.insert(on_states, function ()
     _RDS_ODAs = {}
     _RDS_ODA_pointer = 1
-    if type(_old_on_state_oda) == "function" then _old_on_state_oda() end
-end
+end)

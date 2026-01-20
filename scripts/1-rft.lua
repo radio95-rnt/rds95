@@ -43,7 +43,7 @@ end
 
 function RftInstance:stop()
     if self.oda_id ~= nil and self.aid ~= 0 then
-        unregister_oda_rds2(self.oda_id)
+        ext.unregister_oda_rds2(self.oda_id)
         self.oda_id = nil
     end
 
@@ -59,9 +59,9 @@ end
 ---@private
 function RftInstance:start()
     if self.oda_id == nil and self.aid ~= 0 then
-        self.oda_id = register_oda_rds2(self.aid, 0, true)
+        self.oda_id = ext.register_oda_rds2(self.aid, 0, true)
 
-        set_oda_handler_rds2(self.oda_id, function(stream)
+        ext.set_oda_handler_rds2(self.oda_id, function(stream)
             if #self.file_data == 0 or self.paused then
                 return false, 0, 0, 0, 0
             end
@@ -138,7 +138,7 @@ function RftInstance:sendFile(aid, path, id, crc, once)
     local f_size = #self.file_data
     if crc == 0 then
         self.crc_mode = 0
-        self.crc_full_file = crc16(self.file_data)
+        self.crc_full_file = dp.crc16(self.file_data)
     elseif crc == true or crc == 7 then
         if f_size <= 40960 then self.crc_mode = 1
         elseif f_size > 40960 and f_size <= 81920 then self.crc_mode = 2
@@ -153,7 +153,7 @@ function RftInstance:sendFile(aid, path, id, crc, once)
         local chunk_size = 5 * multiplier
         for i = 1, f_size, chunk_size do
             local chunk = string.sub(self.file_data, i, i + chunk_size - 1)
-            local v = crc16(chunk)
+            local v = dp.crc16(chunk)
             self.crc_data = self.crc_data .. string.char(v >> 8, v & 0xff)
         end
     end
@@ -161,7 +161,7 @@ function RftInstance:sendFile(aid, path, id, crc, once)
     if f_size > (0x3ffff * 5) then error("File too large") end
     if self.oda_id == nil then self:start() end
 
-    set_oda_id_data_rds2(self.oda_id, f_size | (id & 63) << 18 | (self.version & 7) << 24 | (self.crc_enabled and 1 or 0) << 27)
+    ext.set_oda_id_data_rds2(self.oda_id, f_size | (id & 63) << 18 | (self.version & 7) << 24 | (self.crc_enabled and 1 or 0) << 27)
     self.last_id = id
     self.paused = false
     return interrupted

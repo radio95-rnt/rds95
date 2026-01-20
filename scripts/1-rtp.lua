@@ -8,11 +8,11 @@ local USERDATA_RTP_OFFSET = 259
 
 local function init_rtp()
     if _Rtp_oda_id == nil then
-        _Rtp_oda_id = register_oda(11, false, 0x4BD7, 0)
-        set_oda_handler(_Rtp_oda_id, function ()
-            local b = (_Rtp_toggle and 1 or 0) << 4 | string.byte(get_userdata_offset(USERDATA_RTP_OFFSET, 1)) << 3
-            local data_0 = get_userdata_offset(USERDATA_RTP_OFFSET+1, 3)
-            local data_1 = get_userdata_offset(USERDATA_RTP_OFFSET+4, 3)
+        _Rtp_oda_id = ext.register_oda(11, false, 0x4BD7, 0)
+        ext.set_oda_handler(_Rtp_oda_id, function ()
+            local b = (_Rtp_toggle and 1 or 0) << 4 | string.byte(userdata.get_offset(USERDATA_RTP_OFFSET, 1)) << 3
+            local data_0 = userdata.get_offset(USERDATA_RTP_OFFSET+1, 3)
+            local data_1 = userdata.get_offset(USERDATA_RTP_OFFSET+4, 3)
             b = b | (string.byte(data_0, 1) & 0xf8) >> 3
 
             local c = (string.byte(data_0, 1) & 0x7) << 13
@@ -31,11 +31,11 @@ end
 
 local function init_ertp()
     if _Ertp_oda_id == nil then
-        _Ertp_oda_id = register_oda(12, false, 0x4BD8, 0)
-        set_oda_handler(_Ertp_oda_id, function ()
-            local b = (_Ertp_toggle and 1 or 0) << 4 | string.byte(get_userdata_offset(USERDATA_RTP_OFFSET+7, 1)) << 3
-            local data_0 = get_userdata_offset(USERDATA_RTP_OFFSET+8, 3)
-            local data_1 = get_userdata_offset(USERDATA_RTP_OFFSET+11, 3)
+        _Ertp_oda_id = ext.register_oda(12, false, 0x4BD8, 0)
+        ext.set_oda_handler(_Ertp_oda_id, function ()
+            local b = (_Ertp_toggle and 1 or 0) << 4 | string.byte(userdata.get_offset(USERDATA_RTP_OFFSET+7, 1)) << 3
+            local data_0 = userdata.get_offset(USERDATA_RTP_OFFSET+8, 3)
+            local data_1 = userdata.get_offset(USERDATA_RTP_OFFSET+11, 3)
             b = b | (string.byte(data_0, 1) & 0xf8) >> 3
 
             local c = (string.byte(data_0, 1) & 0x7) << 13
@@ -52,46 +52,44 @@ local function init_ertp()
     end
 end
 
-function set_rds_rtp_meta(ertp, running)
+function rds.ext.set_rtp_meta(ertp, running)
     if ertp then
         if running and _Ertp_oda_id == nil then init_ertp() end
-        set_userdata_offset(USERDATA_RTP_OFFSET+7, 1, string.char(running and 1 or 0))
+        userdata.set_offset(USERDATA_RTP_OFFSET+7, 1, string.char(running and 1 or 0))
     else
         if running and _Rtp_oda_id == nil then init_rtp() end
-        set_userdata_offset(USERDATA_RTP_OFFSET, 1, string.char(running and 1 or 0))
+        userdata.set_offset(USERDATA_RTP_OFFSET, 1, string.char(running and 1 or 0))
     end
 end
-function get_rds_rtp_meta(ertp)
+function rds.ext.get_rtp_meta(ertp)
     local offset = ertp and (USERDATA_RTP_OFFSET+7) or USERDATA_RTP_OFFSET
-    return string.byte(get_userdata_offset(offset, 1)) ~= 0
+    return string.byte(userdata.get_offset(offset, 1)) ~= 0
 end
-function toggle_rds_rtp(ertp)
+function rds.ext.toggle_rtp(ertp)
     if ertp then _Ertp_toggle = not _Ertp_toggle
     else _Rtp_toggle = not _Rtp_toggle end
 end
 
-function set_rds_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2)
-    set_rds_rtp_meta(ertp, true)
-    toggle_rds_rtp(ertp)
-    set_userdata_offset(ertp and (USERDATA_RTP_OFFSET+8) or (USERDATA_RTP_OFFSET+1), 6, string.char(t1, s1, l1, t2, s2, l2))
+function rds.ext.set_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2)
+    rds.ext.set_rds_rtp_meta(ertp, true)
+    rds.ext.toggle_rds_rtp(ertp)
+    userdata.set_offset(ertp and (USERDATA_RTP_OFFSET+8) or (USERDATA_RTP_OFFSET+1), 6, string.char(t1, s1, l1, t2, s2, l2))
 end
-function get_rds_rtplus_tags(ertp)
-    return string.byte(get_userdata_offset(ertp and (USERDATA_RTP_OFFSET+8) or (USERDATA_RTP_OFFSET+1), 6), 1, 6)
+function rds.ext.get_rtplus_tags(ertp)
+    return string.byte(userdata.get_offset(ertp and (USERDATA_RTP_OFFSET+8) or (USERDATA_RTP_OFFSET+1), 6), 1, 6)
 end
 
 function unregister_rtp(ertp)
     if ertp and _Ertp_oda_id ~= nil then
-        unregister_oda(_Ertp_oda_id)
+        ext.unregister_oda(_Ertp_oda_id)
         _Ertp_oda_id = nil
     elseif _Rtp_oda_id ~= nil then
-        unregister_oda(_Rtp_oda_id)
+        ext.unregister_oda(_Rtp_oda_id)
         _Rtp_oda_id = nil
     end
 end
 
-local _old_on_state_rtp = on_state
-function on_state()
-    if get_rds_rtp_meta(false) then init_rtp() end
-    if get_rds_rtp_meta(true) then init_ertp() end
-    if type(_old_on_state_rtp) == "function" then _old_on_state_rtp() end
-end
+table.insert(on_states, function ()
+    if rds.ext.get_rtp_meta(false) then init_rtp() end
+    if rds.ext.get_rtp_meta(true) then init_ertp() end
+end)

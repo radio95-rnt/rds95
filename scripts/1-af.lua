@@ -55,8 +55,8 @@ end
 
 local function init_af_oda()
     if _Af_Oda_id == nil then
-        _Af_Oda_id = register_oda(7, false, 0x6365, 0)
-        set_oda_handler(_Af_Oda_id, function()
+        _Af_Oda_id = ext.register_oda(7, false, 0x6365, 0)
+        ext.set_oda_handler(_Af_Oda_id, function()
             local b, c, d = get_next_af_oda_group()
             return true, b, c, d
         end)
@@ -69,7 +69,7 @@ local function save_af_to_userdata(afs)
 
     local payload = string.pack("B", count)
     for i = 1, count do payload = payload .. string.pack("f", afs[i]) end
-    set_userdata_offset(USERDATA_ODA_OFFSET, #payload, payload)
+    userdata.set_offset(USERDATA_ODA_OFFSET, #payload, payload)
 end
 
 local function _process_af_list(afs)
@@ -86,13 +86,13 @@ local function _process_af_list(afs)
 end
 
 local function load_af_from_userdata()
-    local header = get_userdata_offset(USERDATA_ODA_OFFSET, 1)
+    local header = userdata.get_offset(USERDATA_ODA_OFFSET, 1)
     if header == "" or header == nil then return end
 
     local count = string.unpack("B", header)
     if count == 0 or count > 25 then return end
 
-    local data = get_userdata_offset(USERDATA_ODA_OFFSET + 1, count * 4)
+    local data = userdata.get_offset(USERDATA_ODA_OFFSET + 1, count * 4)
     if #data < (count * 4) then return end
 
     local afs = {}
@@ -106,14 +106,12 @@ end
 
 ---Sets the AFs included in the ODA and saves them
 ---@param afs table List of numbers (e.g., {98.1, 102.5})
-function set_rds_af_oda(afs)
+function rds.ext.set_af_oda(afs)
     _process_af_list(afs)
     save_af_to_userdata(afs)
 end
 
-local _old_on_state_af = on_state
-function on_state()
+table.insert(on_states, function ()
     load_af_from_userdata()
     if _Af_Oda_len ~= 0 then init_af_oda() end
-    if type(_old_on_state_af) == "function" then _old_on_state_af() end
-end
+end)

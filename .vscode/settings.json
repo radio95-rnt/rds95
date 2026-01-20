@@ -30,5 +30,8 @@
         "ffi": "disable",
         "package": "disable"
     },
-    "C_Cpp.dimInactiveRegions": false
+    "C_Cpp.dimInactiveRegions": false,
+    "Lua.diagnostics.disable": [
+        "duplicate-set-field"
+    ]
 }
