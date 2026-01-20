@@ -100,8 +100,8 @@ function rds2_group(stream)
             local generated = false
             checked = 0
             while generated == false and checked < #_RDS2_ODAs do
-                local generated, a, b, c, d = oda.handler(stream)
-                if not generated then
+                local ok, generated, a, b, c, d = pcall(oda.handler(stream))
+                if not (generated and ok) then
                     _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
                     if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end
                     oda = _RDS2_ODAs[_RDS2_ODA_pointer]

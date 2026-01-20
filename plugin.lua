@@ -18,7 +18,7 @@ function dp.crc16(data) end
 
 ---Starts the initialization sequence, also calls the on_init function
 ---@return nil
-function dp.set_rds_program_defaults() end
+function dp.set_program_defaults() end
 
 ---Saves, loads and resets the state of the data, you might as well restart the whole program
 ---@return nil
@@ -29,9 +29,9 @@ function dp.reset_rds() end
 function dp.force_save() end
 
 ---@param program_idx integer 0 to (max_programs - 1)
-function dp.set_rds_program(program_idx) end
+function dp.set_program(program_idx) end
 ---@return integer
-function dp.get_rds_program() end
+function dp.get_program() end
 
 ---This function is called by the C core after we reset data, or have no data in general
 ---It should be defined by the user in the script.
@@ -64,6 +64,7 @@ ticks = {}
 ---@param data string
 ---@return string
 function data_handle(data) end
+
 ---This function is called when the group "L" is in the sequence
 ---Please remember that the core always fills in PTY and TP and PI in C if this is an B group
 ---It should be defined by the user in the script.
@@ -73,6 +74,7 @@ function data_handle(data) end
 ---@return integer c
 ---@return integer d
 function group(group) end
+
 ---This function is called when an RDS2 group is to be generated on mode 3
 ---If a was returned 0, PTY and TP will be filled in, along with the PI code in C if needed
 ---It should be defined by the user in the script.
@@ -157,17 +159,18 @@ function rds.set_rds2_mode(mode) end
 function rds.get_rds2_mode() end
 
 ---@param streams integer
-function set_rds_streams(streams) end
+function rds.set_streams(streams) end
 ---@return integer
-function get_rds_streams() end
+function rds.get_streams() end
+
 ---This function returns the absolute number of streams that can be output without restarting the core
 ---@return integer
-function get_available_rds_streams() end
+function rds.get_available_streams() end
 
 ---@param level number
-function set_rds_level(level) end
+function rds.set_level(level) end
 ---@return number
-function get_rds_level() end
+function rds.get_level() end
 
 -- Program & Linking
 ---@param linkage boolean

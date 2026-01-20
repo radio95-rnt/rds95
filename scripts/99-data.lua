@@ -40,7 +40,7 @@ function data_handle(data)
         data = data:lower()
         if data == "ver" then return string.format("rds95 core v. %s - (C) 2025 radio95 - lua parser\r\n", core_version)
         elseif data == "init" then
-            dp.set_rds_program_defaults()
+            dp.set_program_defaults()
             return "+\r\n"
         elseif data == "reset" then
             dp.reset_rds()
@@ -58,8 +58,8 @@ function data_handle(data)
         elseif data == "ptynen" then return string.format("PTYNEN=%s\r\n", string.format("%d", (rds.get_ptyn_enabled() and 1 or 0)))
         elseif data == "rttype" then return string.format("RTTYPE=%s\r\n", string.format("%d", rds.get_rt_type()))
         elseif data == "rds2mod" then return string.format("RDS2MOD=%s\r\n", string.format("%d", rds.get_rds2_mode()))
-        elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d", get_rds_streams()))
-        elseif data == "level" then return string.format("LEVEL=%s\r\n", string.format("%d", get_rds_level() * 255))
+        elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d", rds.get_streams()))
+        elseif data == "level" then return string.format("LEVEL=%s\r\n", string.format("%d", rds.get_level() * 255))
         elseif data == "link" then return string.format("LINK=%s\r\n", string.format("%d", (rds.get_link() and 1 or 0)))
         elseif data == "rtp" then
             local t1, s1, l1, t2, s2, l2 = rds.ext.get_rtplus_tags(false)
@@ -266,7 +266,7 @@ function data_handle(data)
     elseif cmd == "rdsgen" then
         local type = tonumber(value)
         if not type then return "-\r\n" end
-        set_rds_streams(type)
+        rds.set_streams(type)
         return "+\r\n"
     elseif cmd == "ptyn" then
         rds.set_ptyn(value)
@@ -303,13 +303,13 @@ function data_handle(data)
         local program = tonumber(value)
         if not program then return "-\r\n" end
         if program < 1 or program > dp.max_programs then return "-\r\n" end
-        dp.set_rds_program(program-1)
+        dp.set_program(program-1)
         rds.set_ta(false)
         return "+\r\n"
     elseif cmd == "level" then
         local level = tonumber(value)
         if not level then return "-\r\n" end
-        set_rds_level(level/255)
+        rds.set_level(level/255)
         return "+\r\n"
     elseif cmd == "dttmout" then
         local timeout = tonumber(value)

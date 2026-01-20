@@ -51,11 +51,11 @@ void init_lua(RDSModulator* rds_mod) {
     lua_registertotable(L, "crc16", lua_crc16);
     lua_registertotable(L, "force_save", lua_force_save);
     lua_registertotable(L, "reset_rds", lua_reset_rds);
-    lua_registertotable(L, "set_rds_program_defaults", lua_set_rds_program_defaults);
+    lua_registertotable(L, "set_program_defaults", lua_set_rds_program_defaults);
     lua_pushinteger(L, PROGRAMS);
     lua_setfield(L, -2, "max_programs");
-    lua_registertotable(L, "set_rds_program", lua_set_rds_program);
-    lua_registertotable(L, "get_rds_program", lua_get_rds_program);
+    lua_registertotable(L, "set_program", lua_set_rds_program);
+    lua_registertotable(L, "get_program", lua_get_rds_program);
     lua_setglobal(L, "dp");
 
     lua_newtable(L);
@@ -141,14 +141,16 @@ void init_lua(RDSModulator* rds_mod) {
     lua_registertotable(L, "set_udg", lua_set_rds_udg);
     lua_registertotable(L, "set_udg2", lua_set_rds_udg2);
 
+    lua_registertotable(L, "set_level", lua_set_rds_level);
+    lua_registertotable(L, "get_level", lua_get_rds_level);
+
+    lua_registertotable(L, "set_streams", lua_set_rds_streams);
+    lua_registertotable(L, "get_streams", lua_get_rds_streams);
+
+    lua_registertotable(L, "get_available_streams", lua_get_available_rds_streams);
+
     lua_setglobal(L, "rds");
 
-    lua_register(L, "set_rds_streams", lua_set_rds_streams);
-    lua_register(L, "get_rds_streams", lua_get_rds_streams);
-    lua_register(L, "get_available_rds_streams", lua_get_available_rds_streams);
-
-    lua_register(L, "set_rds_level", lua_set_rds_level);
-    lua_register(L, "get_rds_level", lua_get_rds_level);
 
     if (luaL_loadfile(L, "/etc/rds95.lua") != LUA_OK) {
         fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(L, -1));
