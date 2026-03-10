@@ -59,7 +59,6 @@ function data_handle(data)
         elseif data == "rttype" then return string.format("RTTYPE=%s\r\n", string.format("%d", rds.get_rt_type()))
         elseif data == "rds2mod" then return string.format("RDS2MOD=%s\r\n", string.format("%d", rds.get_rds2_mode()))
         elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d", rds.get_streams()))
-        elseif data == "level" then return string.format("LEVEL=%s\r\n", string.format("%d", rds.get_level() * 255))
         elseif data == "link" then return string.format("LINK=%s\r\n", string.format("%d", (rds.get_link() and 1 or 0)))
         elseif data == "rtp" then
             local t1, s1, l1, t2, s2, l2 = rds.ext.get_rtplus_tags(false)
@@ -305,11 +304,6 @@ function data_handle(data)
         if program < 1 or program > dp.max_programs then return "-\r\n" end
         dp.set_program(program-1)
         rds.set_ta(false)
-        return "+\r\n"
-    elseif cmd == "level" then
-        local level = tonumber(value)
-        if not level then return "-\r\n" end
-        rds.set_level(level/255)
         return "+\r\n"
     elseif cmd == "dttmout" then
         local timeout = tonumber(value)

@@ -5,19 +5,6 @@
 
 typedef struct
 {
-	float level;
-	uint8_t rdsgen : 3;
-} RDSModulatorParameters;
-
-typedef struct
-{
-	uint8_t check;
-	RDSModulatorParameters params;
-	uint16_t crc;
-} RDSModulatorParametersFile;
-
-typedef struct
-{
 	uint8_t bit_buffer[BITS_PER_GROUP];
 	uint8_t bit_pos : 7;
 	uint8_t prev_output : 1;
@@ -29,7 +16,6 @@ typedef struct
 
 typedef struct {
 	RDSModulatorModulationData *data;
-	RDSModulatorParameters params;
 	RDSEncoder* enc;
 	uint8_t num_streams;
 } RDSModulator;

@@ -164,6 +164,7 @@ typedef struct {
 	RDSData data[PROGRAMS];
 	RDSState state[PROGRAMS];
 	uint8_t program : 3;
+	uint8_t enabled_streams : 3;
 } RDSEncoder;
 typedef struct {
 	uint8_t file_starter; // Always is 225 first polish radio programme am frequency
@@ -171,6 +172,7 @@ typedef struct {
 	uint8_t file_middle; // Always is 160, average of both
 	RDSEncoderData encoder_data;
 	uint8_t program : 3;
+	uint8_t enabled_streams : 3;
 	uint8_t file_ender; // Always is 95 my freq
 	uint16_t crc;
 } RDSEncoderFile;

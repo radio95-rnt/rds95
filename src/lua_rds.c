@@ -2,15 +2,15 @@
 #include <pthread.h>
 #include "lua_api.h"
 
-RDSModulator* mod = NULL;
+RDSEncoder* enc = NULL;
 lua_State *L = NULL;
 static pthread_mutex_t lua_mutex;
 uint8_t unload_refs[33] = {LUA_REFNIL};
 
 #define lua_registertotable(L,n,f) (lua_pushcfunction(L, (f)), lua_setfield(L, -2, (n)))
-void init_lua(RDSModulator* rds_mod) {
+void init_lua(RDSEncoder* _enc) {
     static int mutex_initialized = 0;
-    mod = rds_mod;
+    enc = _enc;
     L = luaL_newstate();
     printf("Initializing %s\n", LUA_COPYRIGHT);
 
@@ -141,13 +141,8 @@ void init_lua(RDSModulator* rds_mod) {
     lua_registertotable(L, "set_udg", lua_set_rds_udg);
     lua_registertotable(L, "set_udg2", lua_set_rds_udg2);
 
-    lua_registertotable(L, "set_level", lua_set_rds_level);
-    lua_registertotable(L, "get_level", lua_get_rds_level);
-
     lua_registertotable(L, "set_streams", lua_set_rds_streams);
     lua_registertotable(L, "get_streams", lua_get_rds_streams);
-
-    lua_registertotable(L, "get_available_streams", lua_get_available_rds_streams);
 
     lua_setglobal(L, "rds");
 
@@ -381,6 +376,6 @@ void destroy_lua() {
         lua_close(L);
         L = NULL;
     }
-    mod = NULL;
+    enc = NULL;
     pthread_mutex_destroy(&lua_mutex);
 }

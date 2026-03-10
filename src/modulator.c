@@ -34,7 +34,6 @@ void cleanup_rds_modulator(RDSModulator* rdsMod) {
 
 float get_rds_sample(RDSModulator* rdsMod, uint8_t stream) {
 	if(stream >= rdsMod->num_streams) return 0.0f;
-	if((rdsMod->params.rdsgen > stream ? 1 : 0) == 0) return 0.0f;
 
 	rdsMod->data[stream].phase += 1187.5 / RDS_SAMPLE_RATE;
 
@@ -53,5 +52,5 @@ float get_rds_sample(RDSModulator* rdsMod, uint8_t stream) {
 	float sample = sinf(M_2PI * rdsMod->data[stream].phase + rdsMod->data[stream].symbol_shift);
 	if(rdsMod->data[stream].cur_output == 0) sample = -sample; // do bpsk, if you comment this part out, nothing will be decoded
 	
-	return sample*rdsMod->params.level;
+	return sample;
 }

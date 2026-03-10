@@ -5,7 +5,6 @@
 #include <lauxlib.h>
 #include "rds.h"
 #include "fs.h"
-#include "modulator.h"
 
 int lua_get_userdata(lua_State *localL);
 int lua_get_userdata_offset(lua_State *localL);
@@ -56,7 +55,6 @@ int lua_get_rds2_mode(lua_State *localL);
 
 int lua_set_rds_streams(lua_State *localL);
 int lua_get_rds_streams(lua_State *localL);
-int lua_get_available_rds_streams(lua_State *localL);
 
 int lua_set_rds_grp_sqc(lua_State *localL);
 int lua_get_rds_grp_sqc(lua_State *localL);
@@ -75,9 +73,6 @@ int lua_get_rds_rt_switching_period(lua_State *localL);
 
 int lua_set_rds_rt_text_timeout(lua_State *localL);
 int lua_get_rds_rt_text_timeout(lua_State *localL);
-
-int lua_set_rds_level(lua_State *localL);
-int lua_get_rds_level(lua_State *localL);
 
 int lua_put_rds_custom_group(lua_State *localL);
 int lua_put_rds2_custom_group(lua_State *localL);

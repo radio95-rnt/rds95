@@ -163,15 +163,6 @@ function rds.set_streams(streams) end
 ---@return integer
 function rds.get_streams() end
 
----This function returns the absolute number of streams that can be output without restarting the core
----@return integer
-function rds.get_available_streams() end
-
----@param level number
-function rds.set_level(level) end
----@return number
-function rds.get_level() end
-
 -- Program & Linking
 ---@param linkage boolean
 function rds.set_link(linkage) end

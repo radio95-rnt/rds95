@@ -203,7 +203,11 @@ int main(int argc, char **argv) {
 		}
 
 		while(!stop_rds) {
-			for (uint16_t i = 0; i < NUM_MPX_FRAMES * config.num_streams; i++) rds_buffer[i] = get_rds_sample(&rdsModulator, i % config.num_streams);
+			for (uint16_t i = 0; i < NUM_MPX_FRAMES * config.num_streams; i++) {
+				uint8_t stream = i % config.num_streams;
+				if((rdsEncoder.enabled_streams > stream ? 1 : 0) == 0) rds_buffer[i] = 0.0f;
+				rds_buffer[i] = get_rds_sample(&rdsModulator, stream);
+			}
 
 			if (pa_simple_write(rds_device, rds_buffer, NUM_MPX_FRAMES * config.num_streams * sizeof(float), &pulse_error) != 0) {
 				fprintf(stderr, "Error: could not play audio. (%s : %d)\n", pa_strerror(pulse_error), pulse_error);
@@ -216,15 +220,13 @@ int main(int argc, char **argv) {
 		RDSGroup group;
 		char output_buffer[1024];
 		char starts[4][5] = {"G:\r\n", "H:\r\n", "I:\r\n", "J:\r\n"};
-		uint8_t num_processed = config.num_streams;
-		if(rdsModulator.params.rdsgen < num_processed) num_processed = rdsModulator.params.rdsgen;
 
 		setvbuf(stderr, NULL, _IONBF, 0);
 
 		while(!stop_rds) {
 			if (is_tcp_server_running()) accept_tcp_clients();
 
-			for(uint8_t i = 0; i < num_processed; i++) {
+			for(uint8_t i = 0; i < config.num_streams; i++) {
 				get_rds_group(&rdsEncoder, &group, i);
 
 				int offset = 0;
