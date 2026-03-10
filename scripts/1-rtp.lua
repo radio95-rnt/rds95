@@ -71,8 +71,8 @@ function rds.ext.toggle_rtp(ertp)
 end
 
 function rds.ext.set_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2)
-    rds.ext.set_rds_rtp_meta(ertp, true)
-    rds.ext.toggle_rds_rtp(ertp)
+    rds.ext.set_rtp_meta(ertp, true)
+    rds.ext.toggle_rtp(ertp)
     userdata.set_offset(ertp and (USERDATA_RTP_OFFSET+8) or (USERDATA_RTP_OFFSET+1), 6, string.char(t1, s1, l1, t2, s2, l2))
 end
 function rds.ext.get_rtplus_tags(ertp)

@@ -3,8 +3,6 @@
 
 void init_rds_modulator(RDSModulator* rdsMod, RDSEncoder* enc, uint8_t num_streams) {
 	memset(rdsMod, 0, sizeof(RDSModulator));
-	rdsMod->params.level = 1.0f;
-	rdsMod->params.rdsgen = 1;
 	rdsMod->num_streams = num_streams;
 
 	memset(enc, 0, sizeof(RDSEncoder));
@@ -20,9 +18,6 @@ void init_rds_modulator(RDSModulator* rdsMod, RDSEncoder* enc, uint8_t num_strea
 		rdsMod->data[i].symbol_shift = i * M_PI / 2.0f;
 		rdsMod->data[i].bit_pos = BITS_PER_GROUP;
 	}
-
-	if(modulatorsaved()) Modulator_loadFromFile(&rdsMod->params);
-	else Modulator_saveToFile(&rdsMod->params);
 }
 
 void cleanup_rds_modulator(RDSModulator* rdsMod) {

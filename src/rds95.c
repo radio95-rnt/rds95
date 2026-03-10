@@ -167,9 +167,9 @@ int main(int argc, char **argv) {
 	}
 
 	RDSModulator rdsModulator = {0};
-    init_lua(&rdsModulator);
-
+	
 	RDSEncoder rdsEncoder = {0};
+    init_lua(&rdsEncoder);
 	init_rds_modulator(&rdsModulator, &rdsEncoder, config.num_streams);
 	init_rds_encoder(&rdsEncoder);
 
@@ -255,7 +255,6 @@ exit:
 	if (is_tcp_server_running()) close_tcp_server();
 
 	encoder_saveToFile(&rdsEncoder);
-	Modulator_saveToFile(&rdsModulator.params);
 	printf("Saved to file\n");
 
 	cleanup_rds_modulator(&rdsModulator);
