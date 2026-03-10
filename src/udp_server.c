@@ -8,9 +8,7 @@ static struct pollfd poller;
 static struct sockaddr_in client_addr;
 static socklen_t client_len = sizeof(client_addr);
 
-static RDSModulator* mod = NULL;
-
-int open_udp_server(int port, RDSModulator* rds_mod) {
+int open_udp_server(int port) {
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) return -1;
 
@@ -29,8 +27,6 @@ int open_udp_server(int port, RDSModulator* rds_mod) {
 
     poller.fd = sockfd;
     poller.events = POLLIN;
-
-    mod = rds_mod;
 
     return 0;
 }

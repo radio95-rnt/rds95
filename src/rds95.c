@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
 	init_rds_modulator(&rdsModulator, &rdsEncoder, config.num_streams);
 	init_rds_encoder(&rdsEncoder);
 
-	if(open_udp_server(config.udp_port, &rdsModulator) == 0) {
+	if(open_udp_server(config.udp_port) == 0) {
 		printf("Reading control commands on UDP:%d.\n", config.udp_port);
 		int r = pthread_create(&udp_server_thread, &attr, udp_server_worker, NULL);
 		if (r < 0) {

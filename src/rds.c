@@ -210,7 +210,7 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 
 				if(!good_group) cant_find_group++;
 				else cant_find_group = 0;
-				
+
 				if(!good_group && cant_find_group == 23) {
 					cant_find_group = 0;
 					break;
@@ -295,8 +295,7 @@ uint16_t offset_words_typeb[] = {
 	0x1B4, /*  D  */
 };
 
-void add_checkwords(RDSGroup *group, uint8_t *bits)
-{	
+void add_checkwords(RDSGroup *group, uint8_t *bits) {
 	uint16_t* offset_words;
 	if(group->is_type_b) offset_words = offset_words_typeb;
 	else offset_words = offset_words_typea;

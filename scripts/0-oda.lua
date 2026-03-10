@@ -92,7 +92,7 @@ local function get_data()
         local oda = _RDS_ODAs[_RDS_ODA_pointer]
 
         if oda ~= false and type(oda.handler) == "function" then
-            local ok, generated, b, c, d = pcall(oda.handler())
+            local ok, generated, b, c, d = pcall(oda.handler)
             if ok and generated then
                 _RDS_ODA_pointer = (_RDS_ODA_pointer % #_RDS_ODAs) + 1
                 b = b | oda.group << 12
