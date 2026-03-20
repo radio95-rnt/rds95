@@ -1,0 +1,176 @@
+import unicodedata
+# This script prepares the RDS charset conversion function
+
+# RDS code to UCS-2
+charset = {}
+
+charset[0x24] = 0x00A4 # ¤
+charset[0x5E] = 0x2015 # ―
+charset[0x60] = 0x2016 # ║
+charset[0x7E] = 0x203E # ¯
+charset[0x80] = 0x00E1 # á
+charset[0x81] = 0x00E0 # à
+charset[0x82] = 0x00E9 # é
+charset[0x83] = 0x00E8 # è
+charset[0x84] = 0x00ED # í
+charset[0x85] = 0x00EC # ì
+charset[0x86] = 0x00F3 # ó
+charset[0x87] = 0x00F2 # ò
+charset[0x88] = 0x00FA # ú
+charset[0x89] = 0x00F9 # ù
+charset[0x8A] = 0x00D1 # Ñ
+charset[0x8B] = 0x00C7 # Ç
+charset[0x8C] = 0x015E # Ş
+charset[0x8D] = 0x00DF # ß
+charset[0x8E] = 0x00A1 # ¡
+charset[0x8F] = 0x0132 # Ĳ
+charset[0x90] = 0x00E2 # â
+charset[0x91] = 0x00E4 # ä
+charset[0x92] = 0x00EA # ê
+charset[0x93] = 0x00EB # ë
+charset[0x94] = 0x00EE # î
+charset[0x95] = 0x00EF # ï
+charset[0x96] = 0x00F4 # ô
+charset[0x97] = 0x00F6 # ö
+charset[0x98] = 0x00FB # û
+charset[0x99] = 0x00FC # ü
+charset[0x9A] = 0x00F1 # ñ
+charset[0x9B] = 0x00E7 # ç
+charset[0x9C] = 0x015F # ş
+charset[0x9D] = 0x011F # ğ
+charset[0x9E] = 0x0131 # ı
+charset[0x9F] = 0x0133 # ĳ
+charset[0xA0] = 0x00AA # ª
+charset[0xA1] = 0x03B1 # α
+charset[0xA2] = 0x00A9 # ©
+charset[0xA3] = 0x2030 # ‰
+charset[0xA4] = 0x011E # Ğ
+charset[0xA5] = 0x011B # ĕ
+charset[0xA6] = 0x0148 # ň
+charset[0xA7] = 0x0151 # ő
+charset[0xA8] = 0x03C0 # π
+charset[0xA9] = 0x20AC # €
+charset[0xAA] = 0x00A3 # ₤
+charset[0xAB] = 0x0024 # $
+charset[0xAC] = 0x2190 # ←
+charset[0xAD] = 0x2191 # ↑
+charset[0xAE] = 0x2192 # →
+charset[0xAF] = 0x2193 # ↓
+charset[0xB0] = 0x00BA # º
+charset[0xB1] = 0x00B9 # ¹
+charset[0xB4] = 0x00B1 # ±
+charset[0xB5] = 0x0130 # İ
+charset[0xB6] = 0x0144 # ń
+charset[0xB7] = 0x0171 # ű
+charset[0xB8] = 0x00B5 # µ
+charset[0xB9] = 0x00BF # ¿
+charset[0xBA] = 0x00F7 # ÷
+charset[0xBB] = 0x00B0 # º
+charset[0xBF] = 0x00A7 # §
+charset[0xC0] = 0x00C1 # Á
+charset[0xC1] = 0x00C0 # À
+charset[0xC2] = 0x00C9 # É
+charset[0xC3] = 0x00C8 # È
+charset[0xC4] = 0x00CD # Í
+charset[0xC5] = 0x00CC # Ì
+charset[0xC6] = 0x00D3 # Ó
+charset[0xC7] = 0x00D2 # Ò
+charset[0xC8] = 0x00DA # Ú
+charset[0xC9] = 0x00D9 # Ù
+charset[0xCA] = 0x0158 # Ř
+charset[0xCB] = 0x010C # Č
+charset[0xCC] = 0x0160 # Š
+charset[0xCD] = 0x017D # Ž
+charset[0xCE] = 0x00D0 # Ð
+charset[0xCF] = 0x013F # Ŀ
+charset[0xD0] = 0x00C2 # Â
+charset[0xD1] = 0x00C4 # Ä
+charset[0xD2] = 0x00CA # Ê
+charset[0xD3] = 0x00CB # Ë
+charset[0xD4] = 0x00CE # Î
+charset[0xD5] = 0x00CF # Ï
+charset[0xD6] = 0x00D4 # Ô
+charset[0xD7] = 0x00D6 # Ö
+charset[0xD8] = 0x00DB # Û
+charset[0xD9] = 0x00DC # Ü
+charset[0xDA] = 0x0159 # ř
+charset[0xDB] = 0x010D # č
+charset[0xDC] = 0x0161 # š
+charset[0xDD] = 0x017E # ž
+charset[0xDE] = 0x0111 # đ
+charset[0xDF] = 0x0140 # ŀ
+charset[0xE0] = 0x00C3 # Ã
+charset[0xE1] = 0x00C5 # Å
+charset[0xE2] = 0x00C6 # Æ
+charset[0xE3] = 0x0152 # Œ
+charset[0xE4] = 0x0177 # ŷ
+charset[0xE5] = 0x00DD # Ý
+charset[0xE6] = 0x00D5 # Õ
+charset[0xE7] = 0x00D8 # Ø
+charset[0xE8] = 0x00DE # Þ
+charset[0xE9] = 0x014A # Ŋ
+charset[0xEA] = 0x0154 # Ŕ
+charset[0xEB] = 0x0106 # Ć
+charset[0xEC] = 0x015A # Ś
+charset[0xED] = 0x0179 # Ź
+charset[0xEE] = 0x0166 # Ŧ
+charset[0xEF] = 0x00F0 # ð
+charset[0xF0] = 0x00E3 # ã
+charset[0xF1] = 0x00E5 # å
+charset[0xF2] = 0x00E6 # æ
+charset[0xF3] = 0x0153 # œ
+charset[0xF4] = 0x0175 # ŵ
+charset[0xF5] = 0x00FD # ý
+charset[0xF6] = 0x00F5 # õ
+charset[0xF7] = 0x00F8 # ø
+charset[0xF8] = 0x00FE # þ
+charset[0xF9] = 0x014B # ŋ
+charset[0xFA] = 0x0155 # ŕ
+charset[0xFB] = 0x0107 # ć
+charset[0xFC] = 0x015B # ś
+charset[0xFD] = 0x017A # ź
+charset[0xFE] = 0x0167 # ŧ
+
+table = {}
+
+import struct
+for rds_code, ucs2 in charset.items():
+    utf8 = struct.pack("!H", ucs2).decode("utf-16-be").encode()
+
+    node = table
+    for i, byte in enumerate(utf8):
+        if i == len(utf8) - 1:
+            # Last byte: store the RDS code
+            node[byte] = rds_code
+        else:
+            # Intermediate byte: ensure a dict exists
+            if byte not in node:
+                node[byte] = {}
+            node = node[byte]
+def generate_switch(node, indent=0):
+    """
+    Recursively generates nested C switch statements from the table.
+    `node` is the current dictionary level.
+    `indent` is used for formatting the output.
+    """
+    ind = "    " * indent
+    code_lines = [f"{ind}switch(*str) {{"]
+
+    for byte, child in node.items():
+        if isinstance(child, dict):
+            code_lines.append(f"{ind}    case (char)0x{byte:02x}:")
+            code_lines.append(f"{ind}        str++;")
+            code_lines.extend(generate_switch(child, indent + 2))
+            code_lines.append(f"{ind}        break;")
+        else:
+            comment = unicodedata.name(struct.pack("!H", charset[child]).decode("utf-16-be"))
+            code_lines.append(f"{ind}    case (char)0x{byte:02x}: new_str[i] = (char)0x{child:02x}; break; // {comment}")
+    code_lines.append(f"{ind}    default: new_str[i] = *str; break;")
+
+    code_lines.append(f"{ind}}}")
+    return code_lines
+
+data = generate_switch(table)
+with open("switch.c", "w", encoding="utf-8") as f:
+    for line in data:
+        f.write(line + "\n")
