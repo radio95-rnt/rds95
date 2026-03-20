@@ -81,6 +81,8 @@ char *convert_to_rdscharset(const char *str) {
 	uint8_t i = 0;
 
 	while (*str != 0 && i < 255) {
+		// The following line is neccesary for the charset.py to work properly
+		// CHARSET START
 		switch(*str) {
 			case (char)0xc2:
 				str++;
@@ -97,7 +99,7 @@ char *convert_to_rdscharset(const char *str) {
 					case (char)0xbf: new_str[i] = (char)0xb9; break; // INVERTED QUESTION MARK
 					case (char)0xb0: new_str[i] = (char)0xbb; break; // DEGREE SIGN
 					case (char)0xa7: new_str[i] = (char)0xbf; break; // SECTION SIGN
-					default: new_str[i] = *str; break;
+					default: new_str[i] = (char)0x3f; break; // QUESTION MARK
 				}
 				break;
 			case (char)0xe2:
@@ -110,14 +112,14 @@ char *convert_to_rdscharset(const char *str) {
 							case (char)0x96: new_str[i] = (char)0x60; break; // DOUBLE VERTICAL LINE
 							case (char)0xbe: new_str[i] = (char)0x7e; break; // OVERLINE
 							case (char)0xb0: new_str[i] = (char)0xa3; break; // PER MILLE SIGN
-							default: new_str[i] = *str; break;
+							default: new_str[i] = (char)0x3f; break; // QUESTION MARK
 						}
 						break;
 					case (char)0x82:
 						str++;
 						switch(*str) {
 							case (char)0xac: new_str[i] = (char)0xa9; break; // EURO SIGN
-							default: new_str[i] = *str; break;
+							default: new_str[i] = (char)0x3f; break; // QUESTION MARK
 						}
 						break;
 					case (char)0x86:
@@ -127,10 +129,10 @@ char *convert_to_rdscharset(const char *str) {
 							case (char)0x91: new_str[i] = (char)0xad; break; // UPWARDS ARROW
 							case (char)0x92: new_str[i] = (char)0xae; break; // RIGHTWARDS ARROW
 							case (char)0x93: new_str[i] = (char)0xaf; break; // DOWNWARDS ARROW
-							default: new_str[i] = *str; break;
+							default: new_str[i] = (char)0x3f; break; // QUESTION MARK
 						}
 						break;
-					default: new_str[i] = *str; break;
+					default: new_str[i] = (char)0x3f; break; // QUESTION MARK
 				}
 				break;
 			case (char)0xc3:
@@ -198,7 +200,7 @@ char *convert_to_rdscharset(const char *str) {
 					case (char)0xb5: new_str[i] = (char)0xf6; break; // LATIN SMALL LETTER O WITH TILDE
 					case (char)0xb8: new_str[i] = (char)0xf7; break; // LATIN SMALL LETTER O WITH STROKE
 					case (char)0xbe: new_str[i] = (char)0xf8; break; // LATIN SMALL LETTER THORN
-					default: new_str[i] = *str; break;
+					default: new_str[i] = (char)0x3f; break; // QUESTION MARK
 				}
 				break;
 			case (char)0xc5:
@@ -231,7 +233,7 @@ char *convert_to_rdscharset(const char *str) {
 					case (char)0x9b: new_str[i] = (char)0xfc; break; // LATIN SMALL LETTER S WITH ACUTE
 					case (char)0xba: new_str[i] = (char)0xfd; break; // LATIN SMALL LETTER Z WITH ACUTE
 					case (char)0xa7: new_str[i] = (char)0xfe; break; // LATIN SMALL LETTER T WITH STROKE
-					default: new_str[i] = *str; break;
+					default: new_str[i] = (char)0x3f; break; // QUESTION MARK
 				}
 				break;
 			case (char)0xc4:
@@ -250,26 +252,27 @@ char *convert_to_rdscharset(const char *str) {
 					case (char)0x91: new_str[i] = (char)0xde; break; // LATIN SMALL LETTER D WITH STROKE
 					case (char)0x86: new_str[i] = (char)0xeb; break; // LATIN CAPITAL LETTER C WITH ACUTE
 					case (char)0x87: new_str[i] = (char)0xfb; break; // LATIN SMALL LETTER C WITH ACUTE
-					default: new_str[i] = *str; break;
+					default: new_str[i] = (char)0x3f; break; // QUESTION MARK
 				}
 				break;
 			case (char)0xce:
 				str++;
 				switch(*str) {
 					case (char)0xb1: new_str[i] = (char)0xa1; break; // GREEK SMALL LETTER ALPHA
-					default: new_str[i] = *str; break;
+					default: new_str[i] = (char)0x3f; break; // QUESTION MARK
 				}
 				break;
 			case (char)0xcf:
 				str++;
 				switch(*str) {
 					case (char)0x80: new_str[i] = (char)0xa8; break; // GREEK SMALL LETTER PI
-					default: new_str[i] = *str; break;
+					default: new_str[i] = (char)0x3f; break; // QUESTION MARK
 				}
 				break;
 			case (char)0x24: new_str[i] = (char)0xab; break; // DOLLAR SIGN
 			default: new_str[i] = *str; break;
 		}
+		// CHARSET END
 
 		i++;
 		str++;

@@ -4,132 +4,237 @@ import unicodedata
 # RDS code to UCS-2
 charset = {}
 
-charset[0x24] = 0x00A4 # ¤
-charset[0x5E] = 0x2015 # ―
-charset[0x60] = 0x2016 # ║
-charset[0x7E] = 0x203E # ¯
-charset[0x80] = 0x00E1 # á
-charset[0x81] = 0x00E0 # à
-charset[0x82] = 0x00E9 # é
-charset[0x83] = 0x00E8 # è
-charset[0x84] = 0x00ED # í
-charset[0x85] = 0x00EC # ì
-charset[0x86] = 0x00F3 # ó
-charset[0x87] = 0x00F2 # ò
-charset[0x88] = 0x00FA # ú
-charset[0x89] = 0x00F9 # ù
-charset[0x8A] = 0x00D1 # Ñ
-charset[0x8B] = 0x00C7 # Ç
-charset[0x8C] = 0x015E # Ş
-charset[0x8D] = 0x00DF # ß
-charset[0x8E] = 0x00A1 # ¡
-charset[0x8F] = 0x0132 # Ĳ
-charset[0x90] = 0x00E2 # â
-charset[0x91] = 0x00E4 # ä
-charset[0x92] = 0x00EA # ê
-charset[0x93] = 0x00EB # ë
-charset[0x94] = 0x00EE # î
-charset[0x95] = 0x00EF # ï
-charset[0x96] = 0x00F4 # ô
-charset[0x97] = 0x00F6 # ö
-charset[0x98] = 0x00FB # û
-charset[0x99] = 0x00FC # ü
-charset[0x9A] = 0x00F1 # ñ
-charset[0x9B] = 0x00E7 # ç
-charset[0x9C] = 0x015F # ş
-charset[0x9D] = 0x011F # ğ
-charset[0x9E] = 0x0131 # ı
-charset[0x9F] = 0x0133 # ĳ
-charset[0xA0] = 0x00AA # ª
-charset[0xA1] = 0x03B1 # α
-charset[0xA2] = 0x00A9 # ©
-charset[0xA3] = 0x2030 # ‰
-charset[0xA4] = 0x011E # Ğ
-charset[0xA5] = 0x011B # ĕ
-charset[0xA6] = 0x0148 # ň
-charset[0xA7] = 0x0151 # ő
-charset[0xA8] = 0x03C0 # π
-charset[0xA9] = 0x20AC # €
-charset[0xAA] = 0x00A3 # ₤
-charset[0xAB] = 0x0024 # $
-charset[0xAC] = 0x2190 # ←
-charset[0xAD] = 0x2191 # ↑
-charset[0xAE] = 0x2192 # →
-charset[0xAF] = 0x2193 # ↓
-charset[0xB0] = 0x00BA # º
-charset[0xB1] = 0x00B9 # ¹
-charset[0xB4] = 0x00B1 # ±
-charset[0xB5] = 0x0130 # İ
-charset[0xB6] = 0x0144 # ń
-charset[0xB7] = 0x0171 # ű
-charset[0xB8] = 0x00B5 # µ
-charset[0xB9] = 0x00BF # ¿
-charset[0xBA] = 0x00F7 # ÷
-charset[0xBB] = 0x00B0 # º
-charset[0xBF] = 0x00A7 # §
-charset[0xC0] = 0x00C1 # Á
-charset[0xC1] = 0x00C0 # À
-charset[0xC2] = 0x00C9 # É
-charset[0xC3] = 0x00C8 # È
-charset[0xC4] = 0x00CD # Í
-charset[0xC5] = 0x00CC # Ì
-charset[0xC6] = 0x00D3 # Ó
-charset[0xC7] = 0x00D2 # Ò
-charset[0xC8] = 0x00DA # Ú
-charset[0xC9] = 0x00D9 # Ù
-charset[0xCA] = 0x0158 # Ř
-charset[0xCB] = 0x010C # Č
-charset[0xCC] = 0x0160 # Š
-charset[0xCD] = 0x017D # Ž
-charset[0xCE] = 0x00D0 # Ð
-charset[0xCF] = 0x013F # Ŀ
-charset[0xD0] = 0x00C2 # Â
-charset[0xD1] = 0x00C4 # Ä
-charset[0xD2] = 0x00CA # Ê
-charset[0xD3] = 0x00CB # Ë
-charset[0xD4] = 0x00CE # Î
-charset[0xD5] = 0x00CF # Ï
-charset[0xD6] = 0x00D4 # Ô
-charset[0xD7] = 0x00D6 # Ö
-charset[0xD8] = 0x00DB # Û
-charset[0xD9] = 0x00DC # Ü
-charset[0xDA] = 0x0159 # ř
-charset[0xDB] = 0x010D # č
-charset[0xDC] = 0x0161 # š
-charset[0xDD] = 0x017E # ž
-charset[0xDE] = 0x0111 # đ
-charset[0xDF] = 0x0140 # ŀ
-charset[0xE0] = 0x00C3 # Ã
-charset[0xE1] = 0x00C5 # Å
-charset[0xE2] = 0x00C6 # Æ
-charset[0xE3] = 0x0152 # Œ
-charset[0xE4] = 0x0177 # ŷ
-charset[0xE5] = 0x00DD # Ý
-charset[0xE6] = 0x00D5 # Õ
-charset[0xE7] = 0x00D8 # Ø
-charset[0xE8] = 0x00DE # Þ
-charset[0xE9] = 0x014A # Ŋ
-charset[0xEA] = 0x0154 # Ŕ
-charset[0xEB] = 0x0106 # Ć
-charset[0xEC] = 0x015A # Ś
-charset[0xED] = 0x0179 # Ź
-charset[0xEE] = 0x0166 # Ŧ
-charset[0xEF] = 0x00F0 # ð
-charset[0xF0] = 0x00E3 # ã
-charset[0xF1] = 0x00E5 # å
-charset[0xF2] = 0x00E6 # æ
-charset[0xF3] = 0x0153 # œ
-charset[0xF4] = 0x0175 # ŵ
-charset[0xF5] = 0x00FD # ý
-charset[0xF6] = 0x00F5 # õ
-charset[0xF7] = 0x00F8 # ø
-charset[0xF8] = 0x00FE # þ
-charset[0xF9] = 0x014B # ŋ
-charset[0xFA] = 0x0155 # ŕ
-charset[0xFB] = 0x0107 # ć
-charset[0xFC] = 0x015B # ś
-charset[0xFD] = 0x017A # ź
-charset[0xFE] = 0x0167 # ŧ
+# The data comes directly from the rdscharset.pdf, which comes from the R22_039_1 standard
+
+data = """33 0x21 ! 0x0021 EXCLAMATION MARK
+34 0x22 " 0x0022 QUOTATION MARK
+35 0x23 # 0x0023 NUMBER SIGN
+36 0x24 ¤ 0x00A4 CURRENCY SIGN
+37 0x25 % 0x0025 PERCENT SIGN
+38 0x26 & 0x0026 AMPERSAND
+39 0x27 ' 0x0027 APOSTROPHE
+40 0x28 ( 0x0028 LEFT PARENTHESIS
+41 0x29 ) 0x0029 RIGHT PARENTHESIS
+42 0x2A * 0x002A ASTERISK
+43 0x2B + 0x002B PLUS SIGN
+44 0x2C , 0x002C COMMA
+45 0x2D - 0x002D HYPHEN-MINUS
+46 0x2E . 0x002E FULL STOP
+47 0x2F / 0x002F SOLIDUS
+48 0x30 0 0x0030 DIGIT ZERO
+49 0x31 1 0x0031 DIGIT ONE
+50 0x32 2 0x0032 DIGIT TWO
+51 0x33 3 0x0033 DIGIT THREE
+52 0x34 4 0x0034 DIGIT FOUR
+53 0x35 5 0x0035 DIGIT FIVE
+54 0x36 6 0x0036 DIGIT SIX
+55 0x37 7 0x0037 DIGIT SEVEN
+56 0x38 8 0x0038 DIGIT EIGHT
+57 0x39 9 0x0039 DIGIT NINE
+58 0x3A : 0x003A COLON
+59 0x3B ; 0x003B SEMICOLON
+60 0x3C < 0x003C LESS-THAN SIGN
+61 0x3D = 0x003D EQUALS SIGN
+62 0x3E > 0x003E GREATER-THAN SIGN
+63 0x3F ? 0x003F QUESTION MARK
+64 0x40 @ 0x0040 COMMERCIAL AT
+65 0x41 A 0x0041 LATIN CAPITAL LETTER A
+66 0x42 B 0x0042 LATIN CAPITAL LETTER B
+67 0x43 C 0x0043 LATIN CAPITAL LETTER C
+68 0x44 D 0x0044 LATIN CAPITAL LETTER D
+69 0x45 E 0x0045 LATIN CAPITAL LETTER E
+70 0x46 F 0x0046 LATIN CAPITAL LETTER F
+71 0x47 G 0x0047 LATIN CAPITAL LETTER G
+72 0x48 H 0x0048 LATIN CAPITAL LETTER H
+73 0x49 I 0x0049 LATIN CAPITAL LETTER I
+74 0x4A J 0x004A LATIN CAPITAL LETTER J
+75 0x4B K 0x004B LATIN CAPITAL LETTER K
+76 0x4C L 0x004C LATIN CAPITAL LETTER L
+77 0x4D M 0x004D LATIN CAPITAL LETTER M
+78 0x4E N 0x004E LATIN CAPITAL LETTER N
+79 0x4F O 0x004F LATIN CAPITAL LETTER O
+80 0x50 P 0x0050 LATIN CAPITAL LETTER P
+81 0x51 Q 0x0051 LATIN CAPITAL LETTER Q
+82 0x52 R 0x0052 LATIN CAPITAL LETTER R
+83 0x53 S 0x0053 LATIN CAPITAL LETTER S
+84 0x54 T 0x0054 LATIN CAPITAL LETTER T
+85 0x55 U 0x0055 LATIN CAPITAL LETTER U
+86 0x56 V 0x0056 LATIN CAPITAL LETTER V
+87 0x57 W 0x0057 LATIN CAPITAL LETTER W
+88 0x58 X 0x0058 LATIN CAPITAL LETTER X
+89 0x59 Y 0x0059 LATIN CAPITAL LETTER Y
+90 0x5A Z 0x005A LATIN CAPITAL LETTER Z
+91 0x5B [ 0x005B LEFT SQUARE BRACKET
+92 0x5C \\ 0x005C REVERSE SOLIDUS
+93 0x5D ] 0x005D RIGHT SQUARE BRACKET
+94 0x5E ― 0x2015 HORIZONTAL BAR
+95 0x5F _ 0x005F LOW LINE
+96 0x60 ║ 0x2016 DOUBLE VERTICAL LINE
+97 0x61 a 0x0061 LATIN SMALL LETTER A
+98 0x62 b 0x0062 LATIN SMALL LETTER B
+99 0x63 c 0x0063 LATIN SMALL LETTER C
+100 0x64 d 0x0064 LATIN SMALL LETTER D
+101 0x65 e 0x0065 LATIN SMALL LETTER E
+102 0x66 f 0x0066 LATIN SMALL LETTER F
+103 0x67 g 0x0067 LATIN SMALL LETTER G
+104 0x68 h 0x0068 LATIN SMALL LETTER H
+105 0x69 i 0x0069 LATIN SMALL LETTER I
+106 0x6A j 0x006A LATIN SMALL LETTER J
+107 0x6B k 0x006B LATIN SMALL LETTER K
+108 0x6C l 0x006C LATIN SMALL LETTER L
+109 0x6D m 0x006D LATIN SMALL LETTER M
+110 0x6E n 0x006E LATIN SMALL LETTER N
+111 0x6F o 0x006F LATIN SMALL LETTER O
+112 0x70 p 0x0070 LATIN SMALL LETTER P
+113 0x71 q 0x0071 LATIN SMALL LETTER Q
+114 0x72 r 0x0072 LATIN SMALL LETTER R
+115 0x73 s 0x0073 LATIN SMALL LETTER S
+116 0x74 t 0x0074 LATIN SMALL LETTER T
+117 0x75 u 0x0075 LATIN SMALL LETTER U
+118 0x76 v 0x0076 LATIN SMALL LETTER V
+119 0x77 w 0x0077 LATIN SMALL LETTER W
+120 0x78 x 0x0078 LATIN SMALL LETTER X
+121 0x79 y 0x0079 LATIN SMALL LETTER Y
+122 0x7A z 0x007A LATIN SMALL LETTER Z
+123 0x7B { 0x007B LEFT CURLY BRACKET
+124 0x7C | 0x007C VERTICAL LINE
+125 0x7D } 0x007D RIGHT CURLY BRACKET
+126 0x7E ¯ 0x203E OVERLINE
+128 0x80 á 0x00E1 LATIN SMALL LETTER A WITH ACUTE
+129 0x81 à 0x00E0 LATIN SMALL LETTER A WITH GRAVE
+130 0x82 é 0x00E9 LATIN SMALL LETTER E WITH ACUTE
+131 0x83 è 0x00E8 LATIN SMALL LETTER E WITH GRAVE
+132 0x84 í 0x00ED LATIN SMALL LETTER I WITH ACUTE
+133 0x85 ì 0x00EC LATIN SMALL LETTER I WITH GRAVE
+134 0x86 ó 0x00F3 LATIN SMALL LETTER O WITH ACUTE
+135 0x87 ò 0x00F2 LATIN SMALL LETTER O WITH GRAVE
+136 0x88 ú 0x00FA LATIN SMALL LETTER U WITH ACUTE
+137 0x89 ù 0x00F9 LATIN SMALL LETTER U WITH GRAVE
+138 0x8A Ñ 0x00D1 LATIN CAPITAL LETTER N WITH TILDE
+139 0x8B Ç 0x00C7 LATIN CAPITAL LETTER C WITH CEDILLA
+140 0x8C Ş 0x015E LATIN CAPITAL LETTER S WITH CEDILLA
+141 0x8D ß 0x00DF LATIN SMALL LETTER SHARP S (German)
+142 0x8E ¡ 0x00A1 INVERTED EXCLAMATION MARK
+143 0x8F Ĳ 0x0132 LATIN CAPITAL LIGATURE IJ
+144 0x90 â 0x00E2 LATIN SMALL LETTER A WITH CIRCUMFLEX
+145 0x91 ä 0x00E4 LATIN SMALL LETTER A WITH DIAERESIS
+146 0x92 ê 0x00EA LATIN SMALL LETTER E WITH CIRCUMFLEX
+147 0x93 ë 0x00EB LATIN SMALL LETTER E WITH DIAERESIS
+148 0x94 î 0x00EE LATIN SMALL LETTER I WITH CIRCUMFLEX
+149 0x95 ï 0x00EF LATIN SMALL LETTER I WITH DIAERESIS
+150 0x96 ô 0x00F4 LATIN SMALL LETTER O WITH CIRCUMFLEX
+151 0x97 ö 0x00F6 LATIN SMALL LETTER O WITH DIAERESIS
+152 0x98 û 0x00FB LATIN SMALL LETTER U WITH CIRCUMFLEX
+153 0x99 ü 0x00FC LATIN SMALL LETTER U WITH DIAERESIS
+154 0x9A ñ 0x00F1 LATIN SMALL LETTER N WITH TILDE
+155 0x9B ç 0x00E7 LATIN SMALL LETTER C WITH CEDILLA
+156 0x9C ş 0x015F LATIN SMALL LETTER S WITH CEDILLA
+157 0x9D ğ 0x011F LATIN SMALL LETTER G WITH BREVE
+158 0x9E ı 0x0131 LATIN SMALL LETTER DOTLESS I
+159 0x9F ĳ 0x0133 LATIN SMALL LIGATURE IJ
+160 0xA0 ª 0x00AA FEMININE ORDINAL INDICATOR
+161 0xA1 α 0x03B1 GREEK SMALL LETTER ALPHA
+162 0xA2 © 0x00A9 COPYRIGHT SIGN
+163 0xA3 ‰ 0x2030 PER THOUSAND SIGN
+164 0xA4 Ğ 0x011E LATIN CAPITAL LETTER G WITH BREVE
+165 0xA5 ĕ 0x011B LATIN SMALL LETTER WITH CARON
+166 0xA6 ň 0x0148 LATIN SMALL LETTER N WITH CARON
+167 0xA7 ő 0x0151 LATIN SMALL LETTER O WITH DOUBLE ACUTE
+168 0xA8 π 0x03C0 GREEK SMALL LETTER PI
+169 0xA9 € 0x20AC EURO SIGN
+170 0xAA ₤ 0x00A3 POUND SIGN
+171 0xAB $ 0x0024 DOLLAR SIGN
+172 0xAC ← 0x2190 LEFTWARDS ARROW
+173 0xAD ↑ 0x2191 UPWARDS ARROW
+174 0xAE → 0x2192 RIGHTWARDS ARROW
+175 0xAF ↓ 0x2193 DOWNWARDS ARROW
+176 0xB0 º 0x00BA MASCULIN ORDINAL INDICATOR
+177 0xB1 ¹ 0x00B9 SUPERSCRIPT ONE
+178 0xB2 ² 0x00B2 SUPERSCRIPT TWO
+179 0xB3 ³ 0x00B3 SUPERSCRIPT THREE
+180 0xB4 ± 0x00B1 PLUS-MINUS SIGN
+181 0xB5 İ 0x0130 LATIN CAPITAL LETTER I WITH DOT ABOVE
+182 0xB6 ń 0x0144 LATIN SMALL LETTER N WITH ACUTE
+183 0xB7 ű 0x0171 LATIN SMALL LETTER U WITH DOUBLE ACUTE
+184 0xB8 µ 0x00B5 MIKRO SIGN
+185 0xB9 ¿ 0x00BF INVERTED QUESTION MARK
+186 0xBA ÷ 0x00F7 DIVISION SIGN
+187 0xBB º 0x00B0 DEGREE SIGN
+188 0xBC ¼ 0x00BC VULGAR FRACTION ONE QUARTER
+189 0xBD ½ 0x00BD VULGAR FRACTION ONE HALF
+190 0xBE ¾ 0x00BE VULGAR FRACTION THREE QUARTERS
+191 0xBF § 0x00A7 SECTION SIGN
+192 0xC0 Á 0x00C1 LATIN CAPITAL LETTER A WITH ACUTE
+193 0xC1 À 0x00C0 LATIN CAPITAL LETTER A WITH GRAVE
+194 0xC2 É 0x00C9 LATIN CAPITAL LETTER E WITH ACUTE
+195 0xC3 È 0x00C8 LATIN CAPITAL LETTER E WITH GRAVE
+196 0xC4 Í 0x00CD LATIN CAPITAL LETTER I WITH ACUTE
+197 0xC5 Ì 0x00CC LATIN CAPITAL LETTER I WITH GRAVE
+198 0xC6 Ó 0x00D3 LATIN CAPITAL LETTER O WITH ACUTE
+199 0xC7 Ò 0x00D2 LATIN CAPITAL LETTER O WITH GRAVE
+200 0xC8 Ú 0x00DA LATIN CAPITAL LETTER U WITH ACUTE
+201 0xC9 Ù 0x00D9 LATIN CAPITAL LETTER U WITH GRAVE
+202 0xCA Ř 0x0158 LATIN CAPITAL LETTER R WITH CARON
+203 0xCB Č 0x010C LATIN CAPITAL LETTER C WITH CARON
+204 0xCC Š 0x0160 LATIN CAPITAL LETTER S WITH CARON
+205 0xCD Ž 0x017D LATIN CAPITAL LETTER Z WITH CARON
+206 0xCE Ð 0x00D0 LATIN CAPITAL LETTER ETH
+207 0xCF Ŀ 0x013F LATIN CAPITAL LETTER L WITH MIDDLE DOT
+208 0xD0 Â 0x00C2 LATIN CAPITAL LETTER A WITH CIRCUMFLEX
+209 0xD1 Ä 0x00C4 LATIN CAPITAL LETTER A WITH DIAERESIS
+210 0xD2 Ê 0x00CA LATIN CAPITAL LETTER E WITH CIRCUMFLEX
+211 0xD3 Ë 0x00CB LATIN CAPITAL LETTER A WITH DIAERESIS
+212 0xD4 Î 0x00CE LATIN CAPITAL LETTER I WITH CIRCUMFLEX
+213 0xD5 Ï 0x00CF LATIN CAPITAL LETTER I WITH DIAERESIS
+214 0xD6 Ô 0x00D4
+215 0xD7 Ö 0x00D6
+216 0xD8 Û 0x00DB
+217 0xD9 Ü 0x00DC
+218 0xDA ř 0x0159
+219 0xDB č 0x010D
+220 0xDC š 0x0161
+221 0xDD ž 0x017E
+222 0xDE đ 0x0111
+223 0xDF ŀ 0x0140
+224 0xE0 Ã 0x00C3
+225 0xE1 Å 0x00C5
+226 0xE2 Æ 0x00C6
+227 0xE3 Œ 0x0152
+228 0xE4 ŷ 0x0177
+229 0xE5 Ý 0x00DD
+230 0xE6 Õ 0x00D5
+231 0xE7 Ø 0x00D8
+232 0xE8 Þ 0x00DE
+233 0xE9 Ŋ 0x014A
+234 0xEA Ŕ 0x0154
+235 0xEB Ć 0x0106
+236 0xEC Ś 0x015A
+237 0xED Ź 0x0179
+238 0xEE Ŧ 0x0166
+239 0xEF ð 0x00F0
+240 0xF0 ã 0x00E3
+241 0xF1 å 0x00E5
+242 0xF2 æ 0x00E6
+243 0xF3 œ 0x0153
+244 0xF4 ŵ 0x0175
+245 0xF5 ý 0x00FD
+246 0xF6 õ 0x00F5
+247 0xF7 ø 0x00F8
+248 0xF8 þ 0x00FE
+249 0xF9 ŋ 0x014B
+250 0xFA ŕ 0x0155
+251 0xFB ć 0x0107
+252 0xFC ś 0x015B
+253 0xFD ź 0x017A
+254 0xFE ŧ 0x0167
+"""
+
+for line in data.splitlines():
+    parts = line.split()
+    num, rds_code, symbol, ucs2, *_ = parts
+    code = int(rds_code, 16)
+    ucs = int(ucs2, 16)
+    if code != ucs: charset[code] = ucs
 
 table = {}
 
@@ -147,30 +252,49 @@ for rds_code, ucs2 in charset.items():
             if byte not in node:
                 node[byte] = {}
             node = node[byte]
-def generate_switch(node, indent=0):
-    """
-    Recursively generates nested C switch statements from the table.
-    `node` is the current dictionary level.
-    `indent` is used for formatting the output.
-    """
-    ind = "    " * indent
+def generate_switch(node, indent=0, level=0):
+    ind = "\t" * indent
     code_lines = [f"{ind}switch(*str) {{"]
 
     for byte, child in node.items():
         if isinstance(child, dict):
-            code_lines.append(f"{ind}    case (char)0x{byte:02x}:")
-            code_lines.append(f"{ind}        str++;")
-            code_lines.extend(generate_switch(child, indent + 2))
-            code_lines.append(f"{ind}        break;")
+            code_lines.append(f"{ind}\tcase (char)0x{byte:02x}:")
+            code_lines.append(f"{ind}\t\tstr++;")
+            code_lines.extend(generate_switch(child, indent + 2, level + 1))
+            code_lines.append(f"{ind}\t\tbreak;")
         else:
             comment = unicodedata.name(struct.pack("!H", charset[child]).decode("utf-16-be"))
-            code_lines.append(f"{ind}    case (char)0x{byte:02x}: new_str[i] = (char)0x{child:02x}; break; // {comment}")
-    code_lines.append(f"{ind}    default: new_str[i] = *str; break;")
+            code_lines.append(f"{ind}\tcase (char)0x{byte:02x}: new_str[i] = (char)0x{child:02x}; break; // {comment}")
+    if level == 0: code_lines.append(f"{ind}\tdefault: new_str[i] = *str; break;")
+    else: code_lines.append(f"{ind}\tdefault: new_str[i] = (char)0x3f; break; // {unicodedata.name("?")}") # Question mark
 
     code_lines.append(f"{ind}}}")
     return code_lines
 
-data = generate_switch(table)
-with open("switch.c", "w", encoding="utf-8") as f:
-    for line in data:
+data = generate_switch(table, 2)
+
+lines = []
+lines_end = []
+with open("src/lib.c", "r", encoding="utf-8") as f:
+    while True:
+        pos = f.tell()
+        line = f.readline()
+        if f.tell() == pos: break
+        lines.append(line.rstrip())
+        if "// CHARSET START" in line: break
+    while True:
+        pos = f.tell()
+        line = f.readline()
+        if f.tell() == pos: break
+        if "// CHARSET END" in line:
+            lines_end.append(line.rstrip())
+            break
+    while True:
+        pos = f.tell()
+        line = f.readline()
+        if f.tell() == pos: break
+        lines_end.append(line.rstrip())
+
+with open("src/lib.c", "w", encoding="utf-8") as f:
+    for line in lines + data + lines_end:
         f.write(line + "\n")
