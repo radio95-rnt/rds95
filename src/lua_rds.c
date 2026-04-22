@@ -363,6 +363,11 @@ void lua_call_table(const char* function) {
 
 void lua_call_tfunction_nolock(const char* name) {
     lua_getglobal(L, "hooks");
+    if (!lua_istable(L, -1)) {
+        lua_pop(L, 1);
+        return;
+    }
+
     lua_getfield(L, -1, name);
 
     if (!lua_istable(L, -1)) {
