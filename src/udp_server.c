@@ -49,6 +49,7 @@ void poll_udp_server() {
     for (ssize_t i = 0; i < bytes_read; i++) {
         if (buf[i] == '\n' || (unsigned char)buf[i] == 0xFF) {
             size_t len = i - start;
+            if((unsigned char)buf[i] == 0xFF) len += 1;
 
             if (len > 0 && len < BUF_SIZE) {
                 memset(cmd_buf, 0, BUF_SIZE);
