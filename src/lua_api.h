@@ -68,6 +68,9 @@ int lua_get_rds_link(lua_State *localL);
 int lua_set_rds_program(lua_State *localL);
 int lua_get_rds_program(lua_State *localL);
 
+int lua_set_rds_writing_program(lua_State *localL);
+int lua_get_rds_writing_program(lua_State *localL);
+
 int lua_set_rds_rt_switching_period(lua_State *localL);
 int lua_get_rds_rt_switching_period(lua_State *localL);
 

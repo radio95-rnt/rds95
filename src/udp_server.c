@@ -44,22 +44,46 @@ void poll_udp_server() {
 	ssize_t bytes_read = recvfrom(sockfd, buf, BUF_SIZE - 1, 0, (struct sockaddr *)&client_addr, &client_len);
     if (bytes_read <= 0) return;
 
-    buf[bytes_read] = '\0';
+    size_t start = 0;
 
-    char *token = strtok(buf, "\r\n");
-    while (token != NULL) {
-        size_t len = strlen(token);
+    for (ssize_t i = 0; i < bytes_read; i++) {
+        if (buf[i] == '\n' || (unsigned char)buf[i] == 0xFF) {
+            size_t len = i - start;
+
+            if (len > 0 && len < BUF_SIZE) {
+                memset(cmd_buf, 0, BUF_SIZE);
+                memcpy(cmd_buf, buf + start, len);
+                memset(cmd_output, 0, BUF_SIZE);
+
+                size_t out_len = 0;
+                run_lua(cmd_buf, len, cmd_output, &out_len);
+
+                if (out_len > 0 &&
+                    sendto(sockfd, cmd_output, out_len, 0,
+                        (struct sockaddr *)&client_addr, client_len) == -1) {
+                    perror("sendto");
+                }
+            }
+
+            start = i + 1;
+        }
+    }
+
+    if (start < bytes_read) {
+        size_t len = bytes_read - start;
+
         if (len > 0 && len < BUF_SIZE) {
-            memset(cmd_buf, 0, BUF_SIZE);
-            strncpy(cmd_buf, token, BUF_SIZE - 1);
-
-            memset(cmd_output, 0, BUF_SIZE);
+            memcpy(cmd_buf, buf + start, len);
 
             size_t out_len = 0;
-            run_lua(cmd_buf, cmd_output, &out_len);
-            if (out_len > 0 && sendto(sockfd, cmd_output, out_len, 0, (struct sockaddr *)&client_addr, client_len) == -1) perror("sendto"); // no walrus
+            run_lua(cmd_buf, len, cmd_output, &out_len);
+
+            if (out_len > 0 &&
+                sendto(sockfd, cmd_output, out_len, 0,
+                    (struct sockaddr *)&client_addr, client_len) == -1) {
+                perror("sendto");
+            }
         }
-        token = strtok(NULL, "\r\n");
     }
 }
 

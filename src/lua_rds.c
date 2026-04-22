@@ -56,6 +56,8 @@ void init_lua(RDSEncoder* _enc) {
     lua_setfield(L, -2, "max_programs");
     lua_registertotable(L, "set_program", lua_set_rds_program);
     lua_registertotable(L, "get_program", lua_get_rds_program);
+    lua_registertotable(L, "set_writing_program", lua_set_rds_writing_program);
+    lua_registertotable(L, "get_writing_program", lua_get_rds_writing_program);
     lua_setglobal(L, "dp");
 
     lua_newtable(L);
@@ -163,16 +165,23 @@ void init_lua(RDSEncoder* _enc) {
     }
 }
 
-void run_lua(char *str, char *cmd_output, size_t* out_len) {
+void run_lua(char *str, size_t str_len, char *cmd_output, size_t *out_len) {
     pthread_mutex_lock(&lua_mutex);
+
     lua_getglobal(L, "data_handle");
 
     if (lua_isfunction(L, -1)) {
-        lua_pushstring(L, str);
+        lua_pushlstring(L, str, str_len);
+
         if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
-            if (lua_isstring(L, -1) && cmd_output) _strncpy(cmd_output, lua_tolstring(L, -1, out_len), 254);
+            if (lua_isstring(L, -1) && cmd_output) {
+                const char *lua_str = lua_tolstring(L, -1, out_len);
+                if (*out_len > 254) *out_len = 254;
+                memcpy(cmd_output, lua_str, *out_len);
+            }
         } else fprintf(stderr, "Lua error: %s at 'data_handle'\n", lua_tostring(L, -1));
-    } else if (lua_isstring(L, -1) && cmd_output) _strncpy(cmd_output, lua_tolstring(L, -1, out_len), 254);
+    } else fprintf(stderr, "'data_handle' is not a function\n");
+
     lua_pop(L, 1);
     pthread_mutex_unlock(&lua_mutex);
 }

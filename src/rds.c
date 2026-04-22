@@ -329,14 +329,14 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 
 	tempCoder.state[program].rt_ab = 1;
 	tempCoder.state[program].ptyn_ab = 1;
-	set_rds_rt1(&tempCoder, enc->data[program].rt1);
-	set_rds_rt2(&tempCoder, enc->data[program].rt2);
-	set_rds_ps(&tempCoder, enc->data[program].ps);
-	set_rds_tps(&tempCoder, enc->data[program].tps);
-	set_rds_ptyn(&tempCoder, enc->data[program].ptyn);
-	set_rds_lps(&tempCoder, enc->data[program].lps);
-	set_rds_grpseq(&tempCoder, enc->data[program].grp_sqc);
-	set_rds_grpseq2(&tempCoder, enc->data[program].grp_sqc_rds2);
+	set_rds_rt1(&tempCoder, enc->data[program].rt1, program);
+	set_rds_rt2(&tempCoder, enc->data[program].rt2, program);
+	set_rds_ps(&tempCoder, enc->data[program].ps), program;
+	set_rds_tps(&tempCoder, enc->data[program].tps, program);
+	set_rds_lps(&tempCoder, enc->data[program].lps, program);
+	set_rds_ptyn(&tempCoder, enc->data[program].ptyn, program);
+	set_rds_grpseq(&tempCoder, enc->data[program].grp_sqc, program);
+	set_rds_grpseq2(&tempCoder, enc->data[program].grp_sqc_rds2, program);
 
 	struct tm *utc;
 	time_t now;

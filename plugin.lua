@@ -28,10 +28,17 @@ function dp.reset_rds() end
 ---@return nil
 function dp.force_save() end
 
+---Set the program which is actually being modulated. Setting this does not affect the writing program
 ---@param program_idx integer 0 to (max_programs - 1)
 function dp.set_program(program_idx) end
 ---@return integer
 function dp.get_program() end
+
+---Sets the program all of the set/get functions affect
+---@param program_idx integer 0 to (max_programs - 1)
+function dp.set_writing_program(program_idx) end
+---@return integer
+function dp.get_writing_program() end
 
 ---This function is called by the C core after we reset data, or have no data in general
 ---It should be defined by the user in the script.

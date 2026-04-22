@@ -1,4 +1,113 @@
+local mec_handlers = {}
+
+local function dsn_helper(dsn, write)
+    if dsn == 0 then write()
+    elseif dsn == 254 then
+        local start = dp.get_writing_program()
+        for i = 1, dp.max_programs do
+            local p = i - 1
+            if p ~= start then
+                dp.set_writing_program(p)
+                write()
+            end
+        end
+    elseif dsn == 255 then
+        for i = 1, dp.max_programs do
+            dp.set_writing_program(i - 1)
+            write()
+        end
+    else
+        dp.set_writing_program(dsn - 1)
+        write()
+    end
+end
+
+mec_handlers[1] = function (data)
+    -- PI
+    local dsn = string.byte(data, 2)
+    local psn = string.byte(data, 3)
+    local pi_msb = string.byte(data, 4)
+    local pi_lsb = string.byte(data, 5)
+
+    dsn_helper(dsn, function ()
+        rds.set_pi((pi_msb << 8) | pi_lsb)
+    end)
+end
+mec_handlers[2] = function (data)
+    -- PS
+    local dsn = string.byte(data, 2)
+    local psn = string.byte(data, 3)
+    local ps = string.sub(data, 4, 11)
+    dsn_helper(dsn, function ()
+        rds.set_ps(ps)
+    end)
+end
+mec_handlers[3] = function (data)
+    -- TP/TA
+    local dsn = string.byte(data, 2)
+    local psn = string.byte(data, 3)
+    local data = string.byte(data, 4)
+    dsn_helper(dsn, function ()
+        rds.set_ta((data & 1) ~= 0)
+        rds.set_ta((data & 2) ~= 0)
+    end)
+end
+
+---@param data string
+local function undo_byte_stuff(data)
+    local output = {}
+    local i = 1
+    while i <= #data do
+        local d0 = string.byte(data, i)
+        if d0 == 0xFD then
+            local d1 = string.byte(data, i + 1)
+            output[#output + 1] = string.char(0xFD + d1)
+            i = i + 2
+        else
+            output[#output + 1] = string.char(d0)
+            i = i + 1
+        end
+    end
+    return table.concat(output)
+end
+
+---@param packet string
+local function parse_uecp(packet)
+    local end_i = string.find(packet, "\xff", 1, true)
+    if not end_i then return end
+
+    local unstuffed = undo_byte_stuff(string.sub(packet, 2, end_i - 1))
+
+    local addr1 = string.byte(unstuffed, 1)
+    local addr2 = string.byte(unstuffed, 2)
+    local site_addr = (addr1 << 2) | (addr2 >> 6)
+    local encoder_addr = addr2 & 0x3F
+    local sequence_count = string.byte(unstuffed, 3)
+    local mfl = string.byte(unstuffed, 4)
+
+    local data = string.sub(unstuffed, 5, 4 + mfl)
+
+    if mfl ~= #data then return end
+
+    local crc_calculated = dp.crc16(string.sub(unstuffed, 1, 4 + mfl))
+    local crc_hi = string.byte(unstuffed, 4 + mfl + 1)
+    local crc_lo = string.byte(unstuffed, 4 + mfl + 2)
+    local crc_stored = (crc_hi << 8) | crc_lo
+
+    if crc_calculated ~= crc_stored then return end
+
+    local mec = string.byte(data, 1)
+    local handler = mec_handlers[mec]
+    if handler then 
+        handler(data)
+        dp.set_writing_program(dp.get_program())
+    end
+end
+
 function data_handle(data)
+    -- UECP
+    if string.byte(data, 1) == 0xfe then return parse_uecp(data) end
+
     if string.sub(data, 1, 4):lower() == "lua=" then
         local chunk, err = load("return " .. string.sub(data, 5), "udp_chunk")  -- skip "lua="
         if not chunk then return string.format("-\r\n%s\r\n", err) end
@@ -212,11 +321,6 @@ function data_handle(data)
         if not pty then return "-\r\n" end
         rds.set_pty(pty)
         return "+\r\n"
-    elseif cmd == "slcd" then
-        local slc_data = tonumber(value, 16)
-        if not slc_data then return "-\r\n" end
-        rds.set_slc_data(slc_data)
-        return "+\r\n"
     elseif cmd == "ct" then
         local ct = tonumber(value)
         if not ct then return "-\r\n" end
@@ -303,6 +407,7 @@ function data_handle(data)
         if not program then return "-\r\n" end
         if program < 1 or program > dp.max_programs then return "-\r\n" end
         dp.set_program(program-1)
+        dp.set_writing_program(program-1)
         rds.set_ta(false)
         return "+\r\n"
     elseif cmd == "dttmout" then
