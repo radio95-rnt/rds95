@@ -236,13 +236,7 @@ end
 
 ---@param packet string
 function uecp.parse_uecp(packet)
-    local end_i = string.find(packet, "\xff", 1, true)
-    if not end_i then
-        print("could not find 0xff")
-        return
-    end
-
-    local unstuffed = undo_byte_stuff(string.sub(packet, 2, end_i - 1))
+    local unstuffed = undo_byte_stuff(string.sub(packet, 2, #packet - 1))
 
     local addr1 = string.byte(unstuffed, 1)
     local addr2 = string.byte(unstuffed, 2)
