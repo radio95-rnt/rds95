@@ -74,7 +74,10 @@ end
 ---@param packet string
 local function parse_uecp(packet)
     local end_i = string.find(packet, "\xff", 1, true)
-    if not end_i then return end
+    if not end_i then
+        print("could not find 0xff")
+        return
+    end
 
     local unstuffed = undo_byte_stuff(string.sub(packet, 2, end_i - 1))
 
@@ -87,18 +90,24 @@ local function parse_uecp(packet)
 
     local data = string.sub(unstuffed, 5, 4 + mfl)
 
-    if mfl ~= #data then return end
+    if mfl ~= #data then
+        print("data len not right")
+        return
+    end
 
     local crc_calculated = dp.crc16(string.sub(unstuffed, 1, 4 + mfl))
     local crc_hi = string.byte(unstuffed, 4 + mfl + 1)
     local crc_lo = string.byte(unstuffed, 4 + mfl + 2)
     local crc_stored = (crc_hi << 8) | crc_lo
 
-    if crc_calculated ~= crc_stored then return end
+    if crc_calculated ~= crc_stored then
+        print("bad crc")
+        return
+    end
 
     local mec = string.byte(data, 1)
     local handler = mec_handlers[mec]
-    if handler then 
+    if handler then
         handler(data)
         dp.set_writing_program(dp.get_program())
     end
