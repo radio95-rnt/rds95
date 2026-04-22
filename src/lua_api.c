@@ -272,6 +272,7 @@ STR_RAW_GETTER(grp_sqc, 32)
 AF_SETTER(af_group0, af, RDSAFs, add_rds_af)
 
 int lua_toggle_rt_ab(lua_State *localL) {
+    (void)localL;
     TOGGLE(enc->state[writing_program].rt_ab);
     return 0;
 }
