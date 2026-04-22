@@ -220,7 +220,7 @@ mec_handlers[0x2D] = function (data)
     -- Manufacturer
     local mel = string.byte(data, 2)
     local designation = string.sub(data, 3, 4)
-    if designation == "95" and mel > 2 then
+    if string.byte(designation, 1) == 0x39 and string.byte(designation, 2) == 0x35 and mel > 2 then
         local data = string.sub(data, 5, 4+mel)
         pcall(data_handle, data)
     end
