@@ -55,7 +55,7 @@ end
 
 local function init_af_oda()
     if _Af_Oda_id == nil then
-        _Af_Oda_id = ext.register_oda(7, false, 0x6365, 0)
+        _Af_Oda_id = ext.register_oda(7, false, 0x6365, 0, false)
         ext.set_oda_handler(_Af_Oda_id, function()
             local b, c, d = get_next_af_oda_group()
             return true, b, c, d

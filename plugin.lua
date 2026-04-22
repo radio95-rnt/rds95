@@ -314,8 +314,9 @@ function rds.ext.set_af_oda(afs) end
 ---@param group_version boolean
 ---@param aid integer
 ---@param data integer
+---@param temp boolean
 ---@return integer oda_id
-function ext.register_oda(group, group_version, aid, data) end
+function ext.register_oda(group, group_version, aid, data, temp) end
 
 ---Unregisters an ODA, this stops the handler or AID being called/sent
 ---@param oda_id integer

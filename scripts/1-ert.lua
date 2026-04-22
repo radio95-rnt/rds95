@@ -6,7 +6,7 @@ local USERDATA_ERT_OFFSET = 0
 
 local function init_ert()
     if _Ert_oda_id == nil then
-        _Ert_oda_id = ext.register_oda(13, false, 0x6552, 1)
+        _Ert_oda_id = ext.register_oda(13, false, 0x6552, 1, false)
         ext.set_oda_handler(_Ert_oda_id, function ()
             if string.byte(userdata.get_offset(USERDATA_ERT_OFFSET+258, 1)) == 1 then
                 local new_data = userdata.get_offset(USERDATA_ERT_OFFSET, 128)

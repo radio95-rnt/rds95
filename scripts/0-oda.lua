@@ -1,7 +1,7 @@
-local _ODA = { group = 0, group_version = false, aid = 0, data = 0, handler = false }
+local _ODA = { group = 0, group_version = false, aid = 0, data = 0, handler = false, temp = false }
 
-function _ODA.new(group, group_version, aid, data, handler)
-    local instance = { group = group or 0, group_version = group_version or false, aid = aid or 0, data = data or 0, handler = handler or false }
+function _ODA.new(group, group_version, aid, data, handler, temp)
+    local instance = { group = group or 0, group_version = group_version or false, aid = aid or 0, data = data or 0, handler = handler or false, temp = temp or false }
     setmetatable(instance, { __index = _ODA })
     return instance
 end
@@ -16,11 +16,12 @@ local _RDS_ODA_pointer = 1
 ---@param group_version boolean
 ---@param aid integer
 ---@param data integer
+---@param temp boolean
 ---@return integer oda_id
-function ext.register_oda(group, group_version, aid, data)
+function ext.register_oda(group, group_version, aid, data, temp)
     if group == 14 or group == 15 or group == 2 or group == 0 then error("Group is incorrect", 2) end
     if (group == 10 or group == 4 or group == 1) and group_version then error("Group is incorrect", 2) end
-    local oda = _ODA.new(group, group_version, aid, data, false)
+    local oda = _ODA.new(group, group_version, aid, data, false, temp)
     for i = 1, #_RDS_ODAs do
         if _RDS_ODAs[i] == false then
             _RDS_ODAs[i] = oda
@@ -74,6 +75,9 @@ local function get_aid()
             local data, aid = oda.data, oda.aid
 
             _RDS_ODA_pointer = (_RDS_ODA_pointer % #_RDS_ODAs) + 1
+
+            if oda.temp then _RDS_ODAs[_RDS_ODA_pointer] = false end
+
             return true, b, data, aid
         end
 
@@ -91,7 +95,7 @@ local function get_data()
     while checked_count < #_RDS_ODAs do
         local oda = _RDS_ODAs[_RDS_ODA_pointer]
 
-        if oda ~= false and type(oda.handler) == "function" then
+        if oda ~= false and type(oda.handler) == "function" and not oda.temp then
             local ok, generated, b, c, d = pcall(oda.handler)
             if ok and generated then
                 _RDS_ODA_pointer = (_RDS_ODA_pointer % #_RDS_ODAs) + 1

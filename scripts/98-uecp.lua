@@ -45,29 +45,29 @@ local function dsn_helper(dsn, write)
     end
 end
 
-mec_handlers[1] = function (data)
+mec_handlers[1] = function(data)
     -- PI
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
     local pi_msb = string.byte(data, 4)
     local pi_lsb = string.byte(data, 5)
 
-    dsn_helper(dsn, function ()
+    dsn_helper(dsn, function()
         rds.set_pi((pi_msb << 8) | pi_lsb)
     end)
     return 5
 end
-mec_handlers[2] = function (data)
+mec_handlers[2] = function(data)
     -- PS
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
     local ps = string.sub(data, 4, 11) -- Static len
-    dsn_helper(dsn, function ()
+    dsn_helper(dsn, function()
         rds.set_ps(ps)
     end)
     return 11
 end
-mec_handlers[0x21] = function (data)
+mec_handlers[0x21] = function(data)
     -- LPS
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
@@ -77,12 +77,12 @@ mec_handlers[0x21] = function (data)
     local cut = string.find(lps, "\r", 1, true)
     if cut then lps = string.sub(lps, 1, cut - 1) end
 
-    dsn_helper(dsn, function ()
+    dsn_helper(dsn, function()
         rds.set_lps(lps)
     end)
     return 4 + mel
 end
-mec_handlers[4] = function (data)
+mec_handlers[4] = function(data)
     -- PTYI
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
@@ -92,7 +92,7 @@ mec_handlers[4] = function (data)
     end)
     return 4
 end
-mec_handlers[3] = function (data)
+mec_handlers[3] = function(data)
     -- TP/TA
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
@@ -103,7 +103,7 @@ mec_handlers[3] = function (data)
     end)
     return 4
 end
-mec_handlers[7] = function (data)
+mec_handlers[7] = function(data)
     -- PTY
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
@@ -113,7 +113,7 @@ mec_handlers[7] = function (data)
     end)
     return 4
 end
-mec_handlers[0x3E] = function (data)
+mec_handlers[0x3E] = function(data)
     -- PTYN
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
@@ -123,7 +123,8 @@ mec_handlers[0x3E] = function (data)
     end)
     return 11
 end
-mec_handlers[0x0A] = function (data)
+mec_handlers[0x0A] = function(data)
+    -- RT
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
     local mel = string.byte(data, 4)
@@ -213,6 +214,17 @@ mec_handlers[0x1C] = function (data)
     dp.set_program(dsn)
     dp.set_writing_program(dsn)
     return 2
+end
+
+mec_handlers[0x2D] = function (data)
+    -- Manufacturer
+    local mel = string.byte(data, 2)
+    local designation = string.sub(data, 3, 4)
+    if designation == "95" and mel > 2 then
+        local data = string.sub(data, 5, 4+mel)
+        pcall(data_handle, data)
+    end
+    return 2+mel
 end
 
 ---@param data string

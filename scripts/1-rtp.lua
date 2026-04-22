@@ -8,7 +8,7 @@ local USERDATA_RTP_OFFSET = 259
 
 local function init_rtp()
     if _Rtp_oda_id == nil then
-        _Rtp_oda_id = ext.register_oda(11, false, 0x4BD7, 0)
+        _Rtp_oda_id = ext.register_oda(11, false, 0x4BD7, 0, false)
         ext.set_oda_handler(_Rtp_oda_id, function ()
             local b = (_Rtp_toggle and 1 or 0) << 4 | string.byte(userdata.get_offset(USERDATA_RTP_OFFSET, 1)) << 3
             local data_0 = userdata.get_offset(USERDATA_RTP_OFFSET+1, 3)
@@ -31,7 +31,7 @@ end
 
 local function init_ertp()
     if _Ertp_oda_id == nil then
-        _Ertp_oda_id = ext.register_oda(12, false, 0x4BD8, 0)
+        _Ertp_oda_id = ext.register_oda(12, false, 0x4BD8, 0, false)
         ext.set_oda_handler(_Ertp_oda_id, function ()
             local b = (_Ertp_toggle and 1 or 0) << 4 | string.byte(userdata.get_offset(USERDATA_RTP_OFFSET+7, 1)) << 3
             local data_0 = userdata.get_offset(USERDATA_RTP_OFFSET+8, 3)
