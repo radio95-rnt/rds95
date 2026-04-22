@@ -236,7 +236,7 @@ end
 
 ---@param packet string
 function uecp.parse_uecp(packet)
-    local unstuffed = undo_byte_stuff(string.sub(packet, 2, #packet - 1))
+    local unstuffed = undo_byte_stuff(string.sub(packet, 2))
 
     local addr1 = string.byte(unstuffed, 1)
     local addr2 = string.byte(unstuffed, 2)
