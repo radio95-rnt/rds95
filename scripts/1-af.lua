@@ -111,7 +111,7 @@ function rds.ext.set_af_oda(afs)
     save_af_to_userdata(afs)
 end
 
-table.insert(on_states, function ()
+table.insert(hooks.on_state, function ()
     load_af_from_userdata()
     if _Af_Oda_len ~= 0 then init_af_oda() end
 end)

@@ -89,7 +89,7 @@ function unregister_rtp(ertp)
     end
 end
 
-table.insert(on_states, function ()
+table.insert(hooks.on_state, function ()
     if rds.ext.get_rtp_meta(false) then init_rtp() end
     if rds.ext.get_rtp_meta(true) then init_ertp() end
 end)

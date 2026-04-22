@@ -125,7 +125,7 @@ function rds2_group(stream)
     end
 end
 
-table.insert(on_states, function ()
+table.insert(hooks.on_state, function ()
     _RDS2_ODAs = {}
     _RDS2_ODA_aid = 0
     _RDS2_ODA_pointer = 1

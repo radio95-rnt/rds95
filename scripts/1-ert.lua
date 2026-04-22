@@ -80,6 +80,6 @@ function rds.ext.get_ert()
     return data:match("^(.-)[\r%z]*") or ""
 end
 
-table.insert(on_states, function ()
+table.insert(hooks.on_state, function ()
     if string.byte(userdata.get_offset(USERDATA_ERT_OFFSET+257, 1)) ~= 0 then init_ert() end
 end)

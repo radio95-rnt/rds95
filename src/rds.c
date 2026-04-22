@@ -101,7 +101,7 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	uint8_t good_group = 0;
 	if(*grp == '0') good_group = 1;
 	if(*grp == '1' && (enc->data[enc->program].ecc != 0 || enc->data[enc->program].slc_data != 0)) good_group = 1;
-	if(*grp == '2' && (enc->data[enc->program].rt1_enabled || enc->data[enc->program].rt2_enabled)) good_group = 1;
+	if(*grp == '2' && enc->data[enc->program].rt_enabled) good_group = 1;
 	if(*grp == 'A' && enc->data[enc->program].ptyn_enabled) good_group = 1;
 	if(*grp == 'E') {
 		for (int i = 0; i < EONs; i++) {
@@ -133,28 +133,6 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 
 	if(utc->tm_sec != enc->state[enc->program].last_second) {
 		enc->state[enc->program].last_second = utc->tm_sec;
-
-		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].current_rt == 0 && enc->state[enc->program].rt_text_timeout_state != 0) {
-			enc->state[enc->program].rt_text_timeout_state--;
-			if(enc->state[enc->program].rt_text_timeout_state == 0) {
-				enc->state[enc->program].rt_update = 1;
-				memset(enc->state[enc->program].rt_text, 0, RT_LENGTH);
-				memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].default_rt, RT_LENGTH);
-				enc->state[enc->program].rt_segments = enc->state[enc->program].default_rt_segments;
-			}
-		}
-		if(enc->data[enc->program].rt1_enabled && enc->data[enc->program].rt2_enabled && enc->state[enc->program].rt_switching_period_state != 0) {
-			enc->state[enc->program].rt_switching_period_state--;
-			if(enc->state[enc->program].rt_switching_period_state == 0) {
-				TOGGLE(enc->data[enc->program].current_rt);
-				memset(enc->state[enc->program].rt_text, 0, RT_LENGTH);
-				if (enc->data[enc->program].current_rt == 1) memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt2, RT_LENGTH);
-				else memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt1, RT_LENGTH);
-				enc->state[enc->program].rt_state = 0;
-				enc->state[enc->program].rt_switching_period_state = enc->data[enc->program].rt_switching_period;
-			}
-		}
-
 		lua_call_tfunction("tick");
 	}
 
@@ -327,10 +305,8 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	tempCoder.program = program;
 	memset(&tempCoder.state[program], 0, sizeof(RDSState));
 
-	tempCoder.state[program].rt_ab = 1;
 	tempCoder.state[program].ptyn_ab = 1;
-	set_rds_rt1(&tempCoder, enc->data[program].rt1, program);
-	set_rds_rt2(&tempCoder, enc->data[program].rt2, program);
+	set_rds_rt(&tempCoder, enc->data[program].rt, program);
 	set_rds_ps(&tempCoder, enc->data[program].ps, program);
 	set_rds_tps(&tempCoder, enc->data[program].tps, program);
 	set_rds_lps(&tempCoder, enc->data[program].lps, program);
@@ -360,13 +336,9 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 	enc->data[program].tp = 1;
 	enc->data[program].pi = 0xFFFF;
 	strcpy((char *)enc->data[program].ps, "* RDS * ");
-	enc->data[program].rt1_enabled = 1;
+	enc->data[program].rt_enabled = 1;
 
-	memset(enc->data[program].rt1, ' ', 64);
-	memset(enc->data[program].rt2, ' ', 64);
-	memset(enc->data[program].default_rt, ' ', 64);
-
-	enc->data[program].rt_type = 2;
+	memset(enc->data[program].rt, ' ', 64);
 
 	reset_rds_state(enc, program);
 }

@@ -32,6 +32,7 @@
     },
     "C_Cpp.dimInactiveRegions": false,
     "Lua.diagnostics.disable": [
-        "duplicate-set-field"
+        "duplicate-set-field",
+        "lowercase-global"
     ]
 }

@@ -46,7 +46,7 @@ typedef struct {
 	uint16_t pi;
 
 	char ps[PS_LENGTH];
-	char rt1[RT_LENGTH];
+	char rt[RT_LENGTH];
 
 	uint8_t ecc;
 	uint16_t slc_data : 12;
@@ -58,14 +58,7 @@ typedef struct {
 
 	char tps[PS_LENGTH];
 
-	uint8_t rt1_enabled : 1;
-	uint8_t rt2_enabled : 1;
-	uint8_t rt_type : 2;
-	uint8_t rt_text_timeout;
-	uint8_t rt_switching_period;
-	uint8_t current_rt : 1;
-	char default_rt[RT_LENGTH];
-	char rt2[RT_LENGTH];
+	uint8_t rt_enabled : 1;
 
 	uint8_t ptyn_enabled : 1;
 	char ptyn[PTYN_LENGTH];
@@ -108,11 +101,8 @@ typedef struct {
 	char rt_text[RT_LENGTH];
 	uint8_t rt_state : 5;
 	uint8_t rt_update : 1;
-	uint8_t rt2_update : 1;
 	uint8_t rt_ab : 1;
 	uint8_t rt_segments : 5;
-	uint8_t rt2_segments : 5;
-	uint8_t default_rt_segments : 5;
 
 	char ptyn_text[PTYN_LENGTH];
 	uint8_t ptyn_state : 1;
@@ -126,9 +116,6 @@ typedef struct {
 
 	uint16_t custom_group[GROUP_LENGTH];
 	uint16_t custom_group2[GROUP_LENGTH + 1];
-
-	uint8_t rt_switching_period_state;
-	uint8_t rt_text_timeout_state;
 
 	uint8_t data_ecc : 1;
 	uint8_t grp_seq_idx[4];
@@ -195,9 +182,7 @@ void add_checkwords(RDSGroup *group, uint8_t *bits);
 void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream);
 void get_rds_bits(RDSEncoder* enc, uint8_t *bits, uint8_t stream);
 
-void set_rds_rt1(RDSEncoder* enc, const char *rt1, uint8_t program);
-void set_rds_rt2(RDSEncoder* enc, const char *rt2, uint8_t program);
-void set_rds_default_rt(RDSEncoder* enc, const char *rt, uint8_t program);
+void set_rds_rt(RDSEncoder* enc, const char *rt, uint8_t program);
 void set_rds_ps(RDSEncoder* enc, const char *ps, uint8_t program);
 void set_rds_tps(RDSEncoder* enc, const char *tps, uint8_t program);
 void set_rds_lps(RDSEncoder* enc, const char *lps, uint8_t program);

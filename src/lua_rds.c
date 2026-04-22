@@ -92,17 +92,11 @@ void init_lua(RDSEncoder* _enc) {
     lua_registertotable(L, "set_ta", lua_set_rds_ta);
     lua_registertotable(L, "get_ta", lua_get_rds_ta);
 
-    lua_registertotable(L, "set_rt1_enabled", lua_set_rds_rt1_enabled);
-    lua_registertotable(L, "get_rt1_enabled", lua_get_rds_rt1_enabled);
-
-    lua_registertotable(L, "set_rt2_enabled", lua_set_rds_rt2_enabled);
-    lua_registertotable(L, "get_rt2_enabled", lua_get_rds_rt2_enabled);
+    lua_registertotable(L, "set_rt_enabled", lua_set_rds_rt_enabled);
+    lua_registertotable(L, "get_rt_enabled", lua_get_rds_rt_enabled);
 
     lua_registertotable(L, "set_ptyn_enabled", lua_set_rds_ptyn_enabled);
     lua_registertotable(L, "get_ptyn_enabled", lua_get_rds_ptyn_enabled);
-
-    lua_registertotable(L, "set_rt_type", lua_set_rds_rt_type);
-    lua_registertotable(L, "get_rt_type", lua_get_rds_rt_type);
 
     lua_registertotable(L, "set_rds2_mode", lua_set_rds2_mode);
     lua_registertotable(L, "get_rds2_mode", lua_get_rds2_mode);
@@ -110,18 +104,11 @@ void init_lua(RDSEncoder* _enc) {
     lua_registertotable(L, "set_link", lua_set_rds_link);
     lua_registertotable(L, "get_link", lua_get_rds_link);
 
-    lua_registertotable(L, "set_rt_switching_period", lua_set_rds_rt_switching_period);
-    lua_registertotable(L, "get_rt_switching_period", lua_get_rds_rt_switching_period);
-
-    lua_registertotable(L, "set_rt_text_timeout", lua_set_rds_rt_text_timeout);
-    lua_registertotable(L, "get_rt_text_timeout", lua_get_rds_rt_text_timeout);
-
     lua_registertotable(L, "set_ptyn", lua_set_rds_ptyn);
     lua_registertotable(L, "set_ps", lua_set_rds_ps);
     lua_registertotable(L, "set_tps", lua_set_rds_tps);
-    lua_registertotable(L, "set_rt1", lua_set_rds_rt1);
-    lua_registertotable(L, "set_rt2", lua_set_rds_rt2);
-    lua_registertotable(L, "set_default_rt", lua_set_rds_default_rt);
+    lua_registertotable(L, "set_rt", lua_set_rds_rt);
+    lua_registertotable(L, "toggle_rt_ab", lua_toggle_rt_ab);
 
     lua_registertotable(L, "set_lps", lua_set_rds_lps);
     lua_registertotable(L, "get_lps", lua_get_rds_lps);
@@ -362,10 +349,29 @@ void lua_call_table(const char* function) {
 }
 
 void lua_call_tfunction_nolock(const char* name) {
-    char table_name[256];
-    lua_call_function_nolock(name);
-    snprintf(table_name, sizeof(table_name), "%ss", name);
-    lua_call_table_nolock(table_name);
+    lua_getglobal(L, "hooks");
+    lua_getfield(L, -1, name);
+
+    if (!lua_istable(L, -1)) {
+        lua_pop(L, 2);
+        return;
+    }
+
+    lua_Integer len = lua_rawlen(L, -1);
+    for (lua_Integer i = 1; i <= len; i++) {
+        lua_rawgeti(L, -1, i);
+        if (lua_isfunction(L, -1)) {
+            if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+                fprintf(stderr,
+                        "Lua error: %s at '%s[%lld]'\n",
+                        lua_tostring(L, -1),
+                        name,
+                        (long long)i);
+                lua_pop(L, 1);
+            }
+        } else lua_pop(L, 1);
+    }
+    lua_pop(L, 2); // pop table
 }
 
 void lua_call_tfunction(const char* name) {

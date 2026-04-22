@@ -40,29 +40,32 @@ function dp.set_writing_program(program_idx) end
 ---@return integer
 function dp.get_writing_program() end
 
+hooks = {}
+
 ---This function is called by the C core after we reset data, or have no data in general
 ---It should be defined by the user in the script.
----@return nil
-function on_init() end
-on_inits = {}
+---This is a table of functions. Each will be called
+hooks.on_init = {}
 
 ---This function is called by the C core after we initialize the encoder (always, every start)
 ---It should be defined by the user in the script.
----@return nil
-function on_start() end
-on_starts = {}
+---This is a table of functions. Each will be called
+hooks.on_start = {}
 
 ---This function is called every time when the state resets, register your odas here
 ---It should be defined by the user in the script.
----@return nil
-function on_state() end
-on_states = {}
+---This is a table of functions. Each will be called
+hooks.on_state = {}
 
 ---This function is called every second
 ---It should be defined by the user in the script.
----@return nil
-function tick() end
-ticks = {}
+---This is a table of functions. Each will be called
+hooks.tick = {}
+
+---This function is calld every time a RT transmits start to end - Useful for UECP's RT buffer shenanigans
+---It should be defined by the user in the script.
+---This is a table of functions. Each will be called
+hooks.rt_transmission = {}
 
 -- Every function with with the s suffixed table means that other versions of that function can be in that list-table, and each one will be called
 
@@ -140,24 +143,14 @@ function rds.get_ta() end
 
 -- Feature Flags
 ---@param enabled boolean
-function rds.set_rt1_enabled(enabled) end
+function rds.set_rt_enabled(enabled) end
 ---@return boolean
-function rds.get_rt1_enabled() end
-
----@param enabled boolean
-function rds.set_rt2_enabled(enabled) end
----@return boolean
-function rds.get_rt2_enabled() end
+function rds.get_rt_enabled() end
 
 ---@param enabled boolean
 function rds.set_ptyn_enabled(enabled) end
 ---@return boolean
 function rds.get_ptyn_enabled() end
-
----@param rt_type integer
-function rds.set_rt_type(rt_type) end
----@return integer
-function rds.get_rt_type() end
 
 -- Modulation & Generation
 ---@param mode integer
@@ -176,18 +169,6 @@ function rds.set_link(linkage) end
 ---@return boolean
 function rds.get_link() end
 
--- Timeouts and Periods
----@param period integer in seconds
-function rds.set_rt_switching_period(period) end
----@return integer
-function rds.get_rt_switching_period() end
-
----For a RT1, this sets the timeout period before setting RT1 into "Default RT" (not literally)
----@param timeout integer in seconds
-function rds.set_rt_text_timeout(timeout) end
----@return integer
-function rds.get_rt_text_timeout() end
-
 -- String Setters (Charset converted)
 ---@param ptyn string Program Type Name (max 8 chars)
 function rds.set_ptyn(ptyn) end
@@ -195,12 +176,10 @@ function rds.set_ptyn(ptyn) end
 function rds.set_ps(ps) end
 ---@param tps string Traffic PS
 function rds.set_tps(tps) end
----@param rt1 string Radio Text 1 (max 64 chars)
-function rds.set_rt1(rt1) end
----@param rt2 string Radio Text 2 (max 64 chars)
-function rds.set_rt2(rt2) end
----@param rt string Default radio text - max 64 characters
-function rds.set_default_rt(rt) end
+---@param rt string Radio Text (max 64 chars)
+function rds.set_rt(rt) end
+
+function rds.toggle_rt_ab() end
 
 ---@param lps string
 function rds.set_lps(lps) end

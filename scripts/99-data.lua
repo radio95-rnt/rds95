@@ -1,121 +1,6 @@
-local mec_handlers = {}
-
-local function dsn_helper(dsn, write)
-    if dsn == 0 then write()
-    elseif dsn == 254 then
-        local start = dp.get_writing_program()
-        for i = 1, dp.max_programs do
-            local p = i - 1
-            if p ~= start then
-                dp.set_writing_program(p)
-                write()
-            end
-        end
-    elseif dsn == 255 then
-        for i = 1, dp.max_programs do
-            dp.set_writing_program(i - 1)
-            write()
-        end
-    else
-        dp.set_writing_program(dsn - 1)
-        write()
-    end
-end
-
-mec_handlers[1] = function (data)
-    -- PI
-    local dsn = string.byte(data, 2)
-    local psn = string.byte(data, 3)
-    local pi_msb = string.byte(data, 4)
-    local pi_lsb = string.byte(data, 5)
-
-    dsn_helper(dsn, function ()
-        rds.set_pi((pi_msb << 8) | pi_lsb)
-    end)
-end
-mec_handlers[2] = function (data)
-    -- PS
-    local dsn = string.byte(data, 2)
-    local psn = string.byte(data, 3)
-    local ps = string.sub(data, 4, 11)
-    dsn_helper(dsn, function ()
-        rds.set_ps(ps)
-    end)
-end
-mec_handlers[3] = function (data)
-    -- TP/TA
-    local dsn = string.byte(data, 2)
-    local psn = string.byte(data, 3)
-    local data = string.byte(data, 4)
-    dsn_helper(dsn, function ()
-        rds.set_ta((data & 1) ~= 0)
-        rds.set_ta((data & 2) ~= 0)
-    end)
-end
-
----@param data string
-local function undo_byte_stuff(data)
-    local output = {}
-    local i = 1
-    while i <= #data do
-        local d0 = string.byte(data, i)
-        if d0 == 0xFD then
-            local d1 = string.byte(data, i + 1)
-            output[#output + 1] = string.char(0xFD + d1)
-            i = i + 2
-        else
-            output[#output + 1] = string.char(d0)
-            i = i + 1
-        end
-    end
-    return table.concat(output)
-end
-
----@param packet string
-local function parse_uecp(packet)
-    local end_i = string.find(packet, "\xff", 1, true)
-    if not end_i then
-        print("could not find 0xff")
-        return
-    end
-
-    local unstuffed = undo_byte_stuff(string.sub(packet, 2, end_i - 1))
-
-    local addr1 = string.byte(unstuffed, 1)
-    local addr2 = string.byte(unstuffed, 2)
-    local site_addr = (addr1 << 2) | (addr2 >> 6)
-    local encoder_addr = addr2 & 0x3F
-    local sequence_count = string.byte(unstuffed, 3)
-    local mfl = string.byte(unstuffed, 4)
-
-    local data = string.sub(unstuffed, 5, 4 + mfl)
-
-    if mfl ~= #data then
-        print("data len not right")
-        return
-    end
-
-    local crc_calculated = dp.crc16(string.sub(unstuffed, 1, 4 + mfl))
-    local crc_hi = string.byte(unstuffed, 4 + mfl + 1)
-    local crc_lo = string.byte(unstuffed, 4 + mfl + 2)
-    local crc_stored = (crc_hi << 8) | crc_lo
-
-    if crc_calculated ~= crc_stored then
-        print("bad crc")
-        return
-    end
-
-    local mec = string.byte(data, 1)
-    local handler = mec_handlers[mec]
-    if handler then
-        handler(data)
-        dp.set_writing_program(dp.get_program())
-    end
-end
-
 function data_handle(data)
     -- UECP
-    if string.byte(data, 1) == 0xfe then return parse_uecp(data) end
+    if uecp.parse_uecp and string.byte(data, 1) == 0xfe then return uecp.parse_uecp(data) end
 
     if string.sub(data, 1, 4):lower() == "lua=" then
         local chunk, err = load("return " .. string.sub(data, 5), "udp_chunk")  -- skip "lua="
@@ -171,10 +56,8 @@ function data_handle(data)
         elseif data == "dpty" then return string.format("DPTY=%s\r\n", string.format("%d", (rds.get_dpty() and 1 or 0)))
         elseif data == "tp" then return string.format("TP=%s\r\n", string.format("%d", (rds.get_tp() and 1 or 0)))
         elseif data == "ta" then return string.format("TA=%s\r\n", string.format("%d", (rds.get_ta() and 1 or 0)))
-        elseif data == "rt1en" then return string.format("RT1EN=%s\r\n", string.format("%d", (rds.get_rt1_enabled() and 1 or 0)))
-        elseif data == "rt2en" then return string.format("RT2EN=%s\r\n", string.format("%d", (rds.get_rt2_enabled() and 1 or 0)))
+        elseif data == "rt1en" then return string.format("RT1EN=%s\r\n", string.format("%d", (rds.get_rt_enabled() and 1 or 0)))
         elseif data == "ptynen" then return string.format("PTYNEN=%s\r\n", string.format("%d", (rds.get_ptyn_enabled() and 1 or 0)))
-        elseif data == "rttype" then return string.format("RTTYPE=%s\r\n", string.format("%d", rds.get_rt_type()))
         elseif data == "rds2mod" then return string.format("RDS2MOD=%s\r\n", string.format("%d", rds.get_rds2_mode()))
         elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d", rds.get_streams()))
         elseif data == "link" then return string.format("LINK=%s\r\n", string.format("%d", (rds.get_link() and 1 or 0)))
@@ -353,22 +236,12 @@ function data_handle(data)
     elseif cmd == "rt1en" then
         local en = tonumber(value)
         if not en then return "-\r\n" end
-        rds.set_rt1_enabled(en ~= 0)
-        return "+\r\n"
-    elseif cmd == "rt2en" then
-        local en = tonumber(value)
-        if not en then return "-\r\n" end
-        rds.set_rt2_enabled(en ~= 0)
+        rds.set_rt_enabled(en ~= 0)
         return "+\r\n"
     elseif cmd == "ptynen" then
         local en = tonumber(value)
         if not en then return "-\r\n" end
         rds.set_ptyn_enabled(en ~= 0)
-        return "+\r\n"
-    elseif cmd == "rttype" then
-        local type = tonumber(value)
-        if not type then return "-\r\n" end
-        rds.set_rt_type(type)
         return "+\r\n"
     elseif cmd == "rds2mod" then
         local type = tonumber(value)
@@ -390,10 +263,13 @@ function data_handle(data)
         rds.set_tps(value)
         return "+\r\n"
     elseif cmd == "rt1" or cmd == "text" then
-        rds.set_rt1(value)
-        return "+\r\n"
-    elseif cmd == "rt2" then
-        rds.set_rt2(value)
+        uecp.rt_buffer = {}
+        uecp.rt_buffer_index = 1
+        uecp.rt_buffer[1] = { text = value, number_tx = 0, toggle_ab = true }
+        uecp.rt_tx_remaining = 0
+        rds.set_rt_enabled(true)
+        rds.set_rt(value)
+        rds.toggle_rt_ab()
         return "+\r\n"
     elseif cmd == "lps" then
         rds.set_lps(value)
@@ -406,11 +282,6 @@ function data_handle(data)
         if not link then return "-\r\n" end
         rds.set_link(link ~= 0)
         return "+\r\n"
-    elseif cmd == "rtper" then
-        local period = tonumber(value)
-        if not period then return "-\r\n" end
-        rds.set_rt_switching_period(period*60)
-        return "+\r\n"
     elseif cmd == "program" then
         local program = tonumber(value)
         if not program then return "-\r\n" end
@@ -418,11 +289,6 @@ function data_handle(data)
         dp.set_program(program-1)
         dp.set_writing_program(program-1)
         rds.set_ta(false)
-        return "+\r\n"
-    elseif cmd == "dttmout" then
-        local timeout = tonumber(value)
-        if not timeout then return "-\r\n" end
-        rds.set_rt_text_timeout(timeout*60)
         return "+\r\n"
     elseif cmd == "grpseq" then
         rds.set_grpseq(value)

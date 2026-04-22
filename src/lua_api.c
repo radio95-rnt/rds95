@@ -162,17 +162,11 @@ BOOL_GETTER(tp)
 BOOL_SETTER(ta)
 BOOL_GETTER(ta)
 
-BOOL_SETTER(rt1_enabled)
-BOOL_GETTER(rt1_enabled)
-
-BOOL_SETTER(rt2_enabled)
-BOOL_GETTER(rt2_enabled)
+BOOL_SETTER(rt_enabled)
+BOOL_GETTER(rt_enabled)
 
 BOOL_SETTER(ptyn_enabled)
 BOOL_GETTER(ptyn_enabled)
-
-INT_SETTER(rt_type)
-INT_GETTER(rt_type)
 
 int lua_set_rds2_mode(lua_State *localL) {
 	enc->encoder_data.rds2_mode = luaL_checkinteger(localL, 1);
@@ -238,20 +232,6 @@ int lua_get_rds_writing_program(lua_State *localL) {
     return 1;
 }
 
-int lua_set_rds_rt_switching_period(lua_State *localL) {
-	enc->data[writing_program].rt_switching_period = luaL_checkinteger(localL, 1);
-	enc->state[writing_program].rt_switching_period_state = enc->data[writing_program].rt_switching_period;
-    return 0;
-}
-INT_GETTER(rt_switching_period)
-
-int lua_set_rds_rt_text_timeout(lua_State *localL) {
-	enc->data[writing_program].rt_text_timeout = luaL_checkinteger(localL, 1);
-	enc->state[writing_program].rt_text_timeout_state = enc->data[writing_program].rt_text_timeout;
-    return 0;
-}
-INT_GETTER(rt_text_timeout)
-
 int lua_put_rds_custom_group(lua_State *localL) {
 	enc->state[writing_program].custom_group[0] = 1;
 	enc->state[writing_program].custom_group[1] = luaL_checkinteger(localL, 1);
@@ -272,9 +252,7 @@ int lua_put_rds2_custom_group(lua_State *localL) {
 STR_SETTER(ptyn, set_rds_ptyn)
 STR_SETTER(ps, set_rds_ps)
 STR_SETTER(tps, set_rds_tps)
-STR_SETTER(rt1, set_rds_rt1)
-STR_SETTER(rt2, set_rds_rt2)
-STR_SETTER(default_rt, set_rds_default_rt)
+STR_SETTER(rt, set_rds_rt)
 
 STR_RAW_SETTER(lps, set_rds_lps)
 STR_RAW_GETTER(lps, LPS_LENGTH)
@@ -292,6 +270,11 @@ int lua_set_rds_grp_sqc(lua_State *localL) {
 STR_RAW_GETTER(grp_sqc, 32)
 
 AF_SETTER(af_group0, af, RDSAFs, add_rds_af)
+
+int lua_toggle_rt_ab(lua_State *localL) {
+    TOGGLE(enc->state[writing_program].rt_ab);
+    return 0;
+}
 
 int lua_set_rds_eon(lua_State *localL) {
     int eon = luaL_checkinteger(localL, 1);

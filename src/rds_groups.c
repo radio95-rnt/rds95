@@ -87,44 +87,25 @@ void get_rds_fasttuning_group(RDSEncoder* enc, RDSGroup *group) {
 }
 
 void get_rds_rt_group(RDSEncoder* enc, RDSGroup *group) {
-	if (enc->state[enc->program].rt_update && enc->data[enc->program].rt1_enabled && enc->data[enc->program].current_rt == 0) {
-		memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt1, RT_LENGTH);
-		TOGGLE(enc->state[enc->program].rt_ab);
+	if (enc->state[enc->program].rt_update && enc->data[enc->program].rt_enabled) {
+		memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt, RT_LENGTH);
 		enc->state[enc->program].rt_update = 0;
 		enc->state[enc->program].rt_state = 0;
-		enc->data[enc->program].current_rt = 0;
-	}
-	if(enc->state[enc->program].rt2_update && enc->data[enc->program].rt2_enabled && enc->data[enc->program].current_rt) {
-		memcpy(enc->state[enc->program].rt_text, enc->data[enc->program].rt2, RT_LENGTH);
-		TOGGLE(enc->state[enc->program].rt_ab);
-		enc->state[enc->program].rt2_update = 0;
-		enc->state[enc->program].rt_state = 0;
-		enc->data[enc->program].current_rt = 1;
-	}
-
-	uint8_t ab = enc->state[enc->program].rt_ab;
-	switch (enc->data[enc->program].rt_type)
-	{
-	case 0:
-		ab = 0;
-		break;
-	case 1:
-		ab = (enc->data[enc->program].current_rt == 0) ? 0 : 1;
-		break;
-	default: break;
 	}
 
 	group->b |= 2 << 12;
-	group->b |= ab << 4;
+	group->b |= enc->state[enc->program].rt_ab << 4;
 	group->b |= enc->state[enc->program].rt_state;
-	group->c =  enc->state[enc->program].rt_text[enc->state[enc->program].rt_state * 4    ] << 8;
+	group->c =  enc->state[enc->program].rt_text[enc->state[enc->program].rt_state * 4] << 8;
 	group->c |= enc->state[enc->program].rt_text[enc->state[enc->program].rt_state * 4 + 1];
 	group->d =  enc->state[enc->program].rt_text[enc->state[enc->program].rt_state * 4 + 2] << 8;
 	group->d |= enc->state[enc->program].rt_text[enc->state[enc->program].rt_state * 4 + 3];
 
-	uint8_t segments = (enc->data[enc->program].current_rt == 1) ? enc->state[enc->program].rt2_segments : enc->state[enc->program].rt_segments;
 	enc->state[enc->program].rt_state++;
-	if (enc->state[enc->program].rt_state >= segments || enc->state[enc->program].rt_state >= 16) enc->state[enc->program].rt_state = 0;
+	if (enc->state[enc->program].rt_state >= enc->state[enc->program].rt_segments || enc->state[enc->program].rt_state >= 16) {
+		lua_call_tfunction("rt_transmission");
+		enc->state[enc->program].rt_state = 0;
+	}
 }
 
 void get_rdsp_ct_group(RDSGroup *group, time_t now) {

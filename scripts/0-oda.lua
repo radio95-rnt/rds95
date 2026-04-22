@@ -119,7 +119,7 @@ function group(group_type)
     return false, 0, 0, 0
 end
 
-table.insert(on_states, function ()
+table.insert(hooks.on_state, function ()
     _RDS_ODAs = {}
     _RDS_ODA_pointer = 1
 end)

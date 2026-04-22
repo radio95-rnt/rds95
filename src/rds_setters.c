@@ -1,66 +1,24 @@
 #include "rds.h"
 
-void set_rds_rt1(RDSEncoder* enc, const char *rt1, uint8_t program) {
+void set_rds_rt(RDSEncoder* enc, const char *rt, uint8_t program) {
 	uint8_t i = 0, len = 0;
-
-	enc->state[program].rt_text_timeout_state = enc->data[program].rt_text_timeout;
 
 	enc->state[program].rt_update = 1;
 
-	memset(enc->data[program].rt1, ' ', RT_LENGTH);
-	while (*rt1 != 0 && len < RT_LENGTH) enc->data[program].rt1[len++] = *rt1++;
+	memset(enc->data[program].rt, ' ', RT_LENGTH);
+	while (*rt != 0 && len < RT_LENGTH) enc->data[program].rt[len++] = *rt++;
 
-	while (len > 0 && enc->data[program].rt1[len - 1] == ' ') len--;
+	while (len > 0 && enc->data[program].rt[len - 1] == ' ') len--;
 
 	if (len < RT_LENGTH) {
 		enc->state[program].rt_segments = 0;
-		enc->data[program].rt1[len++] = '\r';
+		enc->data[program].rt[len++] = '\r';
 		while (i < len) {
 			i += 4;
 			enc->state[program].rt_segments++;
 		}
 	} else enc->state[program].rt_segments = 16;
 	if(enc->state[program].rt_segments > 16) enc->state[program].rt_segments = 16; //make sure
-}
-
-void set_rds_default_rt(RDSEncoder* enc, const char *rt, uint8_t program) {
-	uint8_t i = 0, len = 0;
-
-	memset(enc->data[program].default_rt, ' ', RT_LENGTH);
-	while (*rt != 0 && len < RT_LENGTH) enc->data[program].default_rt[len++] = *rt++;
-
-	while (len > 0 && enc->data[program].default_rt[len - 1] == ' ') len--;
-
-	if (len < RT_LENGTH) {
-		enc->state[program].default_rt_segments = 0;
-		enc->data[program].default_rt[len++] = '\r';
-		while (i < len) {
-			i += 4;
-			enc->state[program].default_rt_segments++;
-		}
-	} else enc->state[program].default_rt_segments = 16;
-	if(enc->state[program].default_rt_segments > 16) enc->state[program].default_rt_segments = 16; //make sure
-}
-
-void set_rds_rt2(RDSEncoder* enc, const char *rt2, uint8_t program) {
-	uint8_t i = 0, len = 0;
-
-	enc->state[program].rt2_update = 1;
-
-	memset(enc->data[program].rt2, ' ', RT_LENGTH);
-	while (*rt2 != 0 && len < RT_LENGTH) enc->data[program].rt2[len++] = *rt2++;
-
-	while (len > 0 && enc->data[program].rt2[len - 1] == ' ') len--;
-
-	if (len < RT_LENGTH) {
-		enc->state[program].rt2_segments = 0;
-		enc->data[program].rt2[len++] = '\r';
-		while (i < len) {
-			i += 4;
-			enc->state[program].rt2_segments++;
-		}
-	} else enc->state[program].rt2_segments = 16;
-	if(enc->state[program].rt2_segments > 16) enc->state[program].rt2_segments = 16; //make sure
 }
 
 void set_rds_ps(RDSEncoder* enc, const char *ps, uint8_t program) {
@@ -93,7 +51,7 @@ void set_rds_lps(RDSEncoder* enc, const char *lps, uint8_t program) {
 		return;
 	}
 	memset(enc->data[program].lps, ' ', LPS_LENGTH);
-	while (*lps != 0 && len < LPS_LENGTH) enc->data[program].lps[len++] = *lps++;
+	while (*lps != '\r' && *lps != 0 && len < LPS_LENGTH) enc->data[program].lps[len++] = *lps++;
 
 	if (len < LPS_LENGTH) {
 		enc->state[program].lps_segments = 0;
