@@ -331,7 +331,7 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	tempCoder.state[program].ptyn_ab = 1;
 	set_rds_rt1(&tempCoder, enc->data[program].rt1, program);
 	set_rds_rt2(&tempCoder, enc->data[program].rt2, program);
-	set_rds_ps(&tempCoder, enc->data[program].ps), program;
+	set_rds_ps(&tempCoder, enc->data[program].ps, program);
 	set_rds_tps(&tempCoder, enc->data[program].tps, program);
 	set_rds_lps(&tempCoder, enc->data[program].lps, program);
 	set_rds_ptyn(&tempCoder, enc->data[program].ptyn, program);
