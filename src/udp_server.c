@@ -69,7 +69,7 @@ void poll_udp_server() {
         }
     }
 
-    if (start < bytes_read) {
+    if (start < (size_t)bytes_read) {
         size_t len = bytes_read - start;
 
         if (len > 0 && len < BUF_SIZE) {
