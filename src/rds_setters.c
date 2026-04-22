@@ -6,7 +6,7 @@ void set_rds_rt(RDSEncoder* enc, const char *rt, uint8_t program) {
 	enc->state[program].rt_update = 1;
 
 	memset(enc->data[program].rt, ' ', RT_LENGTH);
-	while (*rt != 0 && len < RT_LENGTH) enc->data[program].rt[len++] = *rt++;
+	while (*rt != '\r' && *rt != 0 && len < RT_LENGTH) enc->data[program].rt[len++] = *rt++;
 
 	while (len > 0 && enc->data[program].rt[len - 1] == ' ') len--;
 

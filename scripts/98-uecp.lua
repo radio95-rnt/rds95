@@ -6,7 +6,9 @@ uecp.rt_tx_remaining = 0
 hooks.rt_transmission[#hooks.rt_transmission + 1] = function ()
     if #uecp.rt_buffer == 0 then return end
 
-    if #uecp.rt_buffer > 1 and uecp.rt_tx_remaining > 1 then
+    if #uecp.rt_buffer == 1 then return end
+
+    if uecp.rt_tx_remaining > 1 then
         uecp.rt_tx_remaining = uecp.rt_tx_remaining - 1
         return
     end
