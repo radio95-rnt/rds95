@@ -61,6 +61,19 @@ void init_lua(RDSEncoder* _enc) {
     lua_setglobal(L, "dp");
 
     lua_newtable(L);
+    lua_newtable(L);
+    lua_setfield(L, -2, "on_init");
+    lua_newtable(L);
+    lua_setfield(L, -2, "on_start");
+    lua_newtable(L);
+    lua_setfield(L, -2, "on_state");
+    lua_newtable(L);
+    lua_setfield(L, -2, "tick");
+    lua_newtable(L);
+    lua_setfield(L, -2, "rt_transmission");
+    lua_setfield(L, -1, "hooks");
+
+    lua_newtable(L);
 
     lua_newtable(L);
     lua_setfield(L, -2, "ext");
