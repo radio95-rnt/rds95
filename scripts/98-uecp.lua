@@ -249,6 +249,8 @@ function uecp.parse_uecp(packet)
 
     if mfl ~= #data then
         print("data len not right")
+        print(mfl)
+        print(#data)
         return
     end
 
