@@ -1,10 +1,7 @@
 ---@meta
 
--- Global Variables
 ---@type string
 core_version = ""
-
---#region Functions implemented or used in C
 
 dp = {}
 
@@ -30,9 +27,9 @@ function dp.force_save() end
 
 ---Set the program which is actually being modulated. Setting this does not affect the writing program
 ---@param program_idx integer 0 to (max_programs - 1)
-function dp.set_program(program_idx) end
+function dp.set_output_program(program_idx) end
 ---@return integer
-function dp.get_program() end
+function dp.get_output_program() end
 
 ---Sets the program all of the set/get functions affect
 ---@param program_idx integer 0 to (max_programs - 1)
@@ -179,6 +176,7 @@ function rds.set_tps(tps) end
 ---@param rt string Radio Text (max 64 chars)
 function rds.set_rt(rt) end
 
+---@return nil
 function rds.toggle_rt_ab() end
 
 ---@param lps string
@@ -213,28 +211,24 @@ function rds.put_rds2_custom_group(a, b, c, d) end
 ---@param afs table
 function rds.set_af(afs) end
 
+---@class EON_Data
+---@field enabled? boolean
+---@field pi? integer
+---@field tp? boolean
+---@field ta? boolean
+---@field pty? integer
+---@field ps? string
+---@field afs? table Empty on the getter - empty table does not mean the same thing as nil
+---@field data? integer
+
 ---Sets data about the EON
 ---@param eon integer Index of the EON we are setting
----@param enabled boolean
----@param pi integer
----@param tp boolean
----@param ta boolean
----@param pty integer
----@param ps string
----@param afs table
----@param data integer
-function rds.set_eon(eon, enabled, pi, tp, ta, pty, ps, afs, data) end
+---@param data EON_Data
+function rds.set_eon(eon, data) end
 
----Gets the same data set_rds_eon sets, yes this returns 8 arguments
+---Gets the same data set_rds_eon sets
 ---@param eon integer
----@return boolean enabled
----@return integer pi
----@return boolean tp
----@return boolean ta
----@return integer pty
----@return string ps
----@return table _ this is empty, getting afs is not supported yet
----@return integer data
+---@return EON_Data
 function rds.get_eon(eon) end
 
 ---Sets the X/Y of the UDG
@@ -256,9 +250,9 @@ userdata.len = 0
 function userdata.set(data) end
 ---Writes to the userdata at the offset, size does not have to match the length of the string, if the string is less than size then the rest of the string will be padded with zeroes until it is size
 ---@param offset integer
----@param size integer
+---@param padded_size integer
 ---@param data string
-function userdata.set_offset(offset, size, data) end
+function userdata.set_offset(offset, padded_size, data) end
 
 ---Returns all of the data saved as user data
 ---@return string
@@ -314,7 +308,7 @@ function rds.ext.set_af_oda(afs) end
 ---@param group_version boolean
 ---@param aid integer
 ---@param data integer
----@param temp boolean
+---@param temp boolean Send AID once (no data) and destroy
 ---@return integer oda_id
 function ext.register_oda(group, group_version, aid, data, temp) end
 

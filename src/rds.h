@@ -1,6 +1,6 @@
 #pragma once
 #include "common.h"
-#define LUA_USER_DATA 	1152
+#define LUA_USER_DATA 	1280
 
 /* The RDS error-detection code generator polynomial is
  * x^10 + x^8 + x^7 + x^5 + x^4 + x^3 + x^0

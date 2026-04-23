@@ -1,3 +1,4 @@
+---@param data string
 function data_handle(data)
     -- UECP
     if uecp.parse_uecp and string.byte(data, 1) == 0xfe then return uecp.parse_uecp(data) end
@@ -85,15 +86,15 @@ function data_handle(data)
                 local eon_idx = tonumber(eon_cmd)
                 if not eon_idx or eon_idx < 1 or eon_idx > rds.eon_count then return "?\r\n" end
                 eon_idx = eon_idx - 1
-                local enabled, pi, tp, ta, pty, ps, afs, data_val = rds.get_eon(eon_idx)
+                local eon_data = rds.get_eon(eon_idx)
 
-                if eon_num == "en" then return string.format("EON%dEN=%d\r\n", eon_idx + 1, enabled and 1 or 0)
-                elseif eon_num == "pi" then return string.format("EON%dPI=%x\r\n", eon_idx + 1, pi)
-                elseif eon_num == "ps" then return string.format("EON%dPS=%s\r\n", eon_idx + 1, ps)
-                elseif eon_num == "pty" then return string.format("EON%dPTY=%d\r\n", eon_idx + 1, pty)
-                elseif eon_num == "ta" then return string.format("EON%dTA=%d\r\n", eon_idx + 1, ta and 1 or 0)
-                elseif eon_num == "tp" then return string.format("EON%dTP=%d\r\n", eon_idx + 1, tp and 1 or 0)
-                elseif eon_num == "dt" then return string.format("EON%dDT=%x\r\n", eon_idx + 1, data_val)
+                if eon_num == "en" then return string.format("EON%dEN=%d\r\n", eon_idx + 1, eon_data.enabled and 1 or 0)
+                elseif eon_num == "pi" then return string.format("EON%dPI=%x\r\n", eon_idx + 1, eon_data.pi)
+                elseif eon_num == "ps" then return string.format("EON%dPS=%s\r\n", eon_idx + 1, eon_data.ps)
+                elseif eon_num == "pty" then return string.format("EON%dPTY=%d\r\n", eon_idx + 1, eon_data.pty)
+                elseif eon_num == "ta" then return string.format("EON%dTA=%d\r\n", eon_idx + 1, eon_data.ta and 1 or 0)
+                elseif eon_num == "tp" then return string.format("EON%dTP=%d\r\n", eon_idx + 1, eon_data.tp and 1 or 0)
+                elseif eon_num == "dt" then return string.format("EON%dDT=%x\r\n", eon_idx + 1, eon_data.data)
                 end
             end
             return "?\r\n"
@@ -109,45 +110,43 @@ function data_handle(data)
         if not eon_idx or eon_idx < 1 or eon_idx > rds.eon_count then return "?\r\n" end
         eon_idx = eon_idx - 1
 
-        local enabled, pi, tp, ta, pty, ps, afs, data_val = rds.get_eon(eon_idx)
         if eon_type == "en" then
             local en_val = tonumber(value)
             if not en_val then return "-\r\n" end
-            enabled = (en_val ~= 0)
-            rds.set_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
+            local enabled = (en_val ~= 0)
+            rds.set_eon(eon_idx, { enabled = enabled })
             return "+\r\n"
         elseif eon_type == "pi" then
             local pi_val = tonumber(value, 16)
             if not pi_val then return "-\r\n" end
-            rds.set_eon(eon_idx, enabled, pi_val, tp, ta, pty, ps, afs, data_val)
+            rds.set_eon(eon_idx, { pi = pi_val })
             return "+\r\n"
         elseif eon_type == "ps" then
             local ps_val = value:sub(1, 24)
-            rds.set_eon(eon_idx, enabled, pi, tp, ta, pty, ps_val, afs, data_val)
+            rds.set_eon(eon_idx, { ps = ps_val })
             return "+\r\n"
         elseif eon_type == "pty" then
             local pty_val = tonumber(value)
             if not pty_val then return "-\r\n" end
-            rds.set_eon(eon_idx, enabled, pi, tp, ta, pty_val, ps, afs, data_val)
+            rds.set_eon(eon_idx, { pty = pty_val })
             return "+\r\n"
         elseif eon_type == "ta" then
-            if not enabled or not tp then return "-\r\n" end
             local ta_val = tonumber(value)
             if not ta_val then return "-\r\n" end
-            ta = (ta_val ~= 0)
-            rds.set_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
+            local ta = (ta_val ~= 0)
+            rds.set_eon(eon_idx, { ta = ta })
             if ta then rds.set_ta(true) end
             return "+\r\n"
         elseif eon_type == "tp" then
             local tp_val = tonumber(value)
             if not tp_val then return "-\r\n" end
-            tp = (tp_val ~= 0)
-            rds.set_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, data_val)
+            local tp = (tp_val ~= 0)
+            rds.set_eon(eon_idx, { tp = tp })
             return "+\r\n"
         elseif eon_type == "af" then
             local af_table = {}
             if value == "" or value == "0" then
-                rds.set_eon(eon_idx, enabled, pi, tp, ta, pty, ps, {}, data_val)
+                rds.set_eon(eon_idx, { afs = {} })
                 return "+\r\n"
             end
             for freq_str in value:gmatch("([^,]+)") do
@@ -156,12 +155,12 @@ function data_handle(data)
                 else return "-\r\n" end
             end
             if #af_table > 25 then return "-\r\n" end
-            rds.set_eon(eon_idx, enabled, pi, tp, ta, pty, ps, af_table, data_val)
+            rds.set_eon(eon_idx, { afs = af_table })
             return "+\r\n"
         elseif eon_type == "dt" then
             local dt_val = tonumber(value, 16)
             if not dt_val then return "-\r\n" end
-            rds.set_eon(eon_idx, enabled, pi, tp, ta, pty, ps, afs, dt_val)
+            rds.set_eon(eon_idx, { data = dt_val })
             return "+\r\n"
         else return "?\r\n" end
     end
@@ -286,7 +285,7 @@ function data_handle(data)
         local program = tonumber(value)
         if not program then return "-\r\n" end
         if program < 1 or program > dp.max_programs then return "-\r\n" end
-        dp.set_program(program-1)
+        dp.set_output_program(program-1)
         dp.set_writing_program(program-1)
         rds.set_ta(false)
         return "+\r\n"

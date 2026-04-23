@@ -1,4 +1,6 @@
 uecp = {}
+uecp.site_addreses = {}
+uecp.encoder_addreses = {}
 uecp.rt_buffer = {}
 uecp.rt_buffer_index = 1
 uecp.rt_tx_remaining = 0
@@ -21,7 +23,6 @@ hooks.rt_transmission[#hooks.rt_transmission + 1] = function ()
     if entry.toggle_ab then rds.toggle_rt_ab() end
 end
 
-local mec_handlers = {}
 
 local function dsn_helper(dsn, write)
     if dsn == 0 then write()
@@ -45,6 +46,7 @@ local function dsn_helper(dsn, write)
     end
 end
 
+local mec_handlers = {}
 mec_handlers[1] = function(data)
     -- PI
     local dsn = string.byte(data, 2)
@@ -99,7 +101,7 @@ mec_handlers[3] = function(data)
     local data = string.byte(data, 4)
     dsn_helper(dsn, function ()
         rds.set_ta((data & 1) ~= 0)
-        rds.set_ta((data & 2) ~= 0)
+        rds.set_tp((data & 2) ~= 0)
     end)
     return 4
 end
@@ -181,7 +183,17 @@ mec_handlers[0x13] = function (data)
     local psn = string.byte(data, 3)
     local mel = string.sub(data, 4)
 
-    -- TODO: decode
+    -- TODO: decode - i have zero clue what the hell is the meaning of the docs, it might as well be in chinese (traditional)
+
+    return 4+mel
+end
+mec_handlers[0x14] = function (data)
+    -- EON-AF
+    local dsn = string.byte(data, 2)
+    local psn = string.byte(data, 3)
+    local mel = string.sub(data, 4)
+
+    -- TODO: decode - haven't read this one
 
     return 4+mel
 end
@@ -195,6 +207,7 @@ mec_handlers[0x1A] = function (data)
     local full_data = ((data & 15) << 8) | data_lsb
     local variant = (data >> 4) & 3
     if variant == 0 then
+        -- TODO: maybe make it more than just ecc? idk why but would be cool
         dsn_helper(dsn, function ()
             rds.set_ecc(full_data)
         end)
@@ -202,20 +215,59 @@ mec_handlers[0x1A] = function (data)
 
     return 4
 end
+mec_handlers[0x2E] = function (data)
+    -- Linkage Information
+    -- What? What is the main PSN? Does the server tell me that or am i to fucking guess?
+    return 5
+end
+mec_handlers[0x24] = function (data)
+    -- Free-format data in type A or B group
+    -- TODO: figure out the docs
+    return 7
+end
+-- Fuck you mean, i have to implement some fucking "spinning wHELLs"? may the lord have mercy
+-- Also no time setting via UECP - this is linux, just install fucking chrony
 mec_handlers[0x19] = function (data)
     -- CT
     local data = string.byte(data, 2)
-    rds.set_ct(data ~= 0)
+    dsn_helper(255, function ()
+        rds.set_ct(data ~= 0)
+    end)
     return 2
+end
+mec_handlers[0x23] = function (data)
+    -- Site address
+    local control_bits = string.byte(data, 2)
+    local high = string.byte(data, 3)
+    local low = string.byte(data, 4)
+    local data = high << 8 | low
+    if control_bits == 0 then
+        for i, v in ipairs(uecp.site_addreses) do
+            if v == data then table.remove(uecp.site_addreses, i) end
+        end
+    elseif control_bits == 1 then uecp.site_addreses[#uecp.site_addreses+1] = data
+    elseif control_bits == 2 then uecp.site_addreses = {} end
+    return 4
+end
+mec_handlers[0x27] = function (data)
+    -- Encoder address
+    local control_bits = string.byte(data, 2)
+    local data = string.byte(data, 3)
+    if control_bits == 0 then
+        for i, v in ipairs(uecp.encoder_addreses) do
+            if v == data then table.remove(uecp.encoder_addreses, i) end
+        end
+    elseif control_bits == 1 then uecp.encoder_addreses[#uecp.encoder_addreses+1] = data
+    elseif control_bits == 2 then uecp.encoder_addreses = {} end
+    return 3
 end
 mec_handlers[0x1C] = function (data)
     -- DS select
     local dsn = string.byte(data, 2)
-    dp.set_program(dsn)
+    dp.set_output_program(dsn)
     dp.set_writing_program(dsn)
     return 2
 end
-
 mec_handlers[0x2D] = function (data)
     -- Manufacturer
     local mel = string.byte(data, 2)
@@ -246,14 +298,48 @@ local function undo_byte_stuff(data)
     return table.concat(output)
 end
 
+---@param site integer
+---@param encoder integer
+---@return boolean
+local function check_address(site, encoder)
+    if site == 0 and encoder == 0 then return true end
+
+    local site_allowed = false
+    if site ~= 0 then
+        for i, v in ipairs(uecp.site_addreses) do
+            if v == site then
+                site_allowed = true
+                break
+            end
+        end
+    else site_allowed = true end
+
+    local encoder_allowed = false
+    if encoder ~= 0 then
+        for i, v in ipairs(uecp.encoder_addreses) do
+            if v == encoder then
+                encoder_allowed = true
+                break
+            end
+        end
+    else encoder_allowed = true end
+
+    return site_allowed and encoder_allowed
+end
+
 ---@param packet string
 function uecp.parse_uecp(packet)
+    if not packet or #packet == 0 then return end
+    if string.byte(packet, 1) ~= 0xfe or string.byte(packet, #packet) ~= 0xff then return end
+
     local unstuffed = undo_byte_stuff(string.sub(packet, 2, #packet - 1))
 
     local addr1 = string.byte(unstuffed, 1)
     local addr2 = string.byte(unstuffed, 2)
     local site_addr = (addr1 << 2) | (addr2 >> 6)
-    local encoder_addr = addr2 & 0x3F
+
+    if not check_address(site_addr, addr2 & 0x3F) then return end
+
     local sequence_count = string.byte(unstuffed, 3)
     local mfl = string.byte(unstuffed, 4)
 
@@ -266,8 +352,7 @@ function uecp.parse_uecp(packet)
 
     local crc_calculated = dp.crc16(string.sub(unstuffed, 1, 4 + mfl))
     local crc_hi = string.byte(unstuffed, 4 + mfl + 1)
-    local crc_lo = string.byte(unstuffed, 4 + mfl + 2)
-    local crc_stored = (crc_hi << 8) | crc_lo
+    local crc_stored = (crc_hi << 8) | string.byte(unstuffed, 4 + mfl + 2)
 
     if crc_calculated ~= crc_stored then
         print("bad crc")
@@ -284,6 +369,6 @@ function uecp.parse_uecp(packet)
         end
         local advance = handler(string.sub(data, consumed))
         consumed = consumed + advance
-        dp.set_writing_program(dp.get_program())
+        dp.set_writing_program(dp.get_output_program())
     end
 end

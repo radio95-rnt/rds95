@@ -5,7 +5,6 @@
 RDSEncoder* enc = NULL;
 lua_State *L = NULL;
 static pthread_mutex_t lua_mutex;
-uint8_t unload_refs[33] = {LUA_REFNIL};
 
 #define lua_registertotable(L,n,f) (lua_pushcfunction(L, (f)), lua_setfield(L, -2, (n)))
 void init_lua(RDSEncoder* _enc) {
@@ -54,8 +53,8 @@ void init_lua(RDSEncoder* _enc) {
     lua_registertotable(L, "set_program_defaults", lua_set_rds_program_defaults);
     lua_pushinteger(L, PROGRAMS);
     lua_setfield(L, -2, "max_programs");
-    lua_registertotable(L, "set_program", lua_set_rds_program);
-    lua_registertotable(L, "get_program", lua_get_rds_program);
+    lua_registertotable(L, "set_output_program", lua_set_rds_program);
+    lua_registertotable(L, "get_output_program", lua_get_rds_program);
     lua_registertotable(L, "set_writing_program", lua_set_rds_writing_program);
     lua_registertotable(L, "get_writing_program", lua_get_rds_writing_program);
     lua_setglobal(L, "dp");
@@ -147,7 +146,6 @@ void init_lua(RDSEncoder* _enc) {
     lua_registertotable(L, "get_streams", lua_get_rds_streams);
 
     lua_setglobal(L, "rds");
-
 
     if (luaL_loadfile(L, "/etc/rds95.lua") != LUA_OK) {
         fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(L, -1));
@@ -274,39 +272,6 @@ int lua_rds2_group(RDSGroup* group, int stream) {
     return 1;
 }
 
-void lua_group_ref(RDSGroup* group, int ref) {
-    pthread_mutex_lock(&lua_mutex);
-    lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
-
-    if (lua_isfunction(L, -1)) {
-        if (lua_pcall(L, 0, 3, 0) == LUA_OK) {
-            if (!lua_isinteger(L, -1)) {
-                pthread_mutex_unlock(&lua_mutex);
-                lua_pop(L, 1);
-                return;
-            }
-            if (!lua_isinteger(L, -2)) {
-                pthread_mutex_unlock(&lua_mutex);
-                lua_pop(L, 1);
-                return;
-            }
-            if (!lua_isinteger(L, -3)) {
-                pthread_mutex_unlock(&lua_mutex);
-                lua_pop(L, 1);
-                return;
-            }
-            group->d = luaL_checkinteger(L, -1);
-            group->c = luaL_checkinteger(L, -2);
-            group->b = luaL_checkinteger(L, -3);
-            lua_pop(L, 3);
-        } else {
-            fprintf(stderr, "Lua error: %s at ref %d\n", lua_tostring(L, -1), ref);
-            lua_pop(L, 1);
-        }
-    } else lua_pop(L, 1);
-    pthread_mutex_unlock(&lua_mutex);
-}
-
 void lua_call_function_nolock(const char* function) {
     lua_getglobal(L, function);
 
@@ -324,40 +289,6 @@ void lua_call_function(const char* function) {
         return;
     }
     lua_call_function_nolock(function);
-    pthread_mutex_unlock(&lua_mutex);
-}
-
-void lua_call_table_nolock(const char *table_name) {
-    lua_getglobal(L, table_name);
-
-    if (!lua_istable(L, -1)) {
-        lua_pop(L, 1);
-        return;
-    }
-
-    lua_Integer len = lua_rawlen(L, -1);
-    for (lua_Integer i = 1; i <= len; i++) {
-        lua_rawgeti(L, -1, i);
-        if (lua_isfunction(L, -1)) {
-            if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-                fprintf(stderr,
-                        "Lua error: %s at '%s[%lld]'\n",
-                        lua_tostring(L, -1),
-                        table_name,
-                        (long long)i);
-                lua_pop(L, 1);
-            }
-        } else lua_pop(L, 1);
-    }
-    lua_pop(L, 1); // pop table
-}
-void lua_call_table(const char* function) {
-    int need_lock = (pthread_mutex_trylock(&lua_mutex) == 0);
-    if (!need_lock) {
-        fprintf(stderr, "Warning: lua_mutex already locked when table calling %s\n", function);
-        return;
-    }
-    lua_call_table_nolock(function);
     pthread_mutex_unlock(&lua_mutex);
 }
 
@@ -380,11 +311,8 @@ void lua_call_tfunction_nolock(const char* name) {
         lua_rawgeti(L, -1, i);
         if (lua_isfunction(L, -1)) {
             if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-                fprintf(stderr,
-                        "Lua error: %s at '%s[%lld]'\n",
-                        lua_tostring(L, -1),
-                        name,
-                        (long long)i);
+                fprintf(stderr, "Lua error: %s at '%s[%lld]'\n",
+                        lua_tostring(L, -1), name, (long long)i);
                 lua_pop(L, 1);
             }
         } else lua_pop(L, 1);
@@ -404,8 +332,6 @@ void lua_call_tfunction(const char* name) {
 
 void destroy_lua() {
     if (L) {
-        for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
-        *unload_refs = 1;
         lua_close(L);
         L = NULL;
     }

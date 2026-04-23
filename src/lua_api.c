@@ -5,7 +5,6 @@ static int in_set_defaults = 0;
 
 extern lua_State *L;
 extern RDSEncoder* enc;
-extern uint8_t unload_refs[33];
 static int writing_program = 0;
 
 int lua_get_userdata(lua_State *localL) {
@@ -54,8 +53,6 @@ int lua_set_rds_program_defaults(lua_State *localL) {
         return 0;
     }
     in_set_defaults = 1;
-    for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
-    unload_refs[0] = 1;
     set_rds_defaults(enc, writing_program);
     lua_call_tfunction_nolock("on_init");
     lua_call_tfunction_nolock("on_state");
@@ -65,8 +62,6 @@ int lua_set_rds_program_defaults(lua_State *localL) {
 
 int lua_reset_rds(lua_State *localL) {
     (void)localL;
-    for (int i = 1; i < *unload_refs; i++) luaL_unref(L, LUA_REGISTRYINDEX, unload_refs[i]);
-    unload_refs[0] = 1;
     encoder_saveToFile(enc);
 
 	encoder_loadFromFile(enc);
@@ -280,19 +275,58 @@ int lua_toggle_rt_ab(lua_State *localL) {
 int lua_set_rds_eon(lua_State *localL) {
     int eon = luaL_checkinteger(localL, 1);
     if(eon >= EONs) return luaL_error(localL, "eon index exceeded");
-    if (!lua_isboolean(localL, 2)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 2));
-    if (!lua_isboolean(localL, 4)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 4));
-    if (!lua_isboolean(localL, 5)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 5));
-    luaL_checktype(localL, 8, LUA_TTABLE);
-    enc->data[writing_program].eon[eon].enabled = lua_toboolean(localL, 2);
-    enc->data[writing_program].eon[eon].pi = luaL_checkinteger(localL, 3);
-    enc->data[writing_program].eon[eon].tp = lua_toboolean(localL, 4);
-    enc->data[writing_program].eon[eon].ta = lua_toboolean(localL, 5);
-    enc->data[writing_program].eon[eon].pty = luaL_checkinteger(localL, 6);
-	_strncpy(enc->data[writing_program].eon[eon].ps, luaL_checklstring(localL, 7, NULL), 8);
 
-    int n = lua_rawlen(localL, 8);
+    if(!lua_istable(localL, 2)) return luaL_error(localL, "table expected, got %s", luaL_typename(localL, 2));
+
+    lua_getfield(localL, 2, "enabled");
+    if(!lua_isnil(localL, -1)) {
+        luaL_checktype(localL, -1, LUA_TBOOLEAN);
+        enc->data[writing_program].eon[eon].enabled = lua_toboolean(localL, -1);
+    } lua_pop(localL, 1);
+
+    lua_getfield(localL, 2, "tp");
+    if(!lua_isnil(localL, -1)) {
+        luaL_checktype(localL, -1, LUA_TBOOLEAN);
+        enc->data[writing_program].eon[eon].tp = lua_toboolean(localL, -1);
+    } lua_pop(localL, 1);
+
+    lua_getfield(localL, 2, "ta");
+    if(!lua_isnil(localL, -1)) {
+        luaL_checktype(localL, -1, LUA_TBOOLEAN);
+        enc->data[writing_program].eon[eon].ta = lua_toboolean(localL, -1);
+    } lua_pop(localL, 1);
+
+    lua_getfield(localL, 2, "pi");
+    if(!lua_isnil(localL, -1)) {
+        lua_Integer pi = luaL_checkinteger(localL, -1);
+        lua_pop(localL, 1);
+        enc->data[writing_program].eon[eon].pi = pi;
+    } else lua_pop(localL, 1);
+
+    lua_getfield(localL, 2, "pty");
+    if(!lua_isnil(localL, -1)) {
+        lua_Integer pty = luaL_checkinteger(localL, -1);
+        lua_pop(localL, 1);
+        enc->data[writing_program].eon[eon].pty = pty;
+    } else lua_pop(localL, 1);
+
+    lua_getfield(localL, 2, "data");
+    if(!lua_isnil(localL, -1)) {
+        lua_Integer data = luaL_checkinteger(localL, -1);
+        lua_pop(localL, 1);
+        enc->data[writing_program].eon[eon].data = data;
+    } else lua_pop(localL, 1);
+
+    lua_getfield(localL, 2, "ps");
+	if(!lua_isnil(localL, -1)) _strncpy(enc->data[writing_program].eon[eon].ps, luaL_checklstring(localL, -1, NULL), 8);
+    lua_pop(localL, 1);
+
+    lua_getfield(localL, 2, "afs");
+    luaL_checktype(localL, -1, LUA_TTABLE);
+
+    int n = lua_rawlen(localL, -1);
     if (n == 0) {
+        lua_pop(localL, 1);
         memset(&(enc->data[writing_program].eon[eon].af), 0, sizeof(RDSAFs));
         return 0;
     }
@@ -302,29 +336,42 @@ int lua_set_rds_eon(lua_State *localL) {
     memset(&new_af, 0, sizeof(RDSAFs));
 
     for (int i = 1; i <= n; i++) {
-        lua_rawgeti(localL, 8, i);
-        if (lua_isnumber(localL, -1)) add_rds_af(&new_af, lua_tonumber(localL, -1));
-        else return luaL_error(localL, "number expected, got %s", luaL_typename(localL, -1));
+        lua_rawgeti(localL, -1, i);
+        if (!lua_isnumber(localL, -1)) {
+            const char *type = luaL_typename(localL, -1);
+            lua_pop(localL, 1);
+            return luaL_error(localL, "number expected, got %s", type);
+        }
+        add_rds_af(&new_af, lua_tonumber(localL, -1));
         lua_pop(localL, 1);
     }
 	memcpy(&(enc->data[writing_program].eon[eon].af), &new_af, sizeof(new_af));
-
-    enc->data[writing_program].eon[eon].data = luaL_checkinteger(localL, 9);
+    lua_pop(localL, 1);
     return 0;
 }
 
 int lua_get_rds_eon(lua_State *localL) {
     int eon = luaL_checkinteger(localL, 1);
     if(eon >= EONs) return luaL_error(localL, "eon index exceeded");
+
+    lua_newtable(localL);
     lua_pushboolean(localL, enc->data[writing_program].eon[eon].enabled);
+    lua_setfield(L, -2, "enabled");
     lua_pushinteger(localL, enc->data[writing_program].eon[eon].pi);
+    lua_setfield(L, -2, "pi");
     lua_pushboolean(localL, enc->data[writing_program].eon[eon].tp);
+    lua_setfield(L, -2, "tp");
     lua_pushboolean(localL, enc->data[writing_program].eon[eon].ta);
+    lua_setfield(L, -2, "ta");
     lua_pushinteger(localL, enc->data[writing_program].eon[eon].pty);
+    lua_setfield(L, -2, "pty");
     lua_pushlstring(localL, enc->data[writing_program].eon[eon].ps, 8);
-    lua_createtable(localL, 0, 0); // don't have decoding for AF, so just return empty table
+    lua_setfield(L, -2, "ps");
+    lua_newtable(localL); // don't have decoding for AF, so just return empty table
+    lua_setfield(L, -2, "afs");
     lua_pushinteger(localL, enc->data[writing_program].eon[eon].data);
-    return 8;
+    lua_setfield(L, -2, "data");
+    return 1;
 }
 
 int lua_set_rds_udg(lua_State *localL) {
