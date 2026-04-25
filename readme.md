@@ -33,7 +33,7 @@ Yet another unique feature, the Lua engine allows you to control the encoder, al
 
 ### RFT
 
-For a long time there was no RFT in RDS95, but on 28th December 2025 that changed when i implemented it in lua, just call the load function with the path and id 0 and set rds2 mode to 2, and see the your station's logo in the decoder
+For a long time there was no RFT in RDS95, but on 28th December 2025 that changed when i implemented it in lua, just call the load function with the path and id 0, and see the your station's logo in the decoder
 
 And yes, it is implemented in only Lua and the ODA engine which is also in Lua
 

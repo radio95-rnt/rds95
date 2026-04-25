@@ -94,7 +94,7 @@ hooks.ps_transmission = {}
 ---@return string
 function hooks.data_handle(data) end
 
----This function is called when the group "L" is in the sequence
+---This function is called an unknown group is seen in the group sequence. See set_grpseq
 ---Please remember that the core always fills in PTY and TP and PI in C if this is an B group
 ---It should be defined by the user in the script.
 ---@param group string group this was called in from the group sequence
@@ -104,8 +104,9 @@ function hooks.data_handle(data) end
 ---@return integer d
 function hooks.group(group) end
 
----This function is called when an RDS2 group is to be generated on mode 3
+---This function is called when an RDS2 group. Full control of every RDS2 subcarrier is under this function
 ---If a was returned 0, PTY and TP will be filled in, along with the PI code in C if needed
+---If generated is false, then the group will be replaced with a tunnel of the last RDS1 group
 ---It should be defined by the user in the script.
 ---@param stream integer
 ---@return boolean generated
@@ -172,11 +173,6 @@ function rds.set_ptyn_enabled(enabled) end
 function rds.get_ptyn_enabled() end
 
 -- Modulation & Generation
----@param mode integer
-function rds.set_rds2_mode(mode) end
----@return integer
-function rds.get_rds2_mode() end
-
 ---@param streams integer
 function rds.set_streams(streams) end
 ---@return integer
@@ -217,6 +213,17 @@ function rds.set_lps(lps) end
 ---@return string
 function rds.get_lps() end
 
+---The format is a binary format: here are the groups recognized by the core
+---0x0 - PS
+---0x2 - SLC/ECC
+---0x4 - RT
+---0x14 - PTYN
+---0x1C - EON
+---0x1E - LPS
+---0x1F - Fast tuning
+---Rest are handled by the hooks.group function
+---The designation sent to hooks.group is 100% binary safe as a byte
+---This format is implemented, for an easier UECP inplementation
 ---@param grpseq string
 function rds.set_grpseq(grpseq) end
 ---@return string
@@ -320,7 +327,7 @@ function rds.ext.get_rtp_meta(ertp) end
 ---@param afs table
 function rds.ext.set_af_oda(afs) end
 
----Registers an ODA to be used in the O of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
+---Registers an ODA to be used in the 0x6 of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
 ---Groups 14, 15, 2, 0 cannot be registered either version, groups 10, 4, 1 can be only registered as B, any other is free to take
 ---Group 3A will mean that there will be no group handler for this ODA, meaning it can only be interacted with via the 3A AID group, handler set is not possible with such groups
 ---@param group integer
@@ -344,7 +351,7 @@ function ext.set_oda_id_data(oda_id, data) end
 ---@alias ODAHandler fun(): (boolean, integer, integer, integer)
 
 ---Sets a function to handle the ODA data generation. 
----The handler is called when the group sequence 'K' slot is processed.
+---The handler is called when the group sequence '0xff' slot is processed.
 ---The function must return 3 integers representing RDS Blocks B, C, and D.
 ---Please note that you do not need to compute the block B to indentify the group and group version, that will be done for you and EVERY SINGLE group has PTY and TP inserted (and also PI if its a B inside block C)
 ---You are asked to set groups B last 5 bits, leave rest 0

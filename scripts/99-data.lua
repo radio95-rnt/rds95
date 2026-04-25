@@ -59,7 +59,6 @@ function hooks.data_handle(data)
         elseif data == "ta" then return string.format("TA=%s\r\n", string.format("%d", (rds.get_ta() and 1 or 0)))
         elseif data == "rt1en" then return string.format("RT1EN=%s\r\n", string.format("%d", (rds.get_rt_enabled() and 1 or 0)))
         elseif data == "ptynen" then return string.format("PTYNEN=%s\r\n", string.format("%d", (rds.get_ptyn_enabled() and 1 or 0)))
-        elseif data == "rds2mod" then return string.format("RDS2MOD=%s\r\n", string.format("%d", rds.get_rds2_mode()))
         elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d", rds.get_streams()))
         elseif data == "link" then return string.format("LINK=%s\r\n", string.format("%d", (rds.get_link() and 1 or 0)))
         elseif data == "rtp" then
@@ -209,11 +208,6 @@ function hooks.data_handle(data)
         local en = tonumber(value)
         if not en then return "-\r\n" end
         rds.set_ptyn_enabled(en ~= 0)
-        return "+\r\n"
-    elseif cmd == "rds2mod" then
-        local type = tonumber(value)
-        if not type then return "-\r\n" end
-        rds.set_rds2_mode(type)
         return "+\r\n"
     elseif cmd == "rdsgen" then
         local type = tonumber(value)
