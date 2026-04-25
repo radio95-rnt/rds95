@@ -1,9 +1,9 @@
 ---@meta
 
----@type string
-core_version = ""
-
 dp = {}
+
+---@type string
+dp.core_version = ""
 
 ---@type integer
 dp.max_programs = 0
@@ -17,7 +17,7 @@ function dp.crc16(data) end
 ---@return nil
 function dp.set_program_defaults() end
 
----Saves, loads and resets the state of the data, you might as well restart the whole program
+---Saves, loads and resets the state of the data, you might as well restart the whole program. this does NOT cause data loss other than the current internal state
 ---@return nil
 function dp.reset_rds() end
 
@@ -37,40 +37,62 @@ function dp.set_writing_program(program_idx) end
 ---@return integer
 function dp.get_writing_program() end
 
+---Encodes the given UTF-8 string into the unnamed RDS character set
+---@param data string
+---@return string
+function dp.encode_charset(data) end
+
 hooks = {}
 
 ---This function is called by the C core after we reset data, or have no data in general
 ---It should be defined by the user in the script.
 ---This is a table of functions. Each will be called
+---@type function[]
 hooks.on_init = {}
 
 ---This function is called by the C core after we initialize the encoder (always, every start)
 ---It should be defined by the user in the script.
 ---This is a table of functions. Each will be called
+---@type function[]
 hooks.on_start = {}
 
 ---This function is called every time when the state resets, register your odas here
 ---It should be defined by the user in the script.
 ---This is a table of functions. Each will be called
+---@type function[]
 hooks.on_state = {}
 
 ---This function is called every second
 ---It should be defined by the user in the script.
 ---This is a table of functions. Each will be called
+---@type function[]
 hooks.tick = {}
 
----This function is calld every time a RT transmits start to end - Useful for UECP's RT buffer shenanigans
+---This function is called every minute
 ---It should be defined by the user in the script.
 ---This is a table of functions. Each will be called
+---@type function[]
+hooks.minute_tick = {}
+
+---This function is called every time a RT transmits start to end - Useful for UECP's RT buffer shenanigans
+---It should be defined by the user in the script.
+---This is a table of functions. Each will be called
+---@type function[]
 hooks.rt_transmission = {}
+
+---This function is calld every time a PS transmits start to end
+---It should be defined by the user in the script.
+---This is a table of functions. Each will be called
+---@type function[]
+hooks.ps_transmission = {}
 
 -- Every function with with the s suffixed table means that other versions of that function can be in that list-table, and each one will be called
 
----This function is called in order to handle UDP data
+---This function is called in order to handle UDP data. The string returned is sent back to the UDP peer as a response
 ---It should be defined by the user in the script.
 ---@param data string
 ---@return string
-function data_handle(data) end
+function hooks.data_handle(data) end
 
 ---This function is called when the group "L" is in the sequence
 ---Please remember that the core always fills in PTY and TP and PI in C if this is an B group
@@ -80,7 +102,7 @@ function data_handle(data) end
 ---@return integer b
 ---@return integer c
 ---@return integer d
-function group(group) end
+function hooks.group(group) end
 
 ---This function is called when an RDS2 group is to be generated on mode 3
 ---If a was returned 0, PTY and TP will be filled in, along with the PI code in C if needed
@@ -91,7 +113,7 @@ function group(group) end
 ---@return integer b
 ---@return integer c
 ---@return integer d
-function rds2_group(stream) end
+function hooks.rds2_group(stream) end
 
 rds = {}
 
@@ -166,15 +188,26 @@ function rds.set_link(linkage) end
 ---@return boolean
 function rds.get_link() end
 
--- String Setters (Charset converted)
+-- String Setters
 ---@param ptyn string Program Type Name (max 8 chars)
 function rds.set_ptyn(ptyn) end
+---@param ptyn string Program Type Name (max 8 chars) which is expected to be already encoded in the RDS charset
+function rds.set_ptyn_raw(ptyn) end
+
 ---@param ps string Program Service (8 chars)
 function rds.set_ps(ps) end
+---@param ps string Program Service (8 chars) which is expected to be already encoded in the RDS charset
+function rds.set_ps_raw(ps) end
+
 ---@param tps string Traffic PS
 function rds.set_tps(tps) end
+---@param tps string Traffic PS which is expected to be already encoded in the RDS charset
+function rds.set_tps_raw(tps) end
+
 ---@param rt string Radio Text (max 64 chars)
 function rds.set_rt(rt) end
+---@param rt string Radio Text (max 64 chars) which is expected to be already encoded in the RDS charset
+function rds.set_rt_raw(rt) end
 
 ---@return nil
 function rds.toggle_rt_ab() end
@@ -231,15 +264,6 @@ function rds.set_eon(eon, data) end
 ---@return EON_Data
 function rds.get_eon(eon) end
 
----Sets the X/Y of the UDG
----@param xy boolean
----@param groups table Table of tables, this should be up to 8 tables containing 3 integers
-function rds.set_udg(xy, groups) end
----Sets the X/Y of the UDG for RDS2
----@param xy boolean
----@param groups table Table of tables, this should be up to 8 tables containing 4 integers
-function rds.set_udg2(xy, groups) end
-
 userdata = {}
 
 ---@type integer
@@ -263,7 +287,7 @@ function userdata.get() end
 ---@return string
 function userdata.get_offset(offset, size) end
 
---#endregion
+--- Extensions start here - The following is made in Lua and can be used as an standard library
 
 ext = {}
 rds.ext = {}
@@ -359,3 +383,7 @@ function ext.unregister_oda_rds2(oda_id) end
 function rds.ext.set_ert(ert) end
 ---@return string
 function rds.ext.get_ert() end
+
+---@param designator string
+---@param handler function
+function rds.ext.register_group(designator, handler) end

@@ -72,16 +72,20 @@ int lua_set_rds_lps(lua_State *localL);
 int lua_get_rds_lps(lua_State *localL);
 int lua_set_rds_af_group0(lua_State *localL);
 int lua_set_rds_rt(lua_State *localL);
+int lua_set_rds_rt_raw(lua_State *localL);
 int lua_set_rds_tps(lua_State *localL);
+int lua_set_rds_tps_raw(lua_State *localL);
 int lua_set_rds_ps(lua_State *localL);
+int lua_set_rds_ps_raw(lua_State *localL);
 int lua_set_rds_ptyn(lua_State *localL);
+int lua_set_rds_ptyn_raw(lua_State *localL);
 int lua_set_rds_grp_sqc(lua_State *localL);
 
 int lua_toggle_rt_ab(lua_State *localL);
 
 int lua_set_rds_eon(lua_State *localL);
 int lua_get_rds_eon(lua_State *localL);
-int lua_set_rds_udg(lua_State *localL);
-int lua_set_rds_udg2(lua_State *localL);
 
 int lua_crc16(lua_State *localL);
+
+int lua_convert_to_rdscharset(lua_State *localL);

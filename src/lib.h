@@ -13,4 +13,4 @@ uint16_t crc16_ccitt(const char *data, uint16_t len);
 uint16_t get_block_from_group(RDSGroup *group, uint8_t block);
 
 uint8_t add_rds_af(RDSAFs *af_list, float freq);
-char *convert_to_rdscharset(const char *str);
+void convert_to_rdscharset(const char *str, char *output, size_t buffer_size);

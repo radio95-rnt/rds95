@@ -81,10 +81,12 @@ int lua_set_rds_##name(lua_State *localL) { \
 	enc->data[writing_program].name = luaL_checkinteger(localL, 1); \
     return 0; \
 }
-#define STR_SETTER(name, function) \
+#define STR_SETTER(name, function, buffer_size) \
 int lua_set_rds_##name(lua_State *localL) { \
-	const char* str = luaL_checklstring(localL, 1, NULL); \
-    function(enc, convert_to_rdscharset(str), writing_program); \
+    const char* str = luaL_checklstring(localL, 1, NULL); \
+    char converted[buffer_size+1]; \
+    convert_to_rdscharset(str, converted, buffer_size+1); \
+    function(enc, converted, writing_program); \
     return 0; \
 }
 #define STR_RAW_SETTER(name, function) \
@@ -244,10 +246,15 @@ int lua_put_rds2_custom_group(lua_State *localL) {
     return 0;
 }
 
-STR_SETTER(ptyn, set_rds_ptyn)
-STR_SETTER(ps, set_rds_ps)
-STR_SETTER(tps, set_rds_tps)
-STR_SETTER(rt, set_rds_rt)
+STR_SETTER(ptyn, set_rds_ptyn, PTYN_LENGTH)
+STR_SETTER(ps, set_rds_ps, PS_LENGTH)
+STR_SETTER(tps, set_rds_tps, PS_LENGTH)
+STR_SETTER(rt, set_rds_rt, RT_LENGTH)
+
+STR_RAW_SETTER(ptyn_raw, set_rds_ptyn)
+STR_RAW_SETTER(ps_raw, set_rds_ps)
+STR_RAW_SETTER(tps_raw, set_rds_tps)
+STR_RAW_SETTER(rt_raw, set_rds_rt)
 
 STR_RAW_SETTER(lps, set_rds_lps)
 STR_RAW_GETTER(lps, LPS_LENGTH)
@@ -374,81 +381,20 @@ int lua_get_rds_eon(lua_State *localL) {
     return 1;
 }
 
-int lua_set_rds_udg(lua_State *localL) {
-    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
-    int xy = lua_toboolean(localL, 1);
-    luaL_checktype(localL, 2, LUA_TTABLE);
-    int n = lua_rawlen(localL, 2);
-    if(n > 8) return luaL_error(localL, "table length over 8");
-
-    uint16_t blocks[8][3] = {0};
-
-    for (int i = 1; i <= n; i++) {
-        lua_rawgeti(localL, 2, i);
-        if(lua_istable(localL, -1)) {
-            int n2 = lua_rawlen(localL, -1);
-            if(n2 > 3) return luaL_error(localL, "table length over 3");
-            for(int j = 1; j <= n2; j++) {
-                lua_rawgeti(localL, -1, j);
-                if (lua_isinteger(localL, -1)) blocks[i-1][j-1] = lua_tointeger(localL, -1);
-                else return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -1));
-                lua_pop(localL, 1);
-            }
-        }
-        else return luaL_error(localL, "table expected, got %s", luaL_typename(localL, -1));
-        lua_pop(localL, 1);
-    }
-
-    if(xy) {
-        memcpy(&(enc->data[writing_program].udg2), blocks, n * sizeof(uint16_t[3]));
-		enc->data[writing_program].udg2_len = n;
-    } else {
-        memcpy(&(enc->data[writing_program].udg1), blocks, n * sizeof(uint16_t[3]));
-		enc->data[writing_program].udg1_len = n;
-    }
-
-    return 0;
-}
-
-int lua_set_rds_udg2(lua_State *localL) {
-    if (!lua_isboolean(localL, 1)) return luaL_error(localL, "boolean expected, got %s", luaL_typename(localL, 1));
-    int xy = lua_toboolean(localL, 1);
-    luaL_checktype(localL, 2, LUA_TTABLE);
-    int n = lua_rawlen(localL, 2);
-    if(n > 8) return luaL_error(localL, "table length over 8");
-
-    uint16_t blocks[8][4] = {0};
-
-    for (int i = 1; i <= n; i++) {
-        lua_rawgeti(localL, 2, i);
-        if(lua_istable(localL, -1)) {
-            int n2 = lua_rawlen(localL, -1);
-            if(n2 > 4) return luaL_error(localL, "table length over 4");
-            for(int j = 1; j <= n2; j++) {
-                lua_rawgeti(localL, -1, j);
-                if (lua_isinteger(localL, -1)) blocks[i-1][j-1] = lua_tointeger(localL, -1);
-                else return luaL_error(localL, "integer expected, got %s", luaL_typename(localL, -1));
-                lua_pop(localL, 1);
-            }
-        }
-        else return luaL_error(localL, "table expected, got %s", luaL_typename(localL, -1));
-        lua_pop(localL, 1);
-    }
-
-    if(xy) {
-        memcpy(&(enc->data[writing_program].udg2_rds2), blocks, n * sizeof(uint16_t[4]));
-		enc->data[writing_program].udg2_len_rds2 = n;
-    } else {
-        memcpy(&(enc->data[writing_program].udg1_rds2), blocks, n * sizeof(uint16_t[4]));
-		enc->data[writing_program].udg1_len_rds2 = n;
-    }
-
-    return 0;
-}
-
 int lua_crc16(lua_State *localL) {
     size_t len;
     const char* data = luaL_checklstring(localL, 1, &len);
     lua_pushinteger(localL, crc16_ccitt(data, len));
+    return 1;
+}
+
+int lua_convert_to_rdscharset(lua_State *localL) {
+    size_t len;
+    const char *input = luaL_checklstring(localL, 1, &len);
+    
+    char output[len + 1];
+    convert_to_rdscharset(input, output, len + 1);
+    
+    lua_pushstring(localL, output);
     return 1;
 }

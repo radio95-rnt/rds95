@@ -72,17 +72,6 @@ typedef struct {
 	char grp_sqc[32];
 	char grp_sqc_rds2[32];
 
-	uint8_t udg1_len : 4;
-	uint8_t udg2_len : 4;
-	uint8_t udg1_len_rds2 : 4;
-	uint8_t udg2_len_rds2 : 4;
-
-	uint16_t udg1[8][3];
-	uint16_t udg2[8][3];
-
-	uint16_t udg1_rds2[8][4];
-	uint16_t udg2_rds2[8][4];
-
 	RDSEON eon[EONs];
 
 	uint8_t lua_data[LUA_USER_DATA];
@@ -119,16 +108,11 @@ typedef struct {
 
 	uint8_t data_ecc : 1;
 	uint8_t grp_seq_idx[4];
-	uint8_t udg_idxs[2];
-	uint8_t udg_idxs_rds2[2];
 
 	uint8_t fasttuning_state : 3;
 
 	uint8_t last_minute : 6;
 	uint8_t last_second : 6;
-
-	uint8_t ta_timeout : 7;
-	uint8_t ta_timeout_state : 7;
 
 	uint8_t eon_index : 3;
 	uint8_t eon_state : 4;
@@ -144,7 +128,6 @@ typedef struct {
 
 typedef struct {
 	uint8_t rds2_mode : 2;
-	// uint8_t rds2_buffer[16384];
 } RDSEncoderData;
 typedef struct {
 	RDSEncoderData encoder_data;

@@ -19,7 +19,7 @@ hooks.rt_transmission[#hooks.rt_transmission + 1] = function ()
     local entry = uecp.rt_buffer[uecp.rt_buffer_index]
     uecp.rt_tx_remaining = entry.number_tx
 
-    rds.set_rt(entry.text)
+    rds.set_rt_raw(entry.text)
     if entry.toggle_ab then rds.toggle_rt_ab() end
 end
 
@@ -167,7 +167,7 @@ mec_handlers[0x0A] = function(data)
         uecp.rt_tx_remaining = number_tx
         -- Seed the encoder immediately with the first entry
         dsn_helper(dsn, function ()
-            rds.set_rt(rt_text)
+            rds.set_rt_raw(rt_text)
             if toggle_ab then rds.toggle_rt_ab() end
             rds.set_rt_enabled(true)
         end)
@@ -222,7 +222,15 @@ mec_handlers[0x2E] = function (data)
 end
 mec_handlers[0x24] = function (data)
     -- Free-format data in type A or B group
-    -- TODO: figure out the docs
+    local group = string.byte(data, 2)
+    local bufferdata = string.byte(data, 3)
+    local buffer = (bufferdata >> 5) & 3 -- No clue
+    local blockb = bufferdata & 31
+    local blockc_msb = string.byte(data, 4)
+    local blockc_lsb = string.byte(data, 5)
+    local blockd_msb = string.byte(data, 6)
+    local blockd_lsb = string.byte(data, 7)
+    rds.put_custom_group((group << 11) | blockb, (blockc_msb << 8) | blockc_lsb, (blockd_msb << 8) | blockd_lsb)
     return 7
 end
 -- Fuck you mean, i have to implement some fucking "spinning wHELLs"? may the lord have mercy
@@ -274,7 +282,7 @@ mec_handlers[0x2D] = function (data)
     local designation = string.sub(data, 3, 4)
     if string.byte(designation, 1) == 0x39 and string.byte(designation, 2) == 0x35 and mel > 2 then
         local data = string.sub(data, 5, 4+mel)
-        pcall(data_handle, data)
+        pcall(hooks.data_handle, data)
     end
     return 2+mel
 end

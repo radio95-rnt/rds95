@@ -22,9 +22,6 @@ void init_lua(RDSEncoder* _enc) {
     luaL_requiref(L, LUA_IOLIBNAME, luaopen_io, 1);
     lua_pop(L, 6);
 
-    lua_pushstring(L, VERSION);
-    lua_setglobal(L, "core_version");
-
     lua_newtable(L);
     lua_setglobal(L, "ext");
 
@@ -53,10 +50,13 @@ void init_lua(RDSEncoder* _enc) {
     lua_registertotable(L, "set_program_defaults", lua_set_rds_program_defaults);
     lua_pushinteger(L, PROGRAMS);
     lua_setfield(L, -2, "max_programs");
+    lua_pushstring(L, VERSION);
+    lua_setfield(L, -2, "core_version");
     lua_registertotable(L, "set_output_program", lua_set_rds_program);
     lua_registertotable(L, "get_output_program", lua_get_rds_program);
     lua_registertotable(L, "set_writing_program", lua_set_rds_writing_program);
     lua_registertotable(L, "get_writing_program", lua_get_rds_writing_program);
+    lua_registertotable(L, "encode_charset", lua_convert_to_rdscharset);
     lua_setglobal(L, "dp");
 
     lua_newtable(L);
@@ -69,7 +69,11 @@ void init_lua(RDSEncoder* _enc) {
     lua_newtable(L);
     lua_setfield(L, -2, "tick");
     lua_newtable(L);
+    lua_setfield(L, -2, "minute_tick");
+    lua_newtable(L);
     lua_setfield(L, -2, "rt_transmission");
+    lua_newtable(L);
+    lua_setfield(L, -2, "ps_transmission");
     lua_setglobal(L, "hooks");
 
     lua_newtable(L);
@@ -117,9 +121,13 @@ void init_lua(RDSEncoder* _enc) {
     lua_registertotable(L, "get_link", lua_get_rds_link);
 
     lua_registertotable(L, "set_ptyn", lua_set_rds_ptyn);
+    lua_registertotable(L, "set_ptyn_raw", lua_set_rds_ptyn_raw);
     lua_registertotable(L, "set_ps", lua_set_rds_ps);
+    lua_registertotable(L, "set_ps_raw", lua_set_rds_ps_raw);
     lua_registertotable(L, "set_tps", lua_set_rds_tps);
+    lua_registertotable(L, "set_tps_raw", lua_set_rds_tps_raw);
     lua_registertotable(L, "set_rt", lua_set_rds_rt);
+    lua_registertotable(L, "set_rt_raw", lua_set_rds_rt_raw);
     lua_registertotable(L, "toggle_rt_ab", lua_toggle_rt_ab);
 
     lua_registertotable(L, "set_lps", lua_set_rds_lps);
@@ -138,9 +146,6 @@ void init_lua(RDSEncoder* _enc) {
 
     lua_registertotable(L, "set_eon", lua_set_rds_eon);
     lua_registertotable(L, "get_eon", lua_get_rds_eon);
-
-    lua_registertotable(L, "set_udg", lua_set_rds_udg);
-    lua_registertotable(L, "set_udg2", lua_set_rds_udg2);
 
     lua_registertotable(L, "set_streams", lua_set_rds_streams);
     lua_registertotable(L, "get_streams", lua_get_rds_streams);
@@ -166,7 +171,8 @@ void init_lua(RDSEncoder* _enc) {
 void run_lua(char *str, size_t str_len, char *cmd_output, size_t *out_len) {
     pthread_mutex_lock(&lua_mutex);
 
-    lua_getglobal(L, "data_handle");
+    lua_getglobal(L, "hooks");
+    lua_getfield(L, -1, "data_handle");
 
     if (lua_isfunction(L, -1)) {
         lua_pushlstring(L, str, str_len);
@@ -180,16 +186,17 @@ void run_lua(char *str, size_t str_len, char *cmd_output, size_t *out_len) {
         } else fprintf(stderr, "Lua error: %s at 'data_handle'\n", lua_tostring(L, -1));
     } else fprintf(stderr, "'data_handle' is not a function\n");
 
-    lua_pop(L, 1);
+    lua_pop(L, 2);
     pthread_mutex_unlock(&lua_mutex);
 }
 
 int lua_group(RDSGroup* group, const char grp) {
     pthread_mutex_lock(&lua_mutex);
-    lua_getglobal(L, "group");
+    lua_getglobal(L, "hooks");
+    lua_getfield(L, -1, "group");
 
     if (!lua_isfunction(L, -1)) {
-        lua_pop(L, 1);
+        lua_pop(L, 2);
         pthread_mutex_unlock(&lua_mutex);
         return 0;
     }
@@ -198,7 +205,7 @@ int lua_group(RDSGroup* group, const char grp) {
 
     if (lua_pcall(L, 1, 4, 0) != LUA_OK) {
         fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
-        lua_pop(L, 1);
+        lua_pop(L, 2);
         pthread_mutex_unlock(&lua_mutex);
         return 0;
     }
@@ -213,46 +220,47 @@ int lua_group(RDSGroup* group, const char grp) {
         success = 1;
     }
 
-    lua_pop(L, 4);
+    lua_pop(L, 5);
     pthread_mutex_unlock(&lua_mutex);
     return success;
 }
 
 int lua_rds2_group(RDSGroup* group, int stream) {
     pthread_mutex_lock(&lua_mutex);
-    lua_getglobal(L, "rds2_group");
+    lua_getglobal(L, "hooks");
+    lua_getfield(L, -1, "rds2_group");
 
     if (lua_isfunction(L, -1)) {
         lua_pushinteger(L, stream);
         if (lua_pcall(L, 1, 5, 0) == LUA_OK) {
             if (!lua_isboolean(L, -5)) {
-                lua_pop(L, 5);
+                lua_pop(L, 6);
                 pthread_mutex_unlock(&lua_mutex);
                 return 0;
             }
             if (!lua_isinteger(L, -4)) {
-                lua_pop(L, 5);
+                lua_pop(L, 6);
                 pthread_mutex_unlock(&lua_mutex);
                 return 0;
             }
             if (!lua_isinteger(L, -3)) {
-                lua_pop(L, 5);
+                lua_pop(L, 6);
                 pthread_mutex_unlock(&lua_mutex);
                 return 0;
             }
             if (!lua_isinteger(L, -2)) {
-                lua_pop(L, 5);
+                lua_pop(L, 6);
                 pthread_mutex_unlock(&lua_mutex);
                 return 0;
             }
             if (!lua_isinteger(L, -1)) {
-                lua_pop(L, 5);
+                lua_pop(L, 6);
                 pthread_mutex_unlock(&lua_mutex);
                 return 0;
             }
 
             if(lua_toboolean(L, -5) == 0) {
-                lua_pop(L, 5);
+                lua_pop(L, 6);
                 pthread_mutex_unlock(&lua_mutex);
                 return 0;
             }
@@ -261,12 +269,12 @@ int lua_rds2_group(RDSGroup* group, int stream) {
             group->b = lua_tointeger(L, -3);
             group->c = lua_tointeger(L, -2);
             group->d = lua_tointeger(L, -1);
-            lua_pop(L, 5);
+            lua_pop(L, 6);
         } else {
             fprintf(stderr, "Lua error: %s at 'rds2_group'\n", lua_tostring(L, -1));
-            lua_pop(L, 1);
+            lua_pop(L, 2);
         }
-    } else lua_pop(L, 1);
+    } else lua_pop(L, 2);
 
     pthread_mutex_unlock(&lua_mutex);
     return 1;

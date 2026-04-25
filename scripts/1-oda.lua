@@ -112,16 +112,14 @@ local function get_data()
     return false, 0, 0, 0
 end
 
-function group(group_type)
-    if group_type == "O" or group_type == "K" then
-        if #_RDS_ODAs == 0 then return false, 0, 0, 0 end
-        if _RDS_ODA_pointer > #_RDS_ODAs or _RDS_ODA_pointer < 1 then _RDS_ODA_pointer = 1 end
+local function group_handler(group_type)
+    if #_RDS_ODAs == 0 then return false, 0, 0, 0 end
+    if _RDS_ODA_pointer > #_RDS_ODAs or _RDS_ODA_pointer < 1 then _RDS_ODA_pointer = 1 end
 
-        if group_type == "O" then return get_aid()
-        elseif group_type == "K" then return get_data() end
-    end
-    return false, 0, 0, 0
+    if group_type == "O" then return get_aid()
+    elseif group_type == "K" then return get_data() end
 end
+rds.ext.register_group("OK", group_handler)
 
 table.insert(hooks.on_state, function ()
     _RDS_ODAs = {}

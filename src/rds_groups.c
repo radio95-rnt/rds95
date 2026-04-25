@@ -61,7 +61,8 @@ void get_rds_ps_group(RDSEncoder* enc, RDSGroup *group) {
 
 	if(enc->data[enc->program].af.num_afs) group->c = get_next_af(enc);
 	else {
-		group->b |= 1 << 11; // set to b
+		// Set type to B, just makes it easier for a receiver to catch the PI
+		group->b |= 1 << 11;
 		group->is_type_b = 1;
 	}
 
@@ -69,7 +70,10 @@ void get_rds_ps_group(RDSEncoder* enc, RDSGroup *group) {
 	else group->d = enc->state[enc->program].ps_text[enc->state[enc->program].ps_csegment * 2] << 8 |  enc->state[enc->program].ps_text[enc->state[enc->program].ps_csegment * 2 + 1];
 
 	enc->state[enc->program].ps_csegment++;
-	if (enc->state[enc->program].ps_csegment == 4) enc->state[enc->program].ps_csegment = 0;
+	if (enc->state[enc->program].ps_csegment == 4) {
+		lua_call_tfunction("ps_transmission");
+		enc->state[enc->program].ps_csegment = 0;
+	}
 }
 
 void get_rds_fasttuning_group(RDSEncoder* enc, RDSGroup *group) {

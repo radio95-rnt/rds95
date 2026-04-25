@@ -1,5 +1,5 @@
 ---@param data string
-function data_handle(data)
+function hooks.data_handle(data)
     -- UECP
     if uecp.parse_uecp and string.byte(data, 1) == 0xfe then return uecp.parse_uecp(data) end
 
@@ -42,7 +42,7 @@ function data_handle(data)
     end
     if cmd == nil then
         data = data:lower()
-        if data == "ver" then return string.format("rds95 core v. %s - (C) 2025 radio95 - lua parser\r\n", core_version)
+        if data == "ver" then return string.format("rds95 core v. %s - (C) 2025 radio95 - lua parser\r\n", dp.core_version)
         elseif data == "init" then
             dp.set_program_defaults()
             return "+\r\n"
@@ -165,37 +165,6 @@ function data_handle(data)
         else return "?\r\n" end
     end
 
-    local udg_num = cmd:match("^udg([12])$")
-    local udg2_num = cmd:match("^2udg([12])$")
-    if udg_num then
-        local xy = (udg_num == "1")
-        local groups = {}
-
-        for segment in value:gmatch("([^,]+)") do
-            local b, c, d = segment:match("^(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)$")
-            if not (b and c and d) then return "-\r\n" end
-            table.insert(groups, {tonumber(b, 16), tonumber(c, 16), tonumber(d, 16)})
-        end
-
-        if #groups > 8 or #groups == 0 then return "-\r\n" end
-        rds.set_udg(xy, groups)
-        return "+\r\n"
-    end
-    if udg2_num then
-        local xy = (udg2_num == "1")
-        local groups = {}
-
-        for segment in value:gmatch("([^,]+)") do
-            local a, b, c, d = segment:match("^(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)$")
-            if not (a and b and c and d) then return "-" end
-            table.insert(groups, {tonumber(a, 16), tonumber(b, 16), tonumber(c, 16), tonumber(d, 16)})
-        end
-
-        if #groups > 8 or #groups == 0 then return "-" end
-        rds.set_udg2(xy, groups)
-        return "+\r\n"
-    end
-
     if cmd == "pi" then
         local pi = tonumber(value, 16)
         if not pi then return "-\r\n" end
@@ -264,7 +233,7 @@ function data_handle(data)
     elseif cmd == "rt1" or cmd == "text" then
         uecp.rt_buffer = {}
         uecp.rt_buffer_index = 1
-        uecp.rt_buffer[1] = { text = value, number_tx = 0, toggle_ab = true }
+        uecp.rt_buffer[1] = { text = dp.encode_charset(value), number_tx = 0, toggle_ab = true }
         uecp.rt_tx_remaining = 0
         rds.set_rt_enabled(true)
         rds.set_rt(value)

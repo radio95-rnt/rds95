@@ -21,32 +21,7 @@ uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group);
 int get_rdsp_lua_group(RDSGroup *group, const char grp);
 
-#define HANDLE_UDG_STREAM(chan_idx, udg_prefix) \
-    do { \
-        if (stream != 0) { \
-            udg_idx = enc->state[enc->program].udg_idxs_rds2[chan_idx]; \
-            group->a = enc->data[enc->program].udg_prefix##_rds2[udg_idx][0]; \
-            group->b = enc->data[enc->program].udg_prefix##_rds2[udg_idx][1]; \
-            group->c = enc->data[enc->program].udg_prefix##_rds2[udg_idx][2]; \
-            group->d = enc->data[enc->program].udg_prefix##_rds2[udg_idx][3]; \
-            enc->state[enc->program].udg_idxs_rds2[chan_idx]++; \
-            if (enc->state[enc->program].udg_idxs_rds2[chan_idx] == enc->data[enc->program].udg_prefix##_len_rds2) \
-                enc->state[enc->program].udg_idxs_rds2[chan_idx] = 0; \
-            group->is_type_b = (group->a == 0 && IS_TYPE_B(group->b)); \
-        } else { \
-            udg_idx = enc->state[enc->program].udg_idxs[chan_idx]; \
-            group->b = enc->data[enc->program].udg_prefix[udg_idx][0]; \
-            group->c = enc->data[enc->program].udg_prefix[udg_idx][1]; \
-            group->d = enc->data[enc->program].udg_prefix[udg_idx][2]; \
-            enc->state[enc->program].udg_idxs[chan_idx]++; \
-            if (enc->state[enc->program].udg_idxs[chan_idx] == enc->data[enc->program].udg_prefix##_len) \
-                enc->state[enc->program].udg_idxs[chan_idx] = 0; \
-            group->is_type_b = (IS_TYPE_B(group->b) != 0); \
-        } \
-    } while(0)
-
 static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, uint8_t stream) {
-	uint8_t udg_idx;
 	uint8_t ps_seq_idx = (stream == 0) ? 1 : 3;
 	uint8_t grp_seq_idx = (stream == 0) ? 0 : 2;
 	switch (*grp)
@@ -73,12 +48,6 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 		case 'E':
 			get_rds_eon_group(enc, group);
 			break;
-		case 'X':
-			HANDLE_UDG_STREAM(0, udg1);
-			break;
-		case 'Y':
-			HANDLE_UDG_STREAM(1, udg2);
-			break;
 		case 'F':
 			get_rds_lps_group(enc, group);
 			break;
@@ -92,6 +61,8 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, 
 		case 'O':
 		case 'K':
 		case 'U':
+		case 'X':
+		case 'Y':
 			if(get_rdsp_lua_group(group, *grp) == 0) get_rds_ps_group(enc, group);
 			break;
 	}
@@ -111,11 +82,9 @@ static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 			}
 		}
 	}
-	if(*grp == 'X' && enc->data[enc->program].udg1_len != 0) good_group = 1;
-	if(*grp == 'Y' && enc->data[enc->program].udg2_len != 0) good_group = 1;
 	if(*grp == 'F' && enc->data[enc->program].lps[0] != '\0') good_group = 1;
 	if(*grp == 'T') good_group = 1;
-	if(*grp == 'L' || *grp == 'R' || *grp == 'P' || *grp == 'S' || *grp == 'O' || *grp == 'K' || *grp == 'U') good_group = 1;
+	if(*grp == 'L' || *grp == 'R' || *grp == 'P' || *grp == 'S' || *grp == 'O' || *grp == 'K' || *grp == 'U' || *grp == 'X' || *grp == 'Y') good_group = 1;
 	return good_group;
 }
 
@@ -138,21 +107,7 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 
 	if (utc->tm_min != enc->state[enc->program].last_minute) {
 		enc->state[enc->program].last_minute = utc->tm_min;
-
-		uint8_t eon_has_ta = 0;
-		for (int i = 0; i < EONs; i++) {
-			if (enc->data[enc->program].eon[i].enabled && enc->data[enc->program].eon[i].ta) {
-				eon_has_ta = 1;
-				break;
-			}
-		}
-		if(enc->data[enc->program].tp && enc->data[enc->program].ta && enc->state[enc->program].ta_timeout && !eon_has_ta) {
-			enc->state[enc->program].ta_timeout--;
-			if(enc->state[enc->program].ta_timeout == 0) {
-				enc->data[enc->program].ta = 0;
-				enc->state[enc->program].ta_timeout_state = enc->state[enc->program].ta_timeout;
-			};
-		}
+		lua_call_tfunction("minute_tick");
 
 		if(enc->data[enc->program].ct && stream == 0) {
 			get_rdsp_ct_group(group, now);
@@ -228,7 +183,7 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 
 		if(!good_group) cant_find_group++;
 		else cant_find_group = 0;
-		if(!good_group && cant_find_group == 23) {
+		if(!good_group && cant_find_group >= 23) {
 			cant_find_group = 0;
 			break;
 		}

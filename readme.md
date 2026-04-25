@@ -29,11 +29,7 @@ RDS95 is the only (as far as i can tell) encoder to transmit the 9-bit AF codes
 
 ## Lua engine
 
-Yet another unique feature, the Lua engine allows you to parse the messages from UDP, and more!
-
-You wanna make an ODA? Sure go for it, look in the scripts folder to see `0-ert.lua`, that is how ERT is implemmented in this encoder
-Wanna do scrolling PS without C stuff and no external scripts? Just do it with the `tick` function!
-Don't wanna run a bash script to send your station's data to the encoder when defaults take over? I'll welcome you to the `on_init` function
+Yet another unique feature, the Lua engine allows you to control the encoder, almost entirely.
 
 ### RFT
 

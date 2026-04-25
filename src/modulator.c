@@ -41,7 +41,7 @@ float get_rds_sample(RDSModulator* rdsMod, uint8_t stream) {
 
 		rdsMod->data[stream].cur_bit = rdsMod->data[stream].bit_buffer[rdsMod->data[stream].bit_pos++];
 		rdsMod->data[stream].prev_output = rdsMod->data[stream].cur_output;
-		rdsMod->data[stream].cur_output = rdsMod->data[stream].prev_output ^ rdsMod->data[stream].cur_bit;
+		rdsMod->data[stream].cur_output = rdsMod->data[stream].prev_output ^ rdsMod->data[stream].cur_bit; // Something with differential encoding? Instead of encoding the data, encode if the bit of data changes
 	}
 
 	float sample = sinf(M_2PI * rdsMod->data[stream].phase + rdsMod->data[stream].symbol_shift);
