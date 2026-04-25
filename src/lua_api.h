@@ -44,9 +44,6 @@ int lua_get_rds_rt_enabled(lua_State *localL);
 int lua_set_rds_ptyn_enabled(lua_State *localL);
 int lua_get_rds_ptyn_enabled(lua_State *localL);
 
-int lua_set_rds2_mode(lua_State *localL);
-int lua_get_rds2_mode(lua_State *localL);
-
 int lua_set_rds_streams(lua_State *localL);
 int lua_get_rds_streams(lua_State *localL);
 

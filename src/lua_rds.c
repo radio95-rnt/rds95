@@ -114,9 +114,6 @@ void init_lua(RDSEncoder* _enc) {
     lua_registertotable(L, "set_ptyn_enabled", lua_set_rds_ptyn_enabled);
     lua_registertotable(L, "get_ptyn_enabled", lua_get_rds_ptyn_enabled);
 
-    lua_registertotable(L, "set_rds2_mode", lua_set_rds2_mode);
-    lua_registertotable(L, "get_rds2_mode", lua_get_rds2_mode);
-
     lua_registertotable(L, "set_link", lua_set_rds_link);
     lua_registertotable(L, "get_link", lua_get_rds_link);
 
