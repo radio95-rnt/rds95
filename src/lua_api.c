@@ -95,6 +95,13 @@ int lua_set_rds_##name(lua_State *localL) { \
     function(enc, str, writing_program); \
     return 0; \
 }
+#define STR_RAW_SETTER_LEN(name, function) \
+int lua_set_rds_##name(lua_State *localL) { \
+    size_t len \
+	const char* str = luaL_checklstring(localL, 1, &len); \
+    function(enc, str, len, writing_program); \
+    return 0; \
+}
 #define AF_SETTER(name, af_field, af_struct, add_func) \
 int lua_set_rds_##name(lua_State *localL) { \
     luaL_checktype(localL, 1, LUA_TTABLE); \

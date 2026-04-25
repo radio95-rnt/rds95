@@ -166,4 +166,4 @@ void set_rds_ps(RDSEncoder* enc, const char *ps, uint8_t program);
 void set_rds_tps(RDSEncoder* enc, const char *tps, uint8_t program);
 void set_rds_lps(RDSEncoder* enc, const char *lps, uint8_t program);
 void set_rds_ptyn(RDSEncoder *enc, const char *ptyn, uint8_t program);
-void set_rds_grpseq(RDSEncoder* enc, const char *grpseq, uint8_t program);
+void set_rds_grpseq(RDSEncoder* enc, const char *grpseq, size_t size, uint8_t program);
