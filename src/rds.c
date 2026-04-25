@@ -22,70 +22,62 @@ uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group);
 int get_rdsp_lua_group(RDSGroup *group, const char grp);
 
 static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, uint8_t stream) {
-	uint8_t ps_seq_idx = (stream == 0) ? 1 : 3;
-	uint8_t grp_seq_idx = (stream == 0) ? 0 : 2;
-	switch (*grp)
-	{
-		default:
-		case '0':
-			if(enc->state[enc->program].grp_seq_idx[ps_seq_idx] < 4) enc->state[enc->program].grp_seq_idx[grp_seq_idx]--;
-			else enc->state[enc->program].grp_seq_idx[ps_seq_idx] = 0;
-
-			enc->state[enc->program].grp_seq_idx[ps_seq_idx]++;
+	switch (*grp) {
+		case 0:
 			get_rds_ps_group(enc, group);
 			break;
-		case '1':
+		case 2:
 			if(enc->state[enc->program].data_ecc == 0 && enc->data[enc->program].slc_data != 0) get_rds_slcdata_group(enc, group);
 			else get_rds_ecc_group(enc, group);
 			TOGGLE(enc->state[enc->program].data_ecc);
 			break;
-		case '2':
+		case 4:
 			get_rds_rt_group(enc, group);
 			break;
-		case 'A':
+		case 20:
 			get_rds_ptyn_group(enc, group);
 			break;
-		case 'E':
+		case 28:
 			get_rds_eon_group(enc, group);
 			break;
-		case 'F':
+		case 30:
 			get_rds_lps_group(enc, group);
 			break;
-		case 'T':
+		case 31:
 			get_rds_fasttuning_group(enc, group);
 			break;
-		case 'L':
-		case 'R':
-		case 'P':
-		case 'S':
-		case 'O':
-		case 'K':
-		case 'U':
-		case 'X':
-		case 'Y':
+		default:
 			if(get_rdsp_lua_group(group, *grp) == 0) get_rds_ps_group(enc, group);
 			break;
 	}
 }
 
 static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
-	uint8_t good_group = 0;
-	if(*grp == '0') good_group = 1;
-	if(*grp == '1' && (enc->data[enc->program].ecc != 0 || enc->data[enc->program].slc_data != 0)) good_group = 1;
-	if(*grp == '2' && enc->data[enc->program].rt_enabled) good_group = 1;
-	if(*grp == 'A' && enc->data[enc->program].ptyn_enabled) good_group = 1;
-	if(*grp == 'E') {
+	if(*grp == 2) {
+		if(enc->data[enc->program].ecc != 0 || enc->data[enc->program].slc_data != 0) return 1;
+		return 0;
+	}
+	if(*grp == 4) {
+		if(enc->data[enc->program].rt_enabled) return 1;
+		return 0;
+	}
+	if(*grp == 20) {
+		if(enc->data[enc->program].ptyn_enabled) return 1;
+		return 0;
+	}
+	if(*grp == 28) {
 		for (int i = 0; i < EONs; i++) {
 			if (enc->data[enc->program].eon[i].enabled) {
-				good_group = 1;
+				return 1;
 				break;
 			}
 		}
 	}
-	if(*grp == 'F' && enc->data[enc->program].lps[0] != '\0') good_group = 1;
-	if(*grp == 'T') good_group = 1;
-	if(*grp == 'L' || *grp == 'R' || *grp == 'P' || *grp == 'S' || *grp == 'O' || *grp == 'K' || *grp == 'U' || *grp == 'X' || *grp == 'Y') good_group = 1;
-	return good_group;
+	if(*grp == 30) {
+		if(enc->data[enc->program].lps[0] != '\0') return 1;
+		return 0;
+	}
+	return 1;
 }
 
 void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
@@ -124,57 +116,23 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 		group->a = 0;
 		if(get_rds_custom_groups2(enc, group)) goto group_coded_rds2;
 
-		if(enc->encoder_data.rds2_mode == 0) {
+		int generated = lua_rds2_group(group, stream);
+		if(group->a == 0 && generated == 1) group->is_type_b = (IS_TYPE_B(group->b) != 0);
+		else if(generated == 0) {
 			group->b = enc->state[enc->program].last_stream0_group[0];
 			group->c = enc->state[enc->program].last_stream0_group[1];
 			group->d = enc->state[enc->program].last_stream0_group[2];
 			group->is_type_b = enc->state[enc->program].last_stream0_group_type_b;
-			goto group_coded_rds2;
-		} else if(enc->encoder_data.rds2_mode == 1) {
-			while(good_group == 0) {
-				grp_sqc_idx = enc->state[enc->program].grp_seq_idx[2];
-				if(enc->data[enc->program].grp_sqc_rds2[grp_sqc_idx] == '\0') {
-					enc->state[enc->program].grp_seq_idx[2] = 0;
-					grp_sqc_idx = 0;
-				}
-				grp = enc->data[enc->program].grp_sqc_rds2[grp_sqc_idx];
-
-				good_group = check_rds_good_group(enc, &grp);
-
-				if(!good_group) cant_find_group++;
-				else cant_find_group = 0;
-
-				if(!good_group && cant_find_group == 23) {
-					cant_find_group = 0;
-					break;
-				}
-
-				enc->state[enc->program].grp_seq_idx[2]++;
-			}
-			if(!good_group) grp = '0';
-
-			get_rds_sequence_group(enc, group, &grp, stream);
-
-			goto group_coded_rds2;
-		} else if(enc->encoder_data.rds2_mode == 2) {
-			int generated = lua_rds2_group(group, stream);
-			if(group->a == 0 && generated == 1) group->is_type_b = (IS_TYPE_B(group->b) != 0);
-			else if(generated == 0) {
-				group->b = enc->state[enc->program].last_stream0_group[0];
-				group->c = enc->state[enc->program].last_stream0_group[1];
-				group->d = enc->state[enc->program].last_stream0_group[2];
-				group->is_type_b = enc->state[enc->program].last_stream0_group_type_b;
-			}
-			goto group_coded_rds2;
 		}
+		goto group_coded_rds2;
 	}
 
 	if(get_rds_custom_groups(enc, group)) goto group_coded;
 
 	while(good_group == 0) {
-		grp_sqc_idx = enc->state[enc->program].grp_seq_idx[0];
-		if(enc->data[enc->program].grp_sqc[grp_sqc_idx] == '\0') {
-			enc->state[enc->program].grp_seq_idx[0] = 0;
+		grp_sqc_idx = enc->state[enc->program].grp_seq_idx;
+		if(grp_sqc_idx > enc->data[enc->program].grp_sqc_len) {
+			enc->state[enc->program].grp_seq_idx = 0;
 			grp_sqc_idx = 0;
 		}
 		grp = enc->data[enc->program].grp_sqc[grp_sqc_idx];
@@ -188,9 +146,9 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 			break;
 		}
 
-		enc->state[enc->program].grp_seq_idx[0]++;
+		enc->state[enc->program].grp_seq_idx++;
 	}
-	if(!good_group) grp = '0';
+	if(!good_group) grp = 0;
 
 	get_rds_sequence_group(enc, group, &grp, stream);
 
@@ -267,7 +225,6 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 	set_rds_lps(&tempCoder, enc->data[program].lps, program);
 	set_rds_ptyn(&tempCoder, enc->data[program].ptyn, program);
 	set_rds_grpseq(&tempCoder, enc->data[program].grp_sqc, program);
-	set_rds_grpseq2(&tempCoder, enc->data[program].grp_sqc_rds2, program);
 
 	struct tm *utc;
 	time_t now;
@@ -284,10 +241,9 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program) {
 
 void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 	memset(&(enc->data[program]), 0, sizeof(RDSData));
-	memset(&(enc->encoder_data), 0, sizeof(RDSEncoderData));
 
 	enc->data[program].ct = 1;
-	strcpy((char *)enc->data[program].grp_sqc, DEFAULT_GRPSQC);
+	strcpy((char *)enc->data[program].grp_sqc, "0");
 	enc->data[program].tp = 1;
 	enc->data[program].pi = 0xFFFF;
 	strcpy((char *)enc->data[program].ps, "* RDS * ");

@@ -165,16 +165,6 @@ BOOL_GETTER(rt_enabled)
 BOOL_SETTER(ptyn_enabled)
 BOOL_GETTER(ptyn_enabled)
 
-int lua_set_rds2_mode(lua_State *localL) {
-	enc->encoder_data.rds2_mode = luaL_checkinteger(localL, 1);
-    return 0;
-}
-
-int lua_get_rds2_mode(lua_State *localL) {
-    lua_pushinteger(localL, enc->encoder_data.rds2_mode);
-    return 1;
-}
-
 int lua_set_rds_streams(lua_State *localL) {
 	enc->enabled_streams = luaL_checkinteger(localL, 1);
     return 0;
@@ -259,16 +249,7 @@ STR_RAW_SETTER(rt_raw, set_rds_rt)
 STR_RAW_SETTER(lps, set_rds_lps)
 STR_RAW_GETTER(lps, LPS_LENGTH)
 
-STR_RAW_SETTER(grp_sqc_rds2, set_rds_grpseq2)
-STR_RAW_GETTER(grp_sqc_rds2, 32)
-
-int lua_set_rds_grp_sqc(lua_State *localL) {
-	const char* str = luaL_checklstring(localL, 1, NULL);
-    if(_strnlen(str, 2) < 1) set_rds_grpseq(enc, DEFAULT_GRPSQC, writing_program);
-    else set_rds_grpseq(enc, str, writing_program);
-    return 0;
-}
-
+STR_RAW_SETTER(grp_sqc, set_rds_grpseq)
 STR_RAW_GETTER(grp_sqc, 32)
 
 AF_SETTER(af_group0, af, RDSAFs, add_rds_af)

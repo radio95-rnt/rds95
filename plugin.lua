@@ -222,11 +222,6 @@ function rds.set_grpseq(grpseq) end
 ---@return string
 function rds.get_grpseq() end
 
----@param grpseq2 string
-function rds.set_grpseq2(grpseq2) end
----@return string
-function rds.get_grpseq2() end
-
 ---Puts in a RDS1 group in the buffer, note that block A is filled in always
 ---@param b integer
 ---@param c integer

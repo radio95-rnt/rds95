@@ -17,7 +17,6 @@
 #define PS_LENGTH	8
 #define PTYN_LENGTH	8
 #define LPS_LENGTH	32
-#define DEFAULT_GRPSQC "002222XYOK"
 #define MAX_AFS 25
 
 #define AF_CODE_FILLER		205
@@ -69,7 +68,9 @@ typedef struct {
 
 	char lps[LPS_LENGTH];
 
+	uint8_t grp_sqc_len;
 	char grp_sqc[32];
+	uint8_t grp_sqc_rds2_len;
 	char grp_sqc_rds2[32];
 
 	RDSEON eon[EONs];
@@ -107,7 +108,7 @@ typedef struct {
 	uint16_t custom_group2[GROUP_LENGTH + 1];
 
 	uint8_t data_ecc : 1;
-	uint8_t grp_seq_idx[4];
+	uint8_t grp_seq_idx;
 
 	uint8_t fasttuning_state : 3;
 
@@ -127,10 +128,6 @@ typedef struct {
 } RDSState;
 
 typedef struct {
-	uint8_t rds2_mode : 2;
-} RDSEncoderData;
-typedef struct {
-	RDSEncoderData encoder_data;
 	RDSData data[PROGRAMS];
 	RDSState state[PROGRAMS];
 	uint8_t program : 3;
@@ -140,7 +137,6 @@ typedef struct {
 	uint8_t file_starter; // Always is 225 first polish radio programme am frequency
 	RDSData data[PROGRAMS];
 	uint8_t file_middle; // Always is 160, average of both
-	RDSEncoderData encoder_data;
 	uint8_t program : 3;
 	uint8_t enabled_streams : 3;
 	uint8_t file_ender; // Always is 95 my freq
@@ -171,4 +167,3 @@ void set_rds_tps(RDSEncoder* enc, const char *tps, uint8_t program);
 void set_rds_lps(RDSEncoder* enc, const char *lps, uint8_t program);
 void set_rds_ptyn(RDSEncoder *enc, const char *ptyn, uint8_t program);
 void set_rds_grpseq(RDSEncoder* enc, const char *grpseq, uint8_t program);
-void set_rds_grpseq2(RDSEncoder* enc, const char *grpseq2, uint8_t program);

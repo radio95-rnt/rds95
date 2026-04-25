@@ -136,9 +136,6 @@ void init_lua(RDSEncoder* _enc) {
     lua_registertotable(L, "set_grpseq", lua_set_rds_grp_sqc);
     lua_registertotable(L, "get_grpseq", lua_get_rds_grp_sqc);
 
-    lua_registertotable(L, "set_grpseq2", lua_set_rds_grp_sqc_rds2);
-    lua_registertotable(L, "get_grpseq2", lua_get_rds_grp_sqc_rds2);
-
     lua_registertotable(L, "put_custom_group", lua_put_rds_custom_group);
     lua_registertotable(L, "put_rds2_custom_group", lua_put_rds2_custom_group);
 

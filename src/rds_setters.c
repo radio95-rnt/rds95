@@ -78,29 +78,10 @@ void set_rds_ptyn(RDSEncoder* enc, const char *ptyn, uint8_t program) {
 	while (*ptyn != 0 && len < PTYN_LENGTH) enc->data[program].ptyn[len++] = *ptyn++;
 }
 
-void set_rds_grpseq(RDSEncoder* enc, const char *grpseq, uint8_t program) {
+void set_rds_grpseq(RDSEncoder* enc, const char *grpseq, size_t size, uint8_t program) {
 	uint8_t len = 0;
 
-	if(grpseq[0] == '\0') {
-		while (DEFAULT_GRPSQC[len] != 0 && len < 32) {
-			enc->data[program].grp_sqc[len] = DEFAULT_GRPSQC[len];
-			len++;
-		}
-		return;
-	}
-
+	enc->data[program].grp_sqc_len = size;
 	memset(enc->data[program].grp_sqc, 0, 32);
-	while (*grpseq != 0 && len < 32) enc->data[program].grp_sqc[len++] = *grpseq++;
-}
-void set_rds_grpseq2(RDSEncoder* enc, const char *grpseq2, uint8_t program) {
-	uint8_t len = 0;
-
-	if(grpseq2[0] == '\0') {
-		memset(enc->data[program].grp_sqc_rds2, 0, 32);
-		memcpy(enc->data[program].grp_sqc_rds2, enc->data[program].grp_sqc, 32);
-		return;
-	}
-
-	memset(enc->data[program].grp_sqc_rds2, 0, 32);
-	while (*grpseq2 != 0 && len < 32) enc->data[program].grp_sqc_rds2[len++] = *grpseq2++;
+	while (len < size && len < 32) enc->data[program].grp_sqc[len++] = *grpseq++;
 }

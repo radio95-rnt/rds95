@@ -119,7 +119,7 @@ local function group_handler(group_type)
     if group_type == "O" then return get_aid()
     elseif group_type == "K" then return get_data() end
 end
-rds.ext.register_group("OK", group_handler)
+rds.ext.register_group("\x06\xff", group_handler)
 
 table.insert(hooks.on_state, function ()
     _RDS_ODAs = {}
