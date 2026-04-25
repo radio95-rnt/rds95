@@ -116,8 +116,8 @@ local function group_handler(group_type)
     if #_RDS_ODAs == 0 then return false, 0, 0, 0 end
     if _RDS_ODA_pointer > #_RDS_ODAs or _RDS_ODA_pointer < 1 then _RDS_ODA_pointer = 1 end
 
-    if group_type == "O" then return get_aid()
-    elseif group_type == "K" then return get_data() end
+    if group_type == "\x06" then return get_aid()
+    elseif group_type == "\xff" then return get_data() end
 end
 rds.ext.register_group("\x06\xff", group_handler)
 
