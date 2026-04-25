@@ -21,7 +21,7 @@ uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group);
 int get_rdsp_lua_group(RDSGroup *group, const char grp);
 
-static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp, uint8_t stream) {
+static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp) {
 	switch (*grp) {
 		case 0:
 			get_rds_ps_group(enc, group);
@@ -150,7 +150,7 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 	}
 	if(!good_group) grp = 0;
 
-	get_rds_sequence_group(enc, group, &grp, stream);
+	get_rds_sequence_group(enc, group, &grp);
 
 group_coded_rds2:
 	if (group->a == 0 && stream != 0) {
