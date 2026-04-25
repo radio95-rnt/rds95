@@ -256,7 +256,7 @@ STR_RAW_SETTER(rt_raw, set_rds_rt)
 STR_RAW_SETTER(lps, set_rds_lps)
 STR_RAW_GETTER(lps, LPS_LENGTH)
 
-STR_RAW_SETTER(grp_sqc, set_rds_grpseq)
+STR_RAW_SETTER_LEN(grp_sqc, set_rds_grpseq)
 STR_RAW_GETTER(grp_sqc, 32)
 
 AF_SETTER(af_group0, af, RDSAFs, add_rds_af)
