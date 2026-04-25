@@ -97,7 +97,7 @@ int lua_set_rds_##name(lua_State *localL) { \
 }
 #define STR_RAW_SETTER_LEN(name, function) \
 int lua_set_rds_##name(lua_State *localL) { \
-    size_t len \
+    size_t len; \
 	const char* str = luaL_checklstring(localL, 1, &len); \
     function(enc, str, len, writing_program); \
     return 0; \
