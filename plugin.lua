@@ -95,6 +95,7 @@ hooks.ps_transmission = {}
 function hooks.data_handle(data) end
 
 ---This function is called an unknown group is seen in the group sequence. See set_grpseq
+---This will be also called on recognized groups - if they can't be properly encoded by the core
 ---Please remember that the core always fills in PTY and TP and PI in C if this is an B group
 ---It should be defined by the user in the script.
 ---@param group string group this was called in from the group sequence
@@ -117,6 +118,14 @@ function hooks.group(group) end
 function hooks.rds2_group(stream) end
 
 rds = {}
+
+---Returns an encoded group by the core - groups that could not be encoded decay to PS
+---@param group string One character, just one
+---@return boolean generated Was this properly generated, or is the PS?
+---@return integer b
+---@return integer c
+---@return integer d
+function rds.encode_group(group) end
 
 ---@type integer
 rds.eon_count = 0

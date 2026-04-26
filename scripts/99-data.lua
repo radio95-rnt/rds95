@@ -77,7 +77,6 @@ function hooks.data_handle(data)
             return string.format("ERTPRUN=%d\r\n", f1)
         elseif data == "lps" then return string.format("LPS=%s\r\n", rds.get_lps())
         elseif data == "ert" then return string.format("ERT=%s\r\n", rds.ext.get_ert())
-        elseif data == "grpseq" then return string.format("GRPSEQ=%s\r\n", rds.get_grpseq())
         else
             local eon_cmd, eon_num = data:match("^eon(%d+)([a-z]+)$")
             if eon_cmd then
@@ -250,9 +249,6 @@ function hooks.data_handle(data)
         dp.set_output_program(program-1)
         dp.set_writing_program(program-1)
         rds.set_ta(false)
-        return "+\r\n"
-    elseif cmd == "grpseq" then
-        rds.set_grpseq(value)
         return "+\r\n"
     elseif cmd == "rtp" or cmd == "ertp" then
         local is_ertp = (cmd == "ertp")

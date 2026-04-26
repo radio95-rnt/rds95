@@ -144,6 +144,8 @@ void init_lua(RDSEncoder* _enc) {
     lua_registertotable(L, "set_streams", lua_set_rds_streams);
     lua_registertotable(L, "get_streams", lua_get_rds_streams);
 
+    lua_registertotable(L, "encode_group", lua_encode_group);
+
     lua_setglobal(L, "rds");
 
     if (luaL_loadfile(L, "/etc/rds95.lua") != LUA_OK) {

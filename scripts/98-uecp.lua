@@ -243,6 +243,16 @@ mec_handlers[0x19] = function (data)
     end)
     return 2
 end
+mec_handlers[0x16] = function (data)
+    -- Group sequence for stream 0
+    local dsn = string.byte(data, 2)
+    local mel = string.byte(data, 3)
+    local group_sequence = string.sub(data, 4, 3+mel)
+    dsn_helper(dsn, function ()
+        rds.set_grpseq(group_sequence)
+    end)
+    return 4 + mel
+end
 mec_handlers[0x23] = function (data)
     -- Site address
     local control_bits = string.byte(data, 2)

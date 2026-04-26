@@ -158,6 +158,8 @@ void reset_rds_state(RDSEncoder* enc, uint8_t program);
 void set_rds_defaults(RDSEncoder* enc, uint8_t program);
 void init_rds_encoder(RDSEncoder* enc);
 void add_checkwords(RDSGroup *group, uint8_t *bits);
+uint8_t check_rds_good_group(RDSEncoder* enc, char* grp);
+void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, uint8_t good_group, char* grp);
 void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream);
 void get_rds_bits(RDSEncoder* enc, uint8_t *bits, uint8_t stream);
 

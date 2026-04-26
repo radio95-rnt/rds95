@@ -31,6 +31,8 @@ RDS95 is the only (as far as i can tell) encoder to transmit the 9-bit AF codes
 
 Yet another unique feature, the Lua engine allows you to control the encoder, almost entirely.
 
+Every RDS2 subcarrier is in full control of Lua (except tunneling - core fills in PTY and the rest)
+
 ### RFT
 
 For a long time there was no RFT in RDS95, but on 28th December 2025 that changed when i implemented it in lua, just call the load function with the path and id 0, and see the your station's logo in the decoder

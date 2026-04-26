@@ -386,3 +386,26 @@ int lua_convert_to_rdscharset(lua_State *localL) {
     lua_pushstring(localL, output);
     return 1;
 }
+
+int lua_encode_group(lua_State *localL) {
+    size_t len;
+    const char *grp = luaL_checklstring(localL, 1, &len);
+    if(len != 1) return luaL_error(localL, "expected a length of 1");
+    char PS_GROUP = 0;
+
+    RDSGroup group;
+    uint8_t good = check_rds_good_group(enc, grp);
+    if(good == 0) {
+        lua_pushboolean(localL, 0);
+        get_rds_sequence_group(enc, &group, 1, &PS_GROUP);
+    } else {
+        lua_pushboolean(localL, 1);
+        get_rds_sequence_group(enc, &group, 1, grp);
+    }
+
+    lua_pushinteger(localL, group.b);
+    lua_pushinteger(localL, group.c);
+    lua_pushinteger(localL, group.d);
+    
+    return 4;
+}

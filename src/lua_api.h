@@ -86,3 +86,4 @@ int lua_get_rds_eon(lua_State *localL);
 int lua_crc16(lua_State *localL);
 
 int lua_convert_to_rdscharset(lua_State *localL);
+int lua_encode_group(lua_State *localL);

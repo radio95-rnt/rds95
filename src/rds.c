@@ -21,7 +21,12 @@ uint8_t get_rds_custom_groups(RDSEncoder* enc, RDSGroup *group);
 uint8_t get_rds_custom_groups2(RDSEncoder* enc, RDSGroup *group);
 int get_rdsp_lua_group(RDSGroup *group, const char grp);
 
-static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp) {
+void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, uint8_t good_group, char* grp) {
+	if(good_group == 0) {
+		if(get_rdsp_lua_group(group, *grp) == 0) get_rds_ps_group(enc, group);
+		return;
+	}
+
 	switch (*grp) {
 		case 0:
 			get_rds_ps_group(enc, group);
@@ -52,7 +57,7 @@ static void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, char* grp) 
 	}
 }
 
-static uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
+uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
 	if(*grp == 2) {
 		if(enc->data[enc->program].ecc != 0 || enc->data[enc->program].slc_data != 0) return 1;
 		return 0;
@@ -108,7 +113,6 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 	}
 
 	uint8_t good_group = 0;
-	uint8_t cant_find_group = 0;
 	uint8_t grp_sqc_idx = 0;
 	char grp;
 
@@ -129,28 +133,18 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 
 	if(get_rds_custom_groups(enc, group)) goto group_coded;
 
-	while(good_group == 0) {
-		grp_sqc_idx = enc->state[enc->program].grp_seq_idx;
-		if(grp_sqc_idx > enc->data[enc->program].grp_sqc_len) {
-			enc->state[enc->program].grp_seq_idx = 0;
-			grp_sqc_idx = 0;
-		}
-		grp = enc->data[enc->program].grp_sqc[grp_sqc_idx];
-
-		good_group = check_rds_good_group(enc, &grp);
-
-		if(!good_group) cant_find_group++;
-		else cant_find_group = 0;
-		if(!good_group && cant_find_group >= 23) {
-			cant_find_group = 0;
-			break;
-		}
-
-		enc->state[enc->program].grp_seq_idx++;
+	grp_sqc_idx = enc->state[enc->program].grp_seq_idx;
+	if(grp_sqc_idx > enc->data[enc->program].grp_sqc_len) {
+		enc->state[enc->program].grp_seq_idx = 0;
+		grp_sqc_idx = 0;
 	}
-	if(!good_group) grp = 0;
+	grp = enc->data[enc->program].grp_sqc[grp_sqc_idx];
 
-	get_rds_sequence_group(enc, group, &grp);
+	good_group = check_rds_good_group(enc, &grp);
+
+	enc->state[enc->program].grp_seq_idx++;
+
+	get_rds_sequence_group(enc, group, good_group, &grp);
 
 group_coded_rds2:
 	if (group->a == 0 && stream != 0) {
