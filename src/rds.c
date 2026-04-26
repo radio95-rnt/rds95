@@ -57,7 +57,7 @@ void get_rds_sequence_group(RDSEncoder* enc, RDSGroup *group, uint8_t good_group
 	}
 }
 
-uint8_t check_rds_good_group(RDSEncoder* enc, char* grp) {
+uint8_t check_rds_good_group(RDSEncoder* enc, const char* grp) {
 	if(*grp == 2) {
 		if(enc->data[enc->program].ecc != 0 || enc->data[enc->program].slc_data != 0) return 1;
 		return 0;
