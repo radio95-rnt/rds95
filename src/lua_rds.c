@@ -12,7 +12,7 @@ uint8_t init_lua(RDSEncoder* _enc) {
     enc = _enc;
     L = luaL_newstate();
     printf("Initializing %s\n", LUA_COPYRIGHT);
-    if(L == NULL) return 0;
+    if(L == NULL) return 1;
 
     luaL_requiref(L, "_G", luaopen_base, 1);
     luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1);
@@ -152,7 +152,7 @@ uint8_t init_lua(RDSEncoder* _enc) {
     if (luaL_loadfile(L, "/etc/rds95.lua") != LUA_OK) {
         fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(L, -1));
         lua_pop(L, 1);
-        return 0;
+        return 2;
     } else {
         if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
             printf("Init error: %s\n", lua_tostring(L, -1));
@@ -164,7 +164,7 @@ uint8_t init_lua(RDSEncoder* _enc) {
         mutex_initialized = 1;
     }
 
-    return 1;
+    return 0;
 }
 
 void run_lua(char *str, size_t str_len, char *cmd_output, size_t *out_len) {

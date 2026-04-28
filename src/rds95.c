@@ -169,8 +169,12 @@ int main(int argc, char **argv) {
 	RDSModulator rdsModulator = {0};
 	
 	RDSEncoder rdsEncoder = {0};
-    if(init_lua(&rdsEncoder) == 1) {
+	uint8_t err = init_lua(&rdsEncoder);
+    if(err == 1) {
 		fprintf(stderr, "Could not create lua state - not enough memory\n");
+		goto exit;
+	} else if (err == 2) {
+		fprintf(stderr, "Could not load lua script file\n");
 		goto exit;
 	}
 	init_rds_modulator(&rdsModulator, &rdsEncoder, config.num_streams);
