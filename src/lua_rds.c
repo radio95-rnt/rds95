@@ -152,7 +152,7 @@ uint8_t init_lua(RDSEncoder* _enc) {
     if (luaL_loadfile(L, "/etc/rds95.lua") != LUA_OK) {
         fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(L, -1));
         lua_pop(L, 1);
-        return;
+        return 0;
     } else {
         if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
             printf("Init error: %s\n", lua_tostring(L, -1));
