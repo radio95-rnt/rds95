@@ -62,13 +62,13 @@ hooks.on_start = {}
 ---@type function[]
 hooks.on_state = {}
 
----This function is called every second
+---This function is called every second (or rather if the second has changed since the last stream 0 group)
 ---It should be defined by the user in the script.
 ---This is a table of functions. Each will be called
 ---@type function[]
 hooks.tick = {}
 
----This function is called every minute
+---This function is called every minute (or rather if the minute has changed since the last stream 0 group)
 ---It should be defined by the user in the script.
 ---This is a table of functions. Each will be called
 ---@type function[]

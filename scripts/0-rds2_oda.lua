@@ -1,7 +1,8 @@
-_RDS2_ODA = { aid = 0, data = 0, handler = false, file_related = false }
+_RDS2_ODA = { aid = 0, data = 0, handler = false, file_related = false, channel = 0 }
+_RDS2_next_channel = { normal = 16, file = 0 }
 
-function _RDS2_ODA.new(aid, data, handler, file_related)
-    local instance = { aid = aid or 0, data = data or 0, handler = handler or false, file_related = file_related or false }
+function _RDS2_ODA.new(aid, data, handler, file_related, channel)
+    local instance = { aid = aid or 0, data = data or 0, handler = handler or false, file_related = file_related or false, channel = channel or 0 }
     setmetatable(instance, { __index = _RDS2_ODA })
     return instance
 end
@@ -15,7 +16,16 @@ _RDS2_ODA_pointer = 1
 ---@param file_related boolean
 ---@return integer oda_id
 function ext.register_oda_rds2(aid, data, file_related)
-    local oda = _RDS2_ODA.new(aid, data, false, file_related)
+    local channel
+    if file_related then
+        channel = _RDS2_next_channel.file
+        _RDS2_next_channel.file = _RDS2_next_channel.file + 1
+    else
+        channel = _RDS2_next_channel.normal
+        _RDS2_next_channel.normal = _RDS2_next_channel.normal + 1
+    end
+
+    local oda = _RDS2_ODA.new(aid, data, false, file_related, channel)
     for i = 1, #_RDS2_ODAs do
         if _RDS2_ODAs[i] == false then
             _RDS2_ODAs[i] = oda
@@ -64,8 +74,7 @@ function hooks.rds2_group(stream)
     if checked == #_RDS2_ODAs then return false, 0, 0, 0, 0 end
 
     local oda = _RDS2_ODAs[_RDS2_ODA_pointer]
-    local channel_offset = 16 * ((not oda.file_related) and 1 or 0) -- Channels 0-15 are reserved for file related things
-    local channel = ((_RDS2_ODA_pointer - 1 + channel_offset) & 0x3F)
+    local channel = oda.channel
     if oda.file_related then channel = channel & 0xF end
 
     _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
@@ -97,10 +106,10 @@ function hooks.rds2_group(stream)
         _RDS2_ODA_aid = _RDS2_ODA_aid + 1
         if _RDS2_ODA_aid > 8 then _RDS2_ODA_aid = 0 end
         if oda.handler then
-            local generated = false
+            generated = false
             checked = 0
             while generated == false and checked < #_RDS2_ODAs do
-                local ok, generated, a, b, c, d = pcall(oda.handler, stream)
+                ok, generated, a, b, c, d = pcall(oda.handler, stream)
                 if not (generated and ok) then
                     _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
                     if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end

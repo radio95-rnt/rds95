@@ -7,11 +7,12 @@ lua_State *L = NULL;
 static pthread_mutex_t lua_mutex;
 
 #define lua_registertotable(L,n,f) (lua_pushcfunction(L, (f)), lua_setfield(L, -2, (n)))
-void init_lua(RDSEncoder* _enc) {
+uint8_t init_lua(RDSEncoder* _enc) {
     static int mutex_initialized = 0;
     enc = _enc;
     L = luaL_newstate();
     printf("Initializing %s\n", LUA_COPYRIGHT);
+    if(L == NULL) return 0;
 
     luaL_requiref(L, "_G", luaopen_base, 1);
     luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1);
@@ -162,6 +163,8 @@ void init_lua(RDSEncoder* _enc) {
         pthread_mutex_init(&lua_mutex, NULL);
         mutex_initialized = 1;
     }
+
+    return 1;
 }
 
 void run_lua(char *str, size_t str_len, char *cmd_output, size_t *out_len) {

@@ -97,16 +97,16 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 	time(&now);
 	utc = gmtime(&now);
 
-	if(utc->tm_sec != enc->state[enc->program].last_second) {
+	if(utc->tm_sec != enc->state[enc->program].last_second && stream == 0) {
 		enc->state[enc->program].last_second = utc->tm_sec;
 		lua_call_tfunction("tick");
 	}
 
-	if (utc->tm_min != enc->state[enc->program].last_minute) {
+	if (utc->tm_min != enc->state[enc->program].last_minute && stream == 0) {
 		enc->state[enc->program].last_minute = utc->tm_min;
 		lua_call_tfunction("minute_tick");
 
-		if(enc->data[enc->program].ct && stream == 0) {
+		if(enc->data[enc->program].ct) {
 			get_rdsp_ct_group(group, now);
 			goto group_coded;
 		}

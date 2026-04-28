@@ -9,7 +9,7 @@ end
 local _RDS_ODAs = {}
 local _RDS_ODA_pointer = 1
 
----Registers an ODA to be used in the O of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
+---Registers an ODA to be used in the '\x06' of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
 ---Groups 14, 15, 2, 0 cannot be registered either version, groups 10, 4, 1 can be only registered as B, any other is free to take
 ---Group 3A will mean that there will be no group handler for this ODA, meaning it can only be interacted with via the 3A AID group, handler set is not possible with such groups
 ---@param group integer
@@ -52,7 +52,7 @@ function ext.set_oda_id_data(oda_id, data)
 end
 
 ---Sets a function to handle the ODA data generation. 
----The handler is called when the group sequence 'K' slot is processed.
+---The handler is called when the group sequence '\xff' slot is processed.
 ---The function must return 3 integers representing RDS Blocks B, C, and D.
 ---Please note that you do not need to compute the block A to indentify the group and group version, that will be done for you and EVERY SINGLE group has PTY and TP inserted (and also PI if its a B)
 ---You are asked to set groups B last 5 bits, leave rest 0
@@ -74,9 +74,8 @@ local function get_aid()
             local b = 3 << 12 | oda.group << 1 | (oda.group_version and 1 or 0)
             local data, aid = oda.data, oda.aid
 
-            _RDS_ODA_pointer = (_RDS_ODA_pointer % #_RDS_ODAs) + 1
-
             if oda.temp then _RDS_ODAs[_RDS_ODA_pointer] = false end
+            _RDS_ODA_pointer = (_RDS_ODA_pointer % #_RDS_ODAs) + 1
 
             return true, b, data, aid
         end
@@ -117,7 +116,8 @@ local function group_handler(group_type)
     if _RDS_ODA_pointer > #_RDS_ODAs or _RDS_ODA_pointer < 1 then _RDS_ODA_pointer = 1 end
 
     if group_type == "\x06" then return get_aid()
-    elseif group_type == "\xff" then return get_data() end
+    elseif group_type == "\xff" then return get_data()
+    else return false, 0, 0, 0 end
 end
 rds.ext.register_group("\x06\xff", group_handler)
 
