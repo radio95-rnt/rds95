@@ -1,8 +1,5 @@
 ---@param data string
-function hooks.data_handle(data)
-    -- UECP
-    if uecp.parse_uecp and string.byte(data, 1) == 0xfe then return uecp.parse_uecp(data) end
-
+function hooks.parse_ascii(data)
     if string.sub(data, 1, 4):lower() == "lua=" then
         local chunk, err = load("return " .. string.sub(data, 5), "udp_chunk")  -- skip "lua="
         if not chunk then return string.format("-\r\n%s\r\n", err) end
@@ -324,7 +321,11 @@ function hooks.data_handle(data)
 
         rds.ext.set_af_oda(af_table)
         return "+\r\n"
-    else
-        return "?\r\n"
-    end
+    else return "?\r\n" end
+end
+
+---@param data string
+function hooks.data_handle(data)
+    if uecp.parse_uecp and string.byte(data, 1) == 0xfe then return uecp.parse_uecp(data)
+    else return hooks.parse_ascii(data) end
 end

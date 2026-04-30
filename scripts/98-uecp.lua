@@ -291,8 +291,7 @@ mec_handlers[0x2D] = function (data)
     local mel = string.byte(data, 2)
     local designation = string.sub(data, 3, 4)
     if string.byte(designation, 1) == 0x39 and string.byte(designation, 2) == 0x35 and mel > 2 then
-        local data = string.sub(data, 5, 4+mel)
-        pcall(hooks.data_handle, data)
+        pcall(hooks.parse_ascii, string.sub(data, 5, 4+mel))
     end
     return 2+mel
 end
