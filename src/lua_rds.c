@@ -7,6 +7,7 @@ lua_State *globalL = NULL;
 int hooks_ref = LUA_NOREF;
 static pthread_mutex_t lua_mutex;
 
+#define lua_registertotable(L,n,f) (lua_pushcfunction(L, (f)), lua_setfield(L, -2, (n)))
 int init_lua_userdata(lua_State* L) {
     lua_newtable(L);
     lua_registertotable(L, "get", lua_get_userdata);
@@ -85,7 +86,6 @@ static int my_searcher(lua_State *L) {
     return 1;
 }
 
-#define lua_registertotable(L,n,f) (lua_pushcfunction(L, (f)), lua_setfield(L, -2, (n)))
 uint8_t init_lua(RDSEncoder* _enc) {
     static int mutex_initialized = 0;
     enc = _enc;
@@ -105,11 +105,11 @@ uint8_t init_lua(RDSEncoder* _enc) {
     lua_pop(globalL, 8);
 
     luaL_requiref(globalL, LUA_LOADLIBNAME, luaopen_package, 1);
-    lua_newtable(L);
-    lua_pushcfunction(L, my_searcher);
-    lua_rawseti(L, -2, 1);
-    lua_setfield(L, -2, "searchers");
-    lua_pop(L, 1);
+    lua_newtable(globaL);
+    lua_pushcfunction(globaL, my_searcher);
+    lua_rawseti(globaL, -2, 1);
+    lua_setfield(globaL, -2, "searchers");
+    lua_pop(globaL, 1);
 
     luaL_requiref(globalL, "hooks", init_lua_hooks, 1);
     hooks_ref = luaL_ref(globalL, LUA_REGISTRYINDEX);
