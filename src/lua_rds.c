@@ -43,20 +43,31 @@ static int my_searcher(lua_State *L) {
     #define PREFIX "/etc/rds95/"
 
     char path[512];
-    snprintf(path, sizeof(path),
-             PREFIX "%s.lua",
-             name);
+    size_t prefix_len = strlen(PREFIX);
 
-    for (char *p = path + strlen(PREFIX); *p; p++) {
-        if (*p == '.') *p = '/';
+    // copy prefix
+    snprintf(path, sizeof(path), "%s", PREFIX);
+
+    // copy name into path, converting '.' to '/'
+    size_t name_len = strlen(name);
+    if (prefix_len + name_len + 4 >= sizeof(path)) { // +4 for ".lua"
+        lua_pushfstring(L, "\n\tmodule name too long: %s", name);
+        return 1;
     }
+
+    for (size_t i = 0; i < name_len; i++) {
+        path[prefix_len + i] = (name[i] == '.') ? '/' : name[i];
+    }
+    path[prefix_len + name_len] = '\0';
+
+    // now append .lua
+    strcat(path, ".lua");
 
     FILE *f = fopen(path, "rb");
     if (!f) {
         lua_pushfstring(L, "\n\tno file: %s", path);
         return 1;
     }
-
     fclose(f);
 
     if (luaL_loadfile(L, path) == LUA_OK) {
@@ -66,7 +77,6 @@ static int my_searcher(lua_State *L) {
     lua_pushfstring(L, "\n\terror loading: %s", path);
     return 1;
 }
-
 uint8_t init_lua(RDSEncoder* _enc) {
     static int mutex_initialized = 0;
     enc = _enc;
