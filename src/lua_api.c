@@ -179,7 +179,7 @@ int lua_get_rds_writing_program(lua_State *L) {
 }
 
 int lua_put_rds_custom_group(lua_State *L) {
-    if(enc->state[writing_program].custom_group[0]) return luaL_error(locaL, "group buffer full");
+    if(enc->state[writing_program].custom_group[0]) return luaL_error(L, "group buffer full");
 	enc->state[writing_program].custom_group[0] = 1;
 	enc->state[writing_program].custom_group[1] = luaL_checkinteger(L, 1);
 	enc->state[writing_program].custom_group[2] = luaL_checkinteger(L, 2);
@@ -188,7 +188,7 @@ int lua_put_rds_custom_group(lua_State *L) {
 }
 
 int lua_put_rds2_custom_group(lua_State *L) {
-    if(enc->state[writing_program].custom_group2[0]) return luaL_error(locaL, "group buffer full");
+    if(enc->state[writing_program].custom_group2[0]) return luaL_error(l, "group buffer full");
 	enc->state[writing_program].custom_group2[0] = 1;
 	enc->state[writing_program].custom_group2[1] = luaL_checkinteger(L, 1);
 	enc->state[writing_program].custom_group2[2] = luaL_checkinteger(L, 2);
@@ -364,32 +364,55 @@ int lua_encode_group(lua_State *L) {
     return 4;
 }
 
-typedef void (*lua_push_fn)(lua_State *L, const void *value);
-typedef void (*lua_pull_fn)(lua_State *L, int idx, void *value);
-
-static void push_int(lua_State *L, const void *value) { lua_pushinteger(L, *(const int *)value); }
-static void push_bool(lua_State *L, const void *value) { lua_pushboolean(L, *(const int *)value); }
-static void pull_int(lua_State *L, int idx, void *value) { *(int *)value = luaL_checkinteger(L, idx); }
-static void pull_bool(lua_State *L, int idx, void *value) { *(int *)value = lua_toboolean(L, idx); }
+typedef void (*lua_get_fn)(lua_State *L, const RDSData *data);
+typedef void (*lua_set_fn)(lua_State *L, int idx, RDSData *data);
 
 typedef struct {
     const char *name;
-    int offset;
-    lua_push_fn push;
-    lua_pull_fn pull;
+    lua_get_fn get;
+    lua_set_fn set;
 } field_t;
 
+#define FIELD_INT(member) \
+    static void get_##member(lua_State *L, const RDSData *d) { \
+        lua_pushinteger(L, d->member); \
+    } \
+    static void set_##member(lua_State *L, int idx, RDSData *d) { \
+        d->member = luaL_checkinteger(L, idx); \
+    }
+
+#define FIELD_BOOL(member) \
+    static void get_##member(lua_State *L, const RDSData *d) { \
+        lua_pushboolean(L, d->member); \
+    } \
+    static void set_##member(lua_State *L, int idx, RDSData *d) { \
+        d->member = lua_toboolean(L, idx); \
+    }
+
+FIELD_INT(pi)
+FIELD_INT(pty)
+FIELD_INT(ecc)
+FIELD_INT(slc_data)
+FIELD_BOOL(ct)
+FIELD_BOOL(dpty)
+FIELD_BOOL(tp)
+FIELD_BOOL(ta)
+FIELD_BOOL(rt_enabled)
+FIELD_BOOL(ptyn_enabled)
+
+#define ENTRY(member) { #member, get_##member, set_##member }
+
 static const field_t fields[] = {
-    {"pi", offsetof(RDSData, pi), push_int,  pull_int},
-    {"pty", offsetof(RDSData, pty), push_int,  pull_int},
-    {"ecc", offsetof(RDSData, ecc), push_int,  pull_int},
-    {"slc_data", offsetof(RDSData, slc_data), push_int,  pull_int},
-    {"ct", offsetof(RDSData, ct), push_bool, pull_bool},
-    {"dpty", offsetof(RDSData, dpty), push_bool, pull_bool},
-    {"tp", offsetof(RDSData, tp), push_bool, pull_bool},
-    {"ta", offsetof(RDSData, ta), push_bool, pull_bool},
-    {"rt_enabled", offsetof(RDSData, rt_enabled), push_bool, pull_bool},
-    {"ptyn_enabled", offsetof(RDSData, ptyn_enabled), push_bool, pull_bool},
+    ENTRY(pi),
+    ENTRY(pty),
+    ENTRY(ecc),
+    ENTRY(slc_data),
+    ENTRY(ct),
+    ENTRY(dpty),
+    ENTRY(tp),
+    ENTRY(ta),
+    ENTRY(rt_enabled),
+    ENTRY(ptyn_enabled),
 };
 
 int lua_rds__index(lua_State *L) {
@@ -399,8 +422,7 @@ int lua_rds__index(lua_State *L) {
 
     for (size_t i = 0; i < sizeof(fields)/sizeof(fields[0]); i++) {
         if (strcmp(key, fields[i].name) == 0) {
-            const void *ptr = (const char *)data + fields[i].offset;
-            fields[i].push(L, ptr);
+            fields[i].get(L, data);
             return 1;
         }
     }
@@ -416,8 +438,7 @@ int lua_rds__newindex(lua_State *L) {
 
     for (size_t i = 0; i < sizeof(fields)/sizeof(fields[0]); i++) {
         if (strcmp(key, fields[i].name) == 0) {
-            void *ptr = (char *)data + fields[i].offset;
-            fields[i].pull(L, 3, ptr);
+            fields[i].set(L, 3, data);
             return 0;
         }
     }
