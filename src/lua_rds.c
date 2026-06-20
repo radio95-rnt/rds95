@@ -117,6 +117,8 @@ uint8_t init_lua(RDSEncoder* _enc) {
     lua_setfield(globalL, -2, "rt_transmission");
     lua_newtable(globalL);
     lua_setfield(globalL, -2, "ps_transmission");
+    lua_newtable(globalL);
+    lua_setfield(globalL, -2, "group");
     lua_pushvalue(globalL, -1);
     hooks_ref = luaL_ref(globalL, LUA_REGISTRYINDEX);
     lua_setglobal(globalL, "hooks");
