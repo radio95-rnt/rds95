@@ -102,7 +102,8 @@ uint8_t init_lua(RDSEncoder* _enc) {
     luaL_requiref(globalL, LUA_IOLIBNAME, luaopen_io, 1);
     luaL_requiref(globalL, "userdata", init_lua_userdata, 1);
     luaL_requiref(globalL, "Data", init_lua_data, 1);
-    lua_pop(globalL, 8);
+    luaL_requiref(globalL, "hooks", init_lua_hooks, 1);
+    lua_pop(globalL, 9);
 
     luaL_requiref(globalL, LUA_LOADLIBNAME, luaopen_package, 1);
     lua_newtable(globalL);
@@ -110,9 +111,6 @@ uint8_t init_lua(RDSEncoder* _enc) {
     lua_rawseti(globalL, -2, 1);
     lua_setfield(globalL, -2, "searchers");
     lua_pop(globalL, 1);
-
-    luaL_requiref(globalL, "hooks", init_lua_hooks, 1);
-    hooks_ref = luaL_ref(globalL, LUA_REGISTRYINDEX);
 
     lua_newtable(globalL);
     lua_setglobal(globalL, "ext");
@@ -172,6 +170,10 @@ uint8_t init_lua(RDSEncoder* _enc) {
             lua_pop(globalL, 1);
         }
     }
+
+    lua_getglobal(globalL, "hooks");
+    hooks_ref = luaL_ref(globalL, LUA_REGISTRYINDEX);
+
     if(mutex_initialized == 0) {
         pthread_mutex_init(&lua_mutex, NULL);
         mutex_initialized = 1;
