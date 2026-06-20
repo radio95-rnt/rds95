@@ -22,17 +22,5 @@
         "ranges": "c",
         "span": "c"
     },
-    "Lua.runtime.plugin": "plugin.lua",
-    "Lua.runtime.builtin": {
-        "debug": "disable",
-        "os": "disable",
-        "jit": "disable",
-        "ffi": "disable",
-        "package": "disable"
-    },
     "C_Cpp.dimInactiveRegions": false,
-    "Lua.diagnostics.disable": [
-        "duplicate-set-field",
-        "lowercase-global"
-    ]
 }

@@ -52,7 +52,7 @@ local function init_ertp()
     end
 end
 
-function rds.ext.set_rtp_meta(ertp, running)
+function RDS.ext.set_rtp_meta(ertp, running)
     if ertp then
         if running and _Ertp_oda_id == nil then init_ertp() end
         userdata.set_offset(USERDATA_RTP_OFFSET+7, 1, string.char(running and 1 or 0))
@@ -61,21 +61,21 @@ function rds.ext.set_rtp_meta(ertp, running)
         userdata.set_offset(USERDATA_RTP_OFFSET, 1, string.char(running and 1 or 0))
     end
 end
-function rds.ext.get_rtp_meta(ertp)
+function RDS.ext.get_rtp_meta(ertp)
     local offset = ertp and (USERDATA_RTP_OFFSET+7) or USERDATA_RTP_OFFSET
     return string.byte(userdata.get_offset(offset, 1)) ~= 0
 end
-function rds.ext.toggle_rtp(ertp)
+function RDS.ext.toggle_rtp(ertp)
     if ertp then _Ertp_toggle = not _Ertp_toggle
     else _Rtp_toggle = not _Rtp_toggle end
 end
 
-function rds.ext.set_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2)
-    rds.ext.set_rtp_meta(ertp, true)
-    rds.ext.toggle_rtp(ertp)
+function RDS.ext.set_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2)
+    RDS.ext.set_rtp_meta(ertp, true)
+    RDS.ext.toggle_rtp(ertp)
     userdata.set_offset(ertp and (USERDATA_RTP_OFFSET+8) or (USERDATA_RTP_OFFSET+1), 6, string.char(t1, s1, l1, t2, s2, l2))
 end
-function rds.ext.get_rtplus_tags(ertp)
+function RDS.ext.get_rtplus_tags(ertp)
     return string.byte(userdata.get_offset(ertp and (USERDATA_RTP_OFFSET+8) or (USERDATA_RTP_OFFSET+1), 6), 1, 6)
 end
 
@@ -90,6 +90,6 @@ function unregister_rtp(ertp)
 end
 
 table.insert(hooks.on_state, function ()
-    if rds.ext.get_rtp_meta(false) then init_rtp() end
-    if rds.ext.get_rtp_meta(true) then init_ertp() end
+    if RDS.ext.get_rtp_meta(false) then init_rtp() end
+    if RDS.ext.get_rtp_meta(true) then init_ertp() end
 end)

@@ -106,7 +106,7 @@ end
 
 ---Sets the AFs included in the ODA and saves them
 ---@param afs table List of numbers (e.g., {98.1, 102.5})
-function rds.ext.set_af_oda(afs)
+function RDS.ext.set_af_oda(afs)
     _process_af_list(afs)
     save_af_to_userdata(afs)
 end

@@ -39,48 +39,48 @@ function hooks.parse_ascii(data)
     end
     if cmd == nil then
         data = data:lower()
-        if data == "ver" then return string.format("rds95 core v. %s - (C) 2025 radio95 - lua parser\r\n", dp.core_version)
+        if data == "ver" then return string.format("rds95 core v. %s - (C) 2026 radio95 - lua parser\r\n", Data.core_version)
         elseif data == "init" then
-            dp.set_program_defaults()
+            Data.set_program_defaults()
             return "+\r\n"
         elseif data == "reset" then
-            dp.reset_rds()
+            Data.reset_rds()
             return "+\r\n"
-        elseif data == "pi" then return string.format("PI=%s\r\n", string.format("%x", rds.get_pi()))
-        elseif data == "pty" then return string.format("PTY=%s\r\n", string.format("%d", rds.get_pty()))
-        elseif data == "ecc" then return string.format("ECC=%s\r\n", string.format("%x", rds.get_ecc()))
-        elseif data == "slcd" then return string.format("SLCD=%s\r\n", string.format("%x", rds.get_slc_data()))
-        elseif data == "ct" then return string.format("CT=%s\r\n", string.format("%d", (rds.get_ct() and 1 or 0)))
-        elseif data == "dpty" then return string.format("DPTY=%s\r\n", string.format("%d", (rds.get_dpty() and 1 or 0)))
-        elseif data == "tp" then return string.format("TP=%s\r\n", string.format("%d", (rds.get_tp() and 1 or 0)))
-        elseif data == "ta" then return string.format("TA=%s\r\n", string.format("%d", (rds.get_ta() and 1 or 0)))
-        elseif data == "rt1en" then return string.format("RT1EN=%s\r\n", string.format("%d", (rds.get_rt_enabled() and 1 or 0)))
-        elseif data == "ptynen" then return string.format("PTYNEN=%s\r\n", string.format("%d", (rds.get_ptyn_enabled() and 1 or 0)))
-        elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d", rds.get_streams()))
-        elseif data == "link" then return string.format("LINK=%s\r\n", string.format("%d", (rds.get_link() and 1 or 0)))
+        elseif data == "pi" then return string.format("PI=%s\r\n", string.format("%x", RDS.pi))
+        elseif data == "pty" then return string.format("PTY=%s\r\n", string.format("%d", RDS.pty))
+        elseif data == "ecc" then return string.format("ECC=%s\r\n", string.format("%x", RDS.ecc))
+        elseif data == "slcd" then return string.format("SLCD=%s\r\n", string.format("%x", RDS.slc_data))
+        elseif data == "ct" then return string.format("CT=%s\r\n", string.format("%d", (RDS.ct and 1 or 0)))
+        elseif data == "dpty" then return string.format("DPTY=%s\r\n", string.format("%d", (RDS.dpty and 1 or 0)))
+        elseif data == "tp" then return string.format("TP=%s\r\n", string.format("%d", (RDS.tp and 1 or 0)))
+        elseif data == "ta" then return string.format("TA=%s\r\n", string.format("%d", (RDS.ta and 1 or 0)))
+        elseif data == "rt1en" then return string.format("RT1EN=%s\r\n", string.format("%d", (RDS.rt_enabled and 1 or 0)))
+        elseif data == "ptynen" then return string.format("PTYNEN=%s\r\n", string.format("%d", (RDS.ptyn_enabled and 1 or 0)))
+        elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d", RDS.get_streams()))
+        elseif data == "link" then return string.format("LINK=%s\r\n", string.format("%d", (RDS.get_link() and 1 or 0)))
         elseif data == "rtp" then
-            local t1, s1, l1, t2, s2, l2 = rds.ext.get_rtplus_tags(false)
+            local t1, s1, l1, t2, s2, l2 = RDS.ext.get_rtplus_tags(false)
             return string.format("RTP=%d,%d,%d,%d,%d,%d\r\n", t1, s1, l1, t2, s2, l2)
         elseif data == "ertp" then
-            local t1, s1, l1, t2, s2, l2 = rds.ext.get_rtplus_tags(true)
+            local t1, s1, l1, t2, s2, l2 = RDS.ext.get_rtplus_tags(true)
             return string.format("ERTP=%d,%d,%d,%d,%d,%d\r\n", t1, s1, l1, t2, s2, l2)
         elseif data == "rtprun" then
-            local running = rds.ext.get_rtp_meta(false)
+            local running = RDS.ext.get_rtp_meta(false)
             local f1 = 2 or (running and 1 or 0)
             return string.format("RTPRUN=%d\r\n", f1)
         elseif data == "ertprun" then
-            local running = rds.ext.get_rtp_meta(true)
+            local running = RDS.ext.get_rtp_meta(true)
             local f1 = 2 or (running and 1 or 0)
             return string.format("ERTPRUN=%d\r\n", f1)
-        elseif data == "lps" then return string.format("LPS=%s\r\n", rds.get_lps())
-        elseif data == "ert" then return string.format("ERT=%s\r\n", rds.ext.get_ert())
+        elseif data == "lps" then return string.format("LPS=%s\r\n", RDS.get_lps())
+        elseif data == "ert" then return string.format("ERT=%s\r\n", RDS.ext.get_ert())
         else
             local eon_cmd, eon_num = data:match("^eon(%d+)([a-z]+)$")
             if eon_cmd then
                 local eon_idx = tonumber(eon_cmd)
-                if not eon_idx or eon_idx < 1 or eon_idx > rds.eon_count then return "?\r\n" end
+                if not eon_idx or eon_idx < 1 or eon_idx > RDS.eon_count then return "?\r\n" end
                 eon_idx = eon_idx - 1
-                local eon_data = rds.get_eon(eon_idx)
+                local eon_data = RDS.get_eon(eon_idx)
 
                 if eon_num == "en" then return string.format("EON%dEN=%d\r\n", eon_idx + 1, eon_data.enabled and 1 or 0)
                 elseif eon_num == "pi" then return string.format("EON%dPI=%x\r\n", eon_idx + 1, eon_data.pi)
@@ -101,46 +101,46 @@ function hooks.parse_ascii(data)
     local eon_num, eon_type = cmd:match("^eon(%d+)([a-z]+)$")
     if eon_num then
         local eon_idx = tonumber(eon_num)
-        if not eon_idx or eon_idx < 1 or eon_idx > rds.eon_count then return "?\r\n" end
+        if not eon_idx or eon_idx < 1 or eon_idx > RDS.eon_count then return "?\r\n" end
         eon_idx = eon_idx - 1
 
         if eon_type == "en" then
             local en_val = tonumber(value)
             if not en_val then return "-\r\n" end
             local enabled = (en_val ~= 0)
-            rds.set_eon(eon_idx, { enabled = enabled })
+            RDS.set_eon(eon_idx, { enabled = enabled })
             return "+\r\n"
         elseif eon_type == "pi" then
             local pi_val = tonumber(value, 16)
             if not pi_val then return "-\r\n" end
-            rds.set_eon(eon_idx, { pi = pi_val })
+            RDS.set_eon(eon_idx, { pi = pi_val })
             return "+\r\n"
         elseif eon_type == "ps" then
             local ps_val = value:sub(1, 24)
-            rds.set_eon(eon_idx, { ps = ps_val })
+            RDS.set_eon(eon_idx, { ps = ps_val })
             return "+\r\n"
         elseif eon_type == "pty" then
             local pty_val = tonumber(value)
             if not pty_val then return "-\r\n" end
-            rds.set_eon(eon_idx, { pty = pty_val })
+            RDS.set_eon(eon_idx, { pty = pty_val })
             return "+\r\n"
         elseif eon_type == "ta" then
             local ta_val = tonumber(value)
             if not ta_val then return "-\r\n" end
             local ta = (ta_val ~= 0)
-            rds.set_eon(eon_idx, { ta = ta })
-            if ta then rds.set_ta(true) end
+            RDS.set_eon(eon_idx, { ta = ta })
+            if ta then RDS.ta = true end
             return "+\r\n"
         elseif eon_type == "tp" then
             local tp_val = tonumber(value)
             if not tp_val then return "-\r\n" end
             local tp = (tp_val ~= 0)
-            rds.set_eon(eon_idx, { tp = tp })
+            RDS.set_eon(eon_idx, { tp = tp })
             return "+\r\n"
         elseif eon_type == "af" then
             local af_table = {}
             if value == "" or value == "0" then
-                rds.set_eon(eon_idx, { afs = {} })
+                RDS.set_eon(eon_idx, { afs = {} })
                 return "+\r\n"
             end
             for freq_str in value:gmatch("([^,]+)") do
@@ -149,12 +149,12 @@ function hooks.parse_ascii(data)
                 else return "-\r\n" end
             end
             if #af_table > 25 then return "-\r\n" end
-            rds.set_eon(eon_idx, { afs = af_table })
+            RDS.set_eon(eon_idx, { afs = af_table })
             return "+\r\n"
         elseif eon_type == "dt" then
             local dt_val = tonumber(value, 16)
             if not dt_val then return "-\r\n" end
-            rds.set_eon(eon_idx, { data = dt_val })
+            RDS.set_eon(eon_idx, { data = dt_val })
             return "+\r\n"
         else return "?\r\n" end
     end
@@ -163,96 +163,96 @@ function hooks.parse_ascii(data)
         local pi = tonumber(value, 16)
         if not pi then return "-\r\n" end
         if (pi & 0xF000) == 0 then return "-\r\n" end
-        rds.set_pi(pi)
+        RDS.pi = pi
         return "+\r\n"
     elseif cmd == "ecc" then
         local ecc = tonumber(value, 16)
         if not ecc then return "-\r\n" end
-        rds.set_ecc(ecc)
+        RDS.ecc = ecc
         return "+\r\n"
     elseif cmd == "pty" then
         local pty = tonumber(value)
         if not pty then return "-\r\n" end
-        rds.set_pty(pty)
+        RDS.pty = pty
         return "+\r\n"
     elseif cmd == "ct" then
         local ct = tonumber(value)
         if not ct then return "-\r\n" end
-        rds.set_ct(ct ~= 0)
+        RDS.ct = ct ~= 0
         return "+\r\n"
     elseif cmd == "dpty" then
         local dpty = tonumber(value)
         if not dpty then return "-\r\n" end
-        rds.set_dpty(dpty ~= 0)
+        RDS.dpty = dpty ~= 0
         return "+\r\n"
     elseif cmd == "tp" then
         local tp = tonumber(value)
         if not tp then return "-\r\n" end
-        rds.set_tp(tp ~= 0)
+        RDS.tp = tp ~= 0
         return "+\r\n"
     elseif cmd == "ta" then
         local ta = tonumber(value)
         if not ta then return "-\r\n" end
-        rds.set_ta(ta ~= 0)
+        RDS.ta = ta ~= 0
         return "+\r\n"
     elseif cmd == "rt1en" then
         local en = tonumber(value)
         if not en then return "-\r\n" end
-        rds.set_rt_enabled(en ~= 0)
+        RDS.rt_enabled = en ~= 0
         return "+\r\n"
     elseif cmd == "ptynen" then
         local en = tonumber(value)
         if not en then return "-\r\n" end
-        rds.set_ptyn_enabled(en ~= 0)
+        RDS.ptyn_enabled = en ~= 0
         return "+\r\n"
     elseif cmd == "rdsgen" then
         local type = tonumber(value)
         if not type then return "-\r\n" end
-        rds.set_streams(type)
+        RDS.set_streams(type)
         return "+\r\n"
     elseif cmd == "ptyn" then
-        rds.set_ptyn(value)
+        RDS.set_ptyn(value)
         return "+\r\n"
     elseif cmd == "ps" then
-        rds.set_ps(value)
+        RDS.set_ps(value)
         return "+\r\n"
     elseif cmd == "tps" then
-        rds.set_tps(value)
+        RDS.set_tps(value)
         return "+\r\n"
     elseif cmd == "rt1" or cmd == "text" then
         uecp.rt_buffer = {}
         uecp.rt_buffer_index = 1
-        uecp.rt_buffer[1] = { text = dp.encode_charset(value), number_tx = 0, toggle_ab = true }
+        uecp.rt_buffer[1] = { text = Data.encode_charset(value), number_tx = 0, toggle_ab = true }
         uecp.rt_tx_remaining = 0
-        rds.set_rt_enabled(true)
-        rds.set_rt(value)
-        rds.toggle_rt_ab()
+        RDS.rt_enabled = true
+        RDS.set_rt(value)
+        RDS.toggle_rt_ab()
         return "+\r\n"
     elseif cmd == "lps" then
-        rds.set_lps(value)
+        RDS.set_lps(value)
         return "+\r\n"
     elseif cmd == "ert" then
-        rds.ext.set_ert(value)
+        RDS.ext.set_ert(value)
         return "+\r\n"
     elseif cmd == "link" then
         local link = tonumber(value)
         if not link then return "-\r\n" end
-        rds.set_link(link ~= 0)
+        RDS.set_link(link ~= 0)
         return "+\r\n"
     elseif cmd == "program" then
         local program = tonumber(value)
         if not program then return "-\r\n" end
-        if program < 1 or program > dp.max_programs then return "-\r\n" end
-        dp.set_output_program(program-1)
-        dp.set_writing_program(program-1)
-        rds.set_ta(false)
+        if program < 1 or program > Data.max_programs then return "-\r\n" end
+        Data.set_output_program(program-1)
+        Data.set_writing_program(program-1)
+        RDS.ta = false
         return "+\r\n"
     elseif cmd == "rtp" or cmd == "ertp" then
         local is_ertp = (cmd == "ertp")
         local t1, s1, l1, t2, s2, l2 = value:match("(%d+),(%d+),(%d+),(%d+),(%d+),(%d+)")
 
         if not l2 then return "-\r\n" end
-        rds.ext.set_rtplus_tags(
+        RDS.ext.set_rtplus_tags(
             is_ertp,
 ---@diagnostic disable-next-line: param-type-mismatch
             tonumber(t1), tonumber(s1), tonumber(l1), tonumber(t2), tonumber(s2), tonumber(l2)
@@ -261,13 +261,13 @@ function hooks.parse_ascii(data)
     elseif cmd == "g" then
         local a, b, c, d = value:match("^(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)$")
         if a and b and c and d then
-            rds.put_rds2_custom_group(tonumber(a, 16), tonumber(b, 16), tonumber(c, 16), tonumber(d, 16))
+            RDS.put_rds2_custom_group(tonumber(a, 16), tonumber(b, 16), tonumber(c, 16), tonumber(d, 16))
             return "+\r\n"
         end
 
         local b1, c1, d1 = value:match("^(%x%x%x%x)(%x%x%x%x)(%x%x%x%x)$")
         if b1 and c1 and d1 then
-            rds.put_custom_group(tonumber(b1, 16), tonumber(c1, 16), tonumber(d1, 16))
+            RDS.put_custom_group(tonumber(b1, 16), tonumber(c1, 16), tonumber(d1, 16))
             return "+\r\n"
         end
 
@@ -282,14 +282,14 @@ function hooks.parse_ascii(data)
         local f2 = tonumber(f2_str) or 0
         local running = (f1 & 1) ~= 0
 
-        rds.ext.set_rtp_meta(is_ertp, running)
-        if f2 ~= 0 then rds.ext.toggle_rtp(is_ertp) end
+        RDS.ext.set_rtp_meta(is_ertp, running)
+        if f2 ~= 0 then RDS.ext.toggle_rtp(is_ertp) end
         return "+\r\n"
     elseif cmd == "af" then
         local af_table = {}
 
         if value == "" or value == "0" then
-            rds.set_af({})
+            RDS.set_af({})
             return "+\r\n"
         end
 
@@ -301,13 +301,13 @@ function hooks.parse_ascii(data)
 
         if #af_table > 25 then return "-\r\n" end
 
-        rds.set_af(af_table)
+        RDS.set_af(af_table)
         return "+\r\n"
     elseif cmd == "afo" then
         local af_table = {}
 
         if value == "" or value == "0" then
-            rds.ext.set_af_oda({})
+            RDS.ext.set_af_oda({})
             return "+\r\n"
         end
 
@@ -319,7 +319,7 @@ function hooks.parse_ascii(data)
 
         if #af_table > 25 then return "-\r\n" end
 
-        rds.ext.set_af_oda(af_table)
+        RDS.ext.set_af_oda(af_table)
         return "+\r\n"
     else return "?\r\n" end
 end

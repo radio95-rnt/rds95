@@ -14,7 +14,7 @@ end
 
 ---@param designator string
 ---@param handler function
-function rds.ext.register_group(designator, handler)
+function RDS.ext.register_group(designator, handler)
     for i = 1, #designator do
         local char = designator:sub(i, i)
         hooks.registered_groups[char] = handler

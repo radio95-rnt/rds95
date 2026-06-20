@@ -19,29 +19,29 @@ hooks.rt_transmission[#hooks.rt_transmission + 1] = function ()
     local entry = uecp.rt_buffer[uecp.rt_buffer_index]
     uecp.rt_tx_remaining = entry.number_tx
 
-    rds.set_rt_raw(entry.text)
-    if entry.toggle_ab then rds.toggle_rt_ab() end
+    RDS.set_rt_raw(entry.text)
+    if entry.toggle_ab then RDS.toggle_rt_ab() end
 end
 
 
 local function dsn_helper(dsn, write)
     if dsn == 0 then write()
     elseif dsn == 254 then
-        local start = dp.get_writing_program()
-        for i = 1, dp.max_programs do
+        local start = Data.get_writing_program()
+        for i = 1, Data.max_programs do
             local p = i - 1
             if p ~= start then
-                dp.set_writing_program(p)
+                Data.set_writing_program(p)
                 write()
             end
         end
     elseif dsn == 255 then
-        for i = 1, dp.max_programs do
-            dp.set_writing_program(i - 1)
+        for i = 1, Data.max_programs do
+            Data.set_writing_program(i - 1)
             write()
         end
     else
-        dp.set_writing_program(dsn - 1)
+        Data.set_writing_program(dsn - 1)
         write()
     end
 end
@@ -55,7 +55,7 @@ mec_handlers[1] = function(data)
     local pi_lsb = string.byte(data, 5)
 
     dsn_helper(dsn, function()
-        rds.set_pi((pi_msb << 8) | pi_lsb)
+        RDS.pi = (pi_msb << 8) | pi_lsb
     end)
     return 5
 end
@@ -65,7 +65,7 @@ mec_handlers[2] = function(data)
     local psn = string.byte(data, 3)
     local ps = string.sub(data, 4, 11) -- Static len
     dsn_helper(dsn, function()
-        rds.set_ps(ps)
+        RDS.set_ps(ps)
     end)
     return 11
 end
@@ -80,7 +80,7 @@ mec_handlers[0x21] = function(data)
     if cut then lps = string.sub(lps, 1, cut - 1) end
 
     dsn_helper(dsn, function()
-        rds.set_lps(lps)
+        RDS.set_lps(lps)
     end)
     return 4 + mel
 end
@@ -90,7 +90,7 @@ mec_handlers[4] = function(data)
     local psn = string.byte(data, 3)
     local data = string.byte(data, 4)
     dsn_helper(dsn, function ()
-        rds.set_dpty((data & 8) ~= 0)
+        RDS.dpty = (data & 8) ~= 0
     end)
     return 4
 end
@@ -100,8 +100,8 @@ mec_handlers[3] = function(data)
     local psn = string.byte(data, 3)
     local data = string.byte(data, 4)
     dsn_helper(dsn, function ()
-        rds.set_ta((data & 1) ~= 0)
-        rds.set_tp((data & 2) ~= 0)
+        RDS.ta = (data & 1) ~= 0
+        RDS.tp = (data & 2) ~= 0
     end)
     return 4
 end
@@ -111,7 +111,7 @@ mec_handlers[7] = function(data)
     local psn = string.byte(data, 3)
     local data = string.byte(data, 4)
     dsn_helper(dsn, function ()
-        rds.set_pty(data)
+        RDS.pty = data
     end)
     return 4
 end
@@ -121,7 +121,7 @@ mec_handlers[0x3E] = function(data)
     local psn = string.byte(data, 3)
     local ptyn = string.sub(data, 4, 11) -- Static
     dsn_helper(dsn, function ()
-        rds.set_ptyn(ptyn)
+        RDS.set_ptyn(ptyn)
     end)
     return 11
 end
@@ -136,7 +136,7 @@ mec_handlers[0x0A] = function(data)
         uecp.rt_buffer_index = 1
         uecp.rt_tx_remaining = 0
         dsn_helper(dsn, function ()
-            rds.set_rt_enabled(false)
+            RDS.rt_enabled = false
         end)
         return 4
     end
@@ -151,7 +151,7 @@ mec_handlers[0x0A] = function(data)
         uecp.rt_buffer_index = 1
         uecp.rt_tx_remaining = 0
         dsn_helper(dsn, function ()
-            rds.set_rt_enabled(false)
+            RDS.rt_enabled = false
         end)
         return 5
     end
@@ -167,9 +167,9 @@ mec_handlers[0x0A] = function(data)
         uecp.rt_tx_remaining = number_tx
         -- Seed the encoder immediately with the first entry
         dsn_helper(dsn, function ()
-            rds.set_rt_raw(rt_text)
-            if toggle_ab then rds.toggle_rt_ab() end
-            rds.set_rt_enabled(true)
+            RDS.set_rt_raw(rt_text)
+            if toggle_ab then RDS.toggle_rt_ab() end
+            RDS.rt_enabled = true
         end)
     elseif buffer_config == 2 then
         uecp.rt_buffer[#uecp.rt_buffer + 1] = { text = rt_text, number_tx = number_tx, toggle_ab = toggle_ab }
@@ -209,7 +209,7 @@ mec_handlers[0x1A] = function (data)
     if variant == 0 then
         -- TODO: maybe make it more than just ecc? idk why but would be cool
         dsn_helper(dsn, function ()
-            rds.set_ecc(full_data)
+            RDS.ecc = full_data
         end)
     end
 
@@ -230,7 +230,7 @@ mec_handlers[0x24] = function (data)
     local blockc_lsb = string.byte(data, 5)
     local blockd_msb = string.byte(data, 6)
     local blockd_lsb = string.byte(data, 7)
-    rds.put_custom_group((group << 11) | blockb, (blockc_msb << 8) | blockc_lsb, (blockd_msb << 8) | blockd_lsb)
+    RDS.put_custom_group((group << 11) | blockb, (blockc_msb << 8) | blockc_lsb, (blockd_msb << 8) | blockd_lsb)
     return 7
 end
 -- Fuck you mean, i have to implement some fucking "spinning wHELLs"? may the lord have mercy
@@ -239,7 +239,7 @@ mec_handlers[0x19] = function (data)
     -- CT
     local data = string.byte(data, 2)
     dsn_helper(255, function ()
-        rds.set_ct(data ~= 0)
+        RDS.ct = data ~= 0
     end)
     return 2
 end
@@ -249,7 +249,7 @@ mec_handlers[0x16] = function (data)
     local mel = string.byte(data, 3)
     local group_sequence = string.sub(data, 4, 3+mel)
     dsn_helper(dsn, function ()
-        rds.set_grpseq(group_sequence)
+        RDS.set_grpseq(group_sequence)
     end)
     return 4 + mel
 end
@@ -282,8 +282,8 @@ end
 mec_handlers[0x1C] = function (data)
     -- DS select
     local dsn = string.byte(data, 2)
-    dp.set_output_program(dsn)
-    dp.set_writing_program(dsn)
+    Data.set_output_program(dsn)
+    Data.set_writing_program(dsn)
     return 2
 end
 mec_handlers[0x2D] = function (data)
@@ -367,7 +367,7 @@ function uecp.parse_uecp(packet)
         return
     end
 
-    local crc_calculated = dp.crc16(string.sub(unstuffed, 1, 4 + mfl))
+    local crc_calculated = Data.crc16(string.sub(unstuffed, 1, 4 + mfl))
     local crc_hi = string.byte(unstuffed, 4 + mfl + 1)
     local crc_stored = (crc_hi << 8) | string.byte(unstuffed, 4 + mfl + 2)
 
@@ -386,6 +386,6 @@ function uecp.parse_uecp(packet)
         end
         local advance = handler(string.sub(data, consumed))
         consumed = consumed + advance
-        dp.set_writing_program(dp.get_output_program())
+        Data.set_writing_program(Data.get_output_program())
     end
 end

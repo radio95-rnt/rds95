@@ -1,0 +1,13 @@
+{
+    "runtime.builtin": {
+        "debug": "disable",
+        "os": "disable",
+        "jit": "disable",
+        "ffi":"disable",
+        "package": "disable"
+    },
+    "workspace.library": ["context.lua"],
+    "diagnostics.disable": [
+        "duplicate-set-field"
+    ]
+}

@@ -138,7 +138,7 @@ function RftInstance:sendFile(aid, path, id, crc, once)
     local f_size = #self.file_data
     if crc == 0 then
         self.crc_mode = 0
-        self.crc_full_file = dp.crc16(self.file_data)
+        self.crc_full_file = Data.crc16(self.file_data)
     elseif crc == true or crc == 7 then
         if f_size <= 40960 then self.crc_mode = 1
         elseif f_size > 40960 and f_size <= 81920 then self.crc_mode = 2
@@ -153,7 +153,7 @@ function RftInstance:sendFile(aid, path, id, crc, once)
         local chunk_size = 5 * multiplier
         for i = 1, f_size, chunk_size do
             local chunk = string.sub(self.file_data, i, i + chunk_size - 1)
-            local v = dp.crc16(chunk)
+            local v = Data.crc16(chunk)
             self.crc_data = self.crc_data .. string.char(v >> 8, v & 0xff)
         end
     end

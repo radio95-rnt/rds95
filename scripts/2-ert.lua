@@ -41,7 +41,7 @@ function unregister_ert()
     end
 end
 
-function rds.ext.set_ert(ert)
+function RDS.ext.set_ert(ert)
     if #ert == 0 then
         userdata.set_offset(USERDATA_ERT_OFFSET, 128, "")
         userdata.set_offset(USERDATA_ERT_OFFSET+128, 1, string.char(0))
@@ -72,7 +72,7 @@ function rds.ext.set_ert(ert)
     if _Ert_oda_id == nil then init_ert() end
 end
 
-function rds.ext.get_ert()
+function RDS.ext.get_ert()
     local segments = string.byte(userdata.get_offset(USERDATA_ERT_OFFSET+128, 1))
     if segments == 0 then return "" end
 

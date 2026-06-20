@@ -1,46 +1,47 @@
 ---@meta
 
-dp = {}
+---@class Data
+Data = {}
 
 ---@type string
-dp.core_version = ""
+Data.core_version = ""
 
 ---@type integer
-dp.max_programs = 0
+Data.max_programs = 0
 
 ---Executes a CRC-16 CCIIT on given data
 ---@param data string
 ---@return integer
-function dp.crc16(data) end
+function Data.crc16(data) end
 
 ---Starts the initialization sequence, also calls the on_init function
 ---@return nil
-function dp.set_program_defaults() end
+function Data.set_program_defaults() end
 
 ---Saves, loads and resets the state of the data, you might as well restart the whole program. this does NOT cause data loss other than the current internal state
 ---@return nil
-function dp.reset_rds() end
+function Data.reset_rds() end
 
 ---Forces encoder and modulator data to be saved to disc
 ---@return nil
-function dp.force_save() end
+function Data.force_save() end
 
 ---Set the program which is actually being modulated. Setting this does not affect the writing program
 ---@param program_idx integer 0 to (max_programs - 1)
-function dp.set_output_program(program_idx) end
+function Data.set_output_program(program_idx) end
 ---@return integer
-function dp.get_output_program() end
+function Data.get_output_program() end
 
 ---Sets the program all of the set/get functions affect
 ---@param program_idx integer 0 to (max_programs - 1)
-function dp.set_writing_program(program_idx) end
+function Data.set_writing_program(program_idx) end
 ---@return integer
-function dp.get_writing_program() end
+function Data.get_writing_program() end
 
 ---Encodes the given UTF-8 string into the unnamed RDS character set
 ---@param data string
 ---@return string
-function dp.encode_charset(data) end
+function Data.encode_charset(data) end
 
 hooks = {}
 
@@ -86,8 +87,6 @@ hooks.rt_transmission = {}
 ---@type function[]
 hooks.ps_transmission = {}
 
--- Every function with with the s suffixed table means that other versions of that function can be in that list-table, and each one will be called
-
 ---This function is called in order to handle UDP data. The string returned is sent back to the UDP peer as a response
 ---It should be defined by the user in the script.
 ---@param data string
@@ -117,7 +116,8 @@ function hooks.group(group) end
 ---@return integer d
 function hooks.rds2_group(stream) end
 
-rds = {}
+---@class RDS
+RDS = {}
 
 ---Returns an encoded group by the core - groups that could not be encoded decay to PS
 ---@param group string One character, just one
@@ -125,102 +125,73 @@ rds = {}
 ---@return integer b
 ---@return integer c
 ---@return integer d
-function rds.encode_group(group) end
+function RDS.encode_group(group) end
 
 ---@type integer
-rds.eon_count = 0
+RDS.eon_count = 0
 
----@param pi integer
-function rds.set_pi(pi) end
----@return integer
-function rds.get_pi() end
-
----@param pty integer
-function rds.set_pty(pty) end
----@return integer
-function rds.get_pty() end
-
----@param ecc integer
-function rds.set_ecc(ecc) end
----@return integer
-function rds.get_ecc() end
-
----@param slc_data integer
-function rds.set_slc_data(slc_data) end
----@return integer
-function rds.get_slc_data() end
-
----@param ct boolean
-function rds.set_ct(ct) end
----@return boolean
-function rds.get_ct() end
-
----@param dpty boolean
-function rds.set_dpty(dpty) end
----@return boolean
-function rds.get_dpty() end
-
----@param tp boolean
-function rds.set_tp(tp) end
----@return boolean
-function rds.get_tp() end
-
----@param ta boolean
-function rds.set_ta(ta) end
----@return boolean
-function rds.get_ta() end
+---@type integer
+RDS.pi = nil
+---@type integer
+RDS.ecc = nil
+---@type integer
+RDS.pty = nil
+---@type integer
+RDS.slc_data = nil
+---@type boolean
+RDS.ct = nil
+---@type boolean
+RDS.dpty = nil
+---@type boolean
+RDS.tp = nil
+---@type boolean
+RDS.ta = nil
+---@type boolean
+RDS.rt_enabled = nil
+---@type boolean
+RDS.ptyn_enabled = nil
 
 -- Feature Flags
----@param enabled boolean
-function rds.set_rt_enabled(enabled) end
----@return boolean
-function rds.get_rt_enabled() end
-
----@param enabled boolean
-function rds.set_ptyn_enabled(enabled) end
----@return boolean
-function rds.get_ptyn_enabled() end
-
 -- Modulation & Generation
 ---@param streams integer
-function rds.set_streams(streams) end
+function RDS.set_streams(streams) end
 ---@return integer
-function rds.get_streams() end
+function RDS.get_streams() end
 
 -- Program & Linking
 ---@param linkage boolean
-function rds.set_link(linkage) end
+function RDS.set_link(linkage) end
 ---@return boolean
-function rds.get_link() end
+function RDS.get_link() end
 
 -- String Setters
 ---@param ptyn string Program Type Name (max 8 chars)
-function rds.set_ptyn(ptyn) end
+function RDS.set_ptyn(ptyn) end
 ---@param ptyn string Program Type Name (max 8 chars) which is expected to be already encoded in the RDS charset
-function rds.set_ptyn_raw(ptyn) end
+function RDS.set_ptyn_raw(ptyn) end
 
 ---@param ps string Program Service (8 chars)
-function rds.set_ps(ps) end
+function RDS.set_ps(ps) end
 ---@param ps string Program Service (8 chars) which is expected to be already encoded in the RDS charset
-function rds.set_ps_raw(ps) end
+function RDS.set_ps_raw(ps) end
 
 ---@param tps string Traffic PS
-function rds.set_tps(tps) end
+function RDS.set_tps(tps) end
 ---@param tps string Traffic PS which is expected to be already encoded in the RDS charset
-function rds.set_tps_raw(tps) end
+function RDS.set_tps_raw(tps) end
 
 ---@param rt string Radio Text (max 64 chars)
-function rds.set_rt(rt) end
+function RDS.set_rt(rt) end
 ---@param rt string Radio Text (max 64 chars) which is expected to be already encoded in the RDS charset
-function rds.set_rt_raw(rt) end
+function RDS.set_rt_raw(rt) end
 
 ---@return nil
-function rds.toggle_rt_ab() end
+function RDS.toggle_rt_ab() end
 
 ---@param lps string
-function rds.set_lps(lps) end
+function RDS.set_lps(lps) end
 ---@return string
-function rds.get_lps() end
+function RDS.get_lps() end
 
 ---The format is a binary format: here are the groups recognized by the core
 ---0x0 - PS
@@ -231,29 +202,29 @@ function rds.get_lps() end
 ---0x1E - LPS
 ---0x1F - Fast tuning
 ---Rest are handled by the hooks.group function
----The designation sent to hooks.group is 100% binary safe as a byte
+---The designation sent to hooks.group is 100% binary safe
 ---This format is implemented, for an easier UECP inplementation
 ---@param grpseq string
-function rds.set_grpseq(grpseq) end
+function RDS.set_grpseq(grpseq) end
 ---@return string
-function rds.get_grpseq() end
+function RDS.get_grpseq() end
 
----Puts in a RDS1 group in the buffer, note that block A is filled in always
+---Puts in a RDS1 group in the buffer
 ---@param b integer
 ---@param c integer
 ---@param d integer
-function rds.put_custom_group(b, c, d) end
+function RDS.put_custom_group(b, c, d) end
 
 ---Puts in a RDS2 group in the buffer
 ---@param a integer
 ---@param b integer
 ---@param c integer
 ---@param d integer
-function rds.put_rds2_custom_group(a, b, c, d) end
+function RDS.put_rds2_custom_group(a, b, c, d) end
 
 ---Sets the AFs included in group 0
 ---@param afs table
-function rds.set_af(afs) end
+function RDS.set_af(afs) end
 
 ---@class EON_Data
 ---@field enabled? boolean
@@ -268,12 +239,12 @@ function rds.set_af(afs) end
 ---Sets data about the EON
 ---@param eon integer Index of the EON we are setting
 ---@param data EON_Data
-function rds.set_eon(eon, data) end
+function RDS.set_eon(eon, data) end
 
 ---Gets the same data set_rds_eon sets
 ---@param eon integer
 ---@return EON_Data
-function rds.get_eon(eon) end
+function RDS.get_eon(eon) end
 
 userdata = {}
 
@@ -298,10 +269,10 @@ function userdata.get() end
 ---@return string
 function userdata.get_offset(offset, size) end
 
---- Extensions start here - The following is made in Lua and can be used as an standard library
-
+---@class ext
 ext = {}
-rds.ext = {}
+---@class RDSext
+RDS.ext = {}
 
 -- RT Plus Tags
 ---Sets RT+ tags: type1, start1, len1, type2, start2, len2
@@ -312,29 +283,29 @@ rds.ext = {}
 ---@param t2 integer
 ---@param s2 integer
 ---@param l2 integer
-function rds.ext.set_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2) end
+function RDS.ext.set_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2) end
 
 ---Gets RT+ tags: type1, start1, len1, type2, start2, len2
 ---@param ertp boolean
 ---@return integer type1, integer start1, integer len1, integer type2, integer start2, integer len2
-function rds.ext.get_rtplus_tags(ertp) end
+function RDS.ext.get_rtplus_tags(ertp) end
 
 ---Toggles RTP or ERTP's toggle switch
 ---@param ertp boolean
-function rds.ext.toggle_rtp(ertp) end
+function RDS.ext.toggle_rtp(ertp) end
 
 ---Sets the metadata of RTP or ERTP
 ---@param ertp boolean
 ---@param running boolean
-function rds.ext.set_rtp_meta(ertp, running) end
+function RDS.ext.set_rtp_meta(ertp, running) end
 ---Gets the metadata of RTP and ERTP
 ---@param ertp boolean
 ---@return boolean running
-function rds.ext.get_rtp_meta(ertp) end
+function RDS.ext.get_rtp_meta(ertp) end
 
 ---Sets the AFs included in the ODA
 ---@param afs table
-function rds.ext.set_af_oda(afs) end
+function RDS.ext.set_af_oda(afs) end
 
 ---Registers an ODA to be used in the 0x6 of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
 ---Groups 14, 15, 2, 0 cannot be registered either version, groups 10, 4, 1 can be only registered as B, any other is free to take
@@ -391,10 +362,10 @@ function ext.register_oda_rds2(aid, data, file_related) end
 function ext.unregister_oda_rds2(oda_id) end
 
 ---@param ert string
-function rds.ext.set_ert(ert) end
+function RDS.ext.set_ert(ert) end
 ---@return string
-function rds.ext.get_ert() end
+function RDS.ext.get_ert() end
 
 ---@param designator string
 ---@param handler function
-function rds.ext.register_group(designator, handler) end
+function RDS.ext.register_group(designator, handler) end
