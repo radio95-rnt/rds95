@@ -188,7 +188,7 @@ int lua_put_rds_custom_group(lua_State *L) {
 }
 
 int lua_put_rds2_custom_group(lua_State *L) {
-    if(enc->state[writing_program].custom_group2[0]) return luaL_error(l, "group buffer full");
+    if(enc->state[writing_program].custom_group2[0]) return luaL_error(L, "group buffer full");
 	enc->state[writing_program].custom_group2[0] = 1;
 	enc->state[writing_program].custom_group2[1] = luaL_checkinteger(L, 1);
 	enc->state[writing_program].custom_group2[2] = luaL_checkinteger(L, 2);
