@@ -157,7 +157,7 @@ uint8_t init_lua(RDSEncoder* _enc) {
 
     lua_registertotable(globalL, "encode_group", lua_encode_group);
 
-    lua_setglobal(globalL, "rds");
+    lua_setglobal(globalL, "RDS");
 
     if (luaL_loadfile(globalL, "/etc/rds95.lua") != LUA_OK) {
         fprintf(stderr, "Lua error loading file: %s\n", lua_tostring(globalL, -1));
