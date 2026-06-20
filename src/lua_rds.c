@@ -122,8 +122,12 @@ uint8_t init_lua(RDSEncoder* _enc) {
     lua_pushinteger(globalL, EONs);
     lua_setfield(globalL, -2, "eon_count");
 
-    lua_registertotable(globalL, "__index", lua_rds__index);
-    lua_registertotable(globalL, "__newindex", lua_rds__newindex);
+    lua_newtable(globalL);
+    lua_pushcfunction(globalL, lua_rds__index);
+    lua_setfield(globalL, -2, "__index");
+    lua_pushcfunction(globalL, lua_rds__newindex);
+    lua_setfield(globalL, -2, "__newindex");
+    lua_setmetatable(globalL, -2);
 
     lua_registertotable(globalL, "set_link", lua_set_rds_link);
     lua_registertotable(globalL, "get_link", lua_get_rds_link);
