@@ -4,7 +4,6 @@
 
 RDSEncoder* enc = NULL;
 lua_State *globalL = NULL;
-int hooks_ref = LUA_NOREF;
 static pthread_mutex_t lua_mutex;
 
 #define lua_registertotable(L,n,f) (lua_pushcfunction(L, (f)), lua_setfield(L, -2, (n)))
@@ -171,9 +170,6 @@ uint8_t init_lua(RDSEncoder* _enc) {
         }
     }
 
-    lua_getglobal(globalL, "hooks");
-    hooks_ref = luaL_ref(globalL, LUA_REGISTRYINDEX);
-
     if(mutex_initialized == 0) {
         pthread_mutex_init(&lua_mutex, NULL);
         mutex_initialized = 1;
@@ -185,7 +181,7 @@ uint8_t init_lua(RDSEncoder* _enc) {
 void run_lua(char *str, size_t str_len, char *cmd_output, size_t *out_len) {
     pthread_mutex_lock(&lua_mutex);
 
-    lua_rawgeti(globalL, LUA_REGISTRYINDEX, hooks_ref);
+    lua_getglobal(globalL, "hooks");
     lua_getfield(globalL, -1, "data_handle");
 
     if (lua_isfunction(globalL, -1)) {
@@ -206,7 +202,7 @@ void run_lua(char *str, size_t str_len, char *cmd_output, size_t *out_len) {
 
 int lua_group(RDSGroup* group, const char grp) {
     pthread_mutex_lock(&lua_mutex);
-    lua_rawgeti(globalL, LUA_REGISTRYINDEX, hooks_ref);
+    lua_getglobal(globalL, "hooks");
     lua_getfield(globalL, -1, "group");
 
     if (!lua_isfunction(globalL, -1)) {
@@ -240,7 +236,7 @@ int lua_group(RDSGroup* group, const char grp) {
 
 int lua_rds2_group(RDSGroup* group, int stream) {
     pthread_mutex_lock(&lua_mutex);
-    lua_rawgeti(globalL, LUA_REGISTRYINDEX, hooks_ref);
+    lua_getglobal(globalL, "hooks");
     lua_getfield(globalL, -1, "rds2_group");
 
     if (lua_isfunction(globalL, -1)) {
@@ -314,7 +310,7 @@ void lua_call_function(const char* function) {
 }
 
 void lua_call_tfunction_nolock(const char* name) {
-    lua_rawgeti(globalL, LUA_REGISTRYINDEX, hooks_ref);
+    lua_getglobal(globalL, "hooks");
     if (!lua_istable(globalL, -1)) {
         lua_pop(globalL, 1);
         return;
@@ -353,7 +349,6 @@ void lua_call_tfunction(const char* name) {
 
 void destroy_lua() {
     if (globalL) {
-        luaL_unref(globalL, LUA_REGISTRYINDEX, hooks_ref);
         lua_close(globalL);
         globalL = NULL;
     }
