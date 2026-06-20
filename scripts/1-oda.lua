@@ -119,7 +119,7 @@ local function group_handler(group_type)
     elseif group_type == "\xff" then return get_data()
     else return false, 0, 0, 0 end
 end
-RDS.ext.register_group("\x06\xff", group_handler)
+require("group").register_group("\x06\xff", group_handler)
 
 table.insert(hooks.on_state, function ()
     _RDS_ODAs = {}

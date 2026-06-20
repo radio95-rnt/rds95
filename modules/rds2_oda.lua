@@ -1,5 +1,7 @@
-_RDS2_ODA = { aid = 0, data = 0, handler = false, file_related = false, channel = 0 }
-_RDS2_next_channel = { normal = 16, file = 0 }
+local rds2_oda = {}
+
+local _RDS2_ODA = { aid = 0, data = 0, handler = false, file_related = false, channel = 0 }
+local _RDS2_next_channel = { normal = 16, file = 0 }
 
 function _RDS2_ODA.new(aid, data, handler, file_related, channel)
     local instance = { aid = aid or 0, data = data or 0, handler = handler or false, file_related = file_related or false, channel = channel or 0 }
@@ -7,15 +9,15 @@ function _RDS2_ODA.new(aid, data, handler, file_related, channel)
     return instance
 end
 
-_RDS2_ODAs = {}
-_RDS2_ODA_aid = 0
-_RDS2_ODA_pointer = 1
+local _RDS2_ODAs = {}
+local _RDS2_ODA_aid = 0
+local _RDS2_ODA_pointer = 1
 
 ---@param aid integer
 ---@param data integer
 ---@param file_related boolean
 ---@return integer oda_id
-function ext.register_oda_rds2(aid, data, file_related)
+function rds2_oda.register_oda_rds2(aid, data, file_related)
     local channel
     if file_related then
         channel = _RDS2_next_channel.file
@@ -38,7 +40,7 @@ end
 
 ---Unregisters an RDS 2 ODA, this stops the handler or AID being called/sent
 ---@param oda_id integer
-function ext.unregister_oda_rds2(oda_id)
+function rds2_oda.unregister_oda_rds2(oda_id)
     if oda_id < 1 or oda_id > #_RDS2_ODAs or _RDS2_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
 
     _RDS2_ODAs[oda_id] = false
@@ -49,19 +51,23 @@ end
 
 ---@param oda_id integer
 ---@param data integer
-function ext.set_oda_id_data_rds2(oda_id, data)
+function rds2_oda.set_oda_id_data_rds2(oda_id, data)
     if oda_id < 1 or oda_id > #_RDS2_ODAs or _RDS2_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS2_ODAs[oda_id].data = data
 end
 
+---The callback function for an ODA handler
+---@alias RDS2_ODAHandler fun(integer): (boolean, integer, integer, integer, integer)
+
+---You are asked to not fill in the channel id in block A, however you are asked to fill in the function number (if you do not know what is that, just OR block A with (1 << 14))
 ---@param oda_id integer
 ---@param func RDS2_ODAHandler
-function ext.set_oda_handler_rds2(oda_id, func)
+function rds2_oda.set_oda_handler_rds2(oda_id, func)
     if oda_id < 1 or oda_id > #_RDS2_ODAs or _RDS2_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS2_ODAs[oda_id].handler = func
 end
 
-function hooks.rds2_group(stream)
+function rds2_oda.rds2_group(stream)
     if #_RDS2_ODAs == 0 then return false, 0, 0, 0, 0 end
 
     if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end
@@ -106,9 +112,10 @@ function hooks.rds2_group(stream)
         _RDS2_ODA_aid = _RDS2_ODA_aid + 1
         if _RDS2_ODA_aid > 8 then _RDS2_ODA_aid = 0 end
         if oda.handler then
-            generated = false
+            local generated = false
             checked = 0
             while generated == false and checked < #_RDS2_ODAs do
+                local ok, a, b, c, d
                 ok, generated, a, b, c, d = pcall(oda.handler, stream)
                 if not (generated and ok) then
                     _RDS2_ODA_pointer = _RDS2_ODA_pointer + 1
@@ -139,3 +146,5 @@ table.insert(hooks.on_state, function ()
     _RDS2_ODA_aid = 0
     _RDS2_ODA_pointer = 1
 end)
+
+return rds2_oda

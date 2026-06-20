@@ -93,16 +93,21 @@ hooks.ps_transmission = {}
 ---@return string
 function hooks.data_handle(data) end
 
----This function is called an unknown group is seen in the group sequence. See set_grpseq
----This will be also called on recognized groups - if they can't be properly encoded by the core
----Please remember that the core always fills in PTY and TP and PI in C if this is an B group
----It should be defined by the user in the script.
----@param group string group this was called in from the group sequence
+---@alias group_handler fun(group: string): boolean, integer, integer, integer
+
+---Called when an unknown group is seen in the group sequence. See set_grpseq.
+---This is also called on recognized groups if they can't be properly encoded by the core.
+---The core always fills in PTY, TP, and PI in C if this is a B group.
+---Should be defined by the user in the script.
+---@param group string
 ---@return boolean generated
 ---@return integer b
 ---@return integer c
 ---@return integer d
-function hooks.group(group) end
+local function group_handler(group) end
+
+---@type group_handler[]
+hooks.group = {}
 
 ---This function is called when an RDS2 group. Full control of every RDS2 subcarrier is under this function
 ---If a was returned 0, PTY and TP will be filled in, along with the PI code in C if needed
@@ -339,33 +344,7 @@ function ext.set_oda_id_data(oda_id, data) end
 ---@param fun ODAHandler
 function ext.set_oda_handler(oda_id, fun) end
 
----The callback function for an ODA handler
----@alias RDS2_ODAHandler fun(integer): (boolean, integer, integer, integer, integer)
-
----You are asked to not fill in the channel id in block A, however you are asked to fill in the function number (if you do not know what is that, just OR block A with (1 << 14))
----@param oda_id integer
----@param func RDS2_ODAHandler
-function ext.set_oda_handler_rds2(oda_id, func) end
-
----@param oda_id integer
----@param data integer
-function ext.set_oda_id_data_rds2(oda_id, data) end
-
----@param aid integer
----@param data integer
----@param file_related boolean
----@return integer oda_id
-function ext.register_oda_rds2(aid, data, file_related) end
-
----Unregisters an RDS 2 ODA, this stops the handler or AID being called/sent
----@param oda_id integer
-function ext.unregister_oda_rds2(oda_id) end
-
 ---@param ert string
 function RDS.ext.set_ert(ert) end
 ---@return string
 function RDS.ext.get_ert() end
-
----@param designator string
----@param handler function
-function RDS.ext.register_group(designator, handler) end

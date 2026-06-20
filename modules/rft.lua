@@ -1,3 +1,5 @@
+local scheduler = require("rds2_oda")
+
 ---@class RftInstance
 ---@field oda_id integer|nil The internal ODA registration ID
 ---@field file_data string The raw binary content of the file
@@ -43,7 +45,7 @@ end
 
 function RftInstance:stop()
     if self.oda_id ~= nil and self.aid ~= 0 then
-        ext.unregister_oda_rds2(self.oda_id)
+        scheduler.unregister_oda_rds2(self.oda_id)
         self.oda_id = nil
     end
 
@@ -59,9 +61,9 @@ end
 ---@private
 function RftInstance:start()
     if self.oda_id == nil and self.aid ~= 0 then
-        self.oda_id = ext.register_oda_rds2(self.aid, 0, true)
+        self.oda_id = scheduler.register_oda_rds2(self.aid, 0, true)
 
-        ext.set_oda_handler_rds2(self.oda_id, function(stream)
+        scheduler.set_oda_handler_rds2(self.oda_id, function(stream)
             if #self.file_data == 0 or self.paused then
                 return false, 0, 0, 0, 0
             end
@@ -161,8 +163,10 @@ function RftInstance:sendFile(aid, path, id, crc, once)
     if f_size > (0x3ffff * 5) then error("File too large") end
     if self.oda_id == nil then self:start() end
 
-    ext.set_oda_id_data_rds2(self.oda_id, f_size | (id & 63) << 18 | (self.version & 7) << 24 | (self.crc_enabled and 1 or 0) << 27)
+    scheduler.set_oda_id_data_rds2(self.oda_id, f_size | (id & 63) << 18 | (self.version & 7) << 24 | (self.crc_enabled and 1 or 0) << 27)
     self.last_id = id
     self.paused = false
     return interrupted
 end
+
+return RftInstance

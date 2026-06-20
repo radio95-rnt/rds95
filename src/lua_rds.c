@@ -204,35 +204,47 @@ void run_lua(char *str, size_t str_len, char *cmd_output, size_t *out_len) {
 }
 
 int lua_group(RDSGroup* group, const char grp) {
+    int success = 0;
+
     pthread_mutex_lock(&lua_mutex);
+
     lua_rawgeti(globalL, LUA_REGISTRYINDEX, hooks_ref);
     lua_getfield(globalL, -1, "group");
 
-    if (!lua_isfunction(globalL, -1)) {
+    if (!lua_istable(globalL, -1)) {
         lua_pop(globalL, 2);
         pthread_mutex_unlock(&lua_mutex);
         return 0;
     }
 
-    lua_pushlstring(globalL, &grp, 1);
+    lua_Integer len = lua_rawlen(globalL, -1);
+    for (lua_Integer i = 1; i <= len; i++) {
+        lua_rawgeti(globalL, -1, i);
 
-    if (lua_pcall(globalL, 1, 4, 0) != LUA_OK) {
-        fprintf(stderr, "Lua error: %s\n", lua_tostring(globalL, -1));
-        lua_pop(globalL, 2);
-        pthread_mutex_unlock(&lua_mutex);
-        return 0;
+        if (!lua_isfunction(globalL, -1)) {
+            lua_pop(globalL, 1);
+            continue;
+        }
+
+        lua_pushlstring(globalL, &grp, 1);
+
+        if (lua_pcall(globalL, 1, 4, 0) != LUA_OK) {
+            fprintf(stderr, "Lua error: %s at 'group[%lld]'\n",
+                    lua_tostring(globalL, -1), (long long)i);
+            lua_pop(globalL, 1);
+            continue;
+        }
+        if (lua_isboolean(globalL, -4) && lua_toboolean(globalL, -4) &&
+            lua_isinteger(globalL, -3) && lua_isinteger(globalL, -2) && lua_isinteger(globalL, -1)) {
+            group->b = (uint16_t)lua_tointeger(globalL, -3);
+            group->c = (uint16_t)lua_tointeger(globalL, -2);
+            group->d = (uint16_t)lua_tointeger(globalL, -1);
+            success = 1;
+        }
+        lua_pop(globalL, 4);
+        if (success) break;
     }
-
-    int success = 0;
-    if (lua_isboolean(globalL, -4) && lua_toboolean(globalL, -4) &&
-        lua_isinteger(globalL, -3) && lua_isinteger(globalL, -2) && lua_isinteger(globalL, -1)) {
-        group->b = (uint16_t)lua_tointeger(globalL, -3);
-        group->c = (uint16_t)lua_tointeger(globalL, -2);
-        group->d = (uint16_t)lua_tointeger(globalL, -1);
-        success = 1;
-    }
-
-    lua_pop(globalL, 5);
+    lua_pop(globalL, 2);
     pthread_mutex_unlock(&lua_mutex);
     return success;
 }
@@ -292,7 +304,12 @@ int lua_rds2_group(RDSGroup* group, int stream) {
     return 1;
 }
 
-void lua_call_function_nolock(const char* function) {
+oid lua_call_function(const char* function) {
+    int need_lock = (pthread_mutex_trylock(&lua_mutex) == 0);
+    if (!need_lock) {
+        fprintf(stderr, "Warning: lua_mutex already locked when calling %s\n", function);
+        return;
+    }
     lua_getglobal(globalL, function);
 
     if (lua_isfunction(globalL, -1)) {
@@ -301,14 +318,6 @@ void lua_call_function_nolock(const char* function) {
             lua_pop(globalL, 1);
         }
     } else lua_pop(globalL, 1);
-}
-void lua_call_function(const char* function) {
-    int need_lock = (pthread_mutex_trylock(&lua_mutex) == 0);
-    if (!need_lock) {
-        fprintf(stderr, "Warning: lua_mutex already locked when calling %s\n", function);
-        return;
-    }
-    lua_call_function_nolock(function);
     pthread_mutex_unlock(&lua_mutex);
 }
 
