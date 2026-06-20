@@ -105,11 +105,11 @@ uint8_t init_lua(RDSEncoder* _enc) {
     lua_pop(globalL, 8);
 
     luaL_requiref(globalL, LUA_LOADLIBNAME, luaopen_package, 1);
-    lua_newtable(globaL);
-    lua_pushcfunction(globaL, my_searcher);
-    lua_rawseti(globaL, -2, 1);
-    lua_setfield(globaL, -2, "searchers");
-    lua_pop(globaL, 1);
+    lua_newtable(globalL);
+    lua_pushcfunction(globalL, my_searcher);
+    lua_rawseti(globalL, -2, 1);
+    lua_setfield(globalL, -2, "searchers");
+    lua_pop(globalL, 1);
 
     luaL_requiref(globalL, "hooks", init_lua_hooks, 1);
     hooks_ref = luaL_ref(globalL, LUA_REGISTRYINDEX);
