@@ -4,6 +4,7 @@
 
 RDSEncoder* enc = NULL;
 lua_State *globalL = NULL;
+int hooks_ref = LUA_NOREF;
 static pthread_mutex_t lua_mutex;
 
 #define lua_registertotable(L,n,f) (lua_pushcfunction(L, (f)), lua_setfield(L, -2, (n)))
@@ -33,25 +34,6 @@ int init_lua_data(lua_State* L) {
     lua_registertotable(L, "set_writing_program", lua_set_rds_writing_program);
     lua_registertotable(L, "get_writing_program", lua_get_rds_writing_program);
     lua_registertotable(L, "encode_charset", lua_convert_to_rdscharset);
-    return 1;
-}
-
-int init_lua_hooks(lua_State* L) {
-    lua_newtable(L);
-    lua_newtable(L);
-    lua_setfield(L, -2, "on_init");
-    lua_newtable(L);
-    lua_setfield(L, -2, "on_start");
-    lua_newtable(L);
-    lua_setfield(L, -2, "on_state");
-    lua_newtable(L);
-    lua_setfield(L, -2, "tick");
-    lua_newtable(L);
-    lua_setfield(L, -2, "minute_tick");
-    lua_newtable(L);
-    lua_setfield(L, -2, "rt_transmission");
-    lua_newtable(L);
-    lua_setfield(L, -2, "ps_transmission");
     return 1;
 }
 
@@ -101,8 +83,7 @@ uint8_t init_lua(RDSEncoder* _enc) {
     luaL_requiref(globalL, LUA_IOLIBNAME, luaopen_io, 1);
     luaL_requiref(globalL, "userdata", init_lua_userdata, 1);
     luaL_requiref(globalL, "Data", init_lua_data, 1);
-    luaL_requiref(globalL, "hooks", init_lua_hooks, 1);
-    lua_pop(globalL, 9);
+    lua_pop(globalL, 8);
 
     luaL_requiref(globalL, LUA_LOADLIBNAME, luaopen_package, 1);
     lua_newtable(globalL);
@@ -110,6 +91,25 @@ uint8_t init_lua(RDSEncoder* _enc) {
     lua_rawseti(globalL, -2, 1);
     lua_setfield(globalL, -2, "searchers");
     lua_pop(globalL, 1);
+
+    lua_newtable(L);
+    lua_newtable(L);
+    lua_setfield(L, -2, "on_init");
+    lua_newtable(L);
+    lua_setfield(L, -2, "on_start");
+    lua_newtable(L);
+    lua_setfield(L, -2, "on_state");
+    lua_newtable(L);
+    lua_setfield(L, -2, "tick");
+    lua_newtable(L);
+    lua_setfield(L, -2, "minute_tick");
+    lua_newtable(L);
+    lua_setfield(L, -2, "rt_transmission");
+    lua_newtable(L);
+    lua_setfield(L, -2, "ps_transmission");
+    lua_pushvalue(L, -1);
+    hooks_ref = luaL_ref(globalL, LUA_REGISTRYINDEX);
+    lua_getglobal(L, "hooks")
 
     lua_newtable(globalL);
     lua_setglobal(globalL, "ext");
@@ -169,7 +169,6 @@ uint8_t init_lua(RDSEncoder* _enc) {
             lua_pop(globalL, 1);
         }
     }
-
     if(mutex_initialized == 0) {
         pthread_mutex_init(&lua_mutex, NULL);
         mutex_initialized = 1;
@@ -181,7 +180,7 @@ uint8_t init_lua(RDSEncoder* _enc) {
 void run_lua(char *str, size_t str_len, char *cmd_output, size_t *out_len) {
     pthread_mutex_lock(&lua_mutex);
 
-    lua_getglobal(globalL, "hooks");
+    lua_rawgeti(globalL, LUA_REGISTRYINDEX, hooks_ref);
     lua_getfield(globalL, -1, "data_handle");
 
     if (lua_isfunction(globalL, -1)) {
@@ -202,7 +201,7 @@ void run_lua(char *str, size_t str_len, char *cmd_output, size_t *out_len) {
 
 int lua_group(RDSGroup* group, const char grp) {
     pthread_mutex_lock(&lua_mutex);
-    lua_getglobal(globalL, "hooks");
+    lua_rawgeti(globalL, LUA_REGISTRYINDEX, hooks_ref);
     lua_getfield(globalL, -1, "group");
 
     if (!lua_isfunction(globalL, -1)) {
@@ -236,7 +235,7 @@ int lua_group(RDSGroup* group, const char grp) {
 
 int lua_rds2_group(RDSGroup* group, int stream) {
     pthread_mutex_lock(&lua_mutex);
-    lua_getglobal(globalL, "hooks");
+    lua_rawgeti(globalL, LUA_REGISTRYINDEX, hooks_ref);
     lua_getfield(globalL, -1, "rds2_group");
 
     if (lua_isfunction(globalL, -1)) {
@@ -310,7 +309,7 @@ void lua_call_function(const char* function) {
 }
 
 void lua_call_tfunction_nolock(const char* name) {
-    lua_getglobal(globalL, "hooks");
+    lua_rawgeti(globalL, LUA_REGISTRYINDEX, hooks_ref);
     if (!lua_istable(globalL, -1)) {
         lua_pop(globalL, 1);
         return;
@@ -349,6 +348,7 @@ void lua_call_tfunction(const char* name) {
 
 void destroy_lua() {
     if (globalL) {
+        luaL_unref(globalL, LUA_REGISTRYINDEX, hooks_ref);
         lua_close(globalL);
         globalL = NULL;
     }
