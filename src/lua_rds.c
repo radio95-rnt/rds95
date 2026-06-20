@@ -304,7 +304,7 @@ int lua_rds2_group(RDSGroup* group, int stream) {
     return 1;
 }
 
-oid lua_call_function(const char* function) {
+void lua_call_function(const char* function) {
     int need_lock = (pthread_mutex_trylock(&lua_mutex) == 0);
     if (!need_lock) {
         fprintf(stderr, "Warning: lua_mutex already locked when calling %s\n", function);
