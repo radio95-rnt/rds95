@@ -61,7 +61,7 @@ static int config_handler(void* user, const char* section, const char* name, con
 
     if (MATCH("rds95", "udp_port")) config->udp_port = (uint16_t)atoi(value);
     else if (MATCH("rds95", "tcp_port")) config->tcp_port = (uint16_t)atoi(value);
-    } else if (MATCH("rds95", "streams")) {
+	else if (MATCH("rds95", "streams")) {
         int streams = atoi(value);
         if (streams > MAX_STREAMS || streams == 0) return 0;
         config->num_streams = (uint8_t)streams;
