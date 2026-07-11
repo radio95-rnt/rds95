@@ -8,4 +8,5 @@ typedef struct {
 
 int ipc_connect(IPC_Client *client, const char *socket_path);
 void ipc_close(IPC_Client *client);
+int ipc_send_streams(IPC_Client *client, uint8_t streams);
 int ipc_send_bits(IPC_Client *client, RDSEncoder *enc, uint8_t stream);

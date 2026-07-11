@@ -188,11 +188,16 @@ int main(int argc, char **argv) {
 		IPC_Client client;
 		if (ipc_connect(&client, "/etc/fm95/ctl.socket") < 0) goto exit;
 
+		uint8_t sent_num = config.num_streams; ipc_send_streams(&client, sent_num);
+
 		while (!stop_rds) {
 			for (uint8_t s = 0; s < config.num_streams; s++) {
 				ipc_send_bits(&client, &rdsEncoder, s);
 			}
 			sleep_until_next_group(BITS_PER_GROUP, 1187.5);
+			if(config.num_streams != sent_num) {
+				sent_num = config.num_streams; ipc_send_streams(&client, sent_num);
+			}
 		}
 
 		ipc_close(&client);

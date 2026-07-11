@@ -27,6 +27,29 @@ void ipc_close(IPC_Client *client) {
 	client->fd = -1;
 }
 
+int ipc_send_streams(IPC_Client *client, uint8_t streams) {
+	if (client->fd < 0) return -1;
+
+	uint8_t msg[2];
+	msg[0] = 113;
+	msg[1] = streams;
+
+	ssize_t sent = send(client->fd, msg, sizeof(msg), 0);
+	if (sent != (ssize_t)sizeof(msg)) {
+		fprintf(stderr, "fm95 ipc: short/failed send\n");
+		return -1;
+	}
+
+	uint8_t reply;
+	if (recv(client->fd, &reply, 1, 0) <= 0) {
+		fprintf(stderr, "fm95 ipc: no reply / disconnected\n");
+		return -1;
+	}
+	if (reply == 1) fprintf(stderr, "fm95 rejected message (unknown opcode?)\n");
+
+	return 0;
+}
+
 // Pulls one group's worth of bits (BITS_PER_GROUP), differentially encodes,
 // packs 8-to-a-byte, sends as opcode 112 with the stream index.
 int ipc_send_bits(IPC_Client *client, RDSEncoder *enc, uint8_t stream) {
