@@ -13,8 +13,6 @@
 #include "lib.h"
 
 #define DEFAULT_CONFIG_PATH "/etc/rds95.conf"
-#define DEFAULT_STREAMS 1
-#define MAX_STREAMS 4
 
 static struct timespec next_deadline;
 static int deadline_initialized = 0;
@@ -69,7 +67,6 @@ static inline void show_help(char *name) {
 typedef struct {
 	uint16_t udp_port;
 	uint16_t tcp_port;
-	uint8_t num_streams : 3;
 	uint8_t asciig : 1;
 } RDS95_Config;
 
@@ -80,15 +77,11 @@ static int config_handler(void* user, const char* section, const char* name, con
 
     if (MATCH("rds95", "udp_port")) config->udp_port = (uint16_t)atoi(value);
     else if (MATCH("rds95", "tcp_port")) config->tcp_port = (uint16_t)atoi(value);
-	else if (MATCH("rds95", "streams")) {
-        int streams = atoi(value);
-        if (streams > MAX_STREAMS || streams == 0) return 0;
-        config->num_streams = (uint8_t)streams;
-    } else if (MATCH("rds95", "asciig")) {
+    else if (MATCH("rds95", "asciig")) {
 		int asciig = atoi(value);
         if (asciig > 1 || asciig < 0) return 0;
         config->asciig = (uint8_t)asciig;
-    } else return 0;
+    }
     return 1;
 }
 
@@ -99,7 +92,6 @@ int main(int argc, char **argv) {
 	RDS95_Config config = {
 		.udp_port = 0,
 		.tcp_port = 0,
-		.num_streams = DEFAULT_STREAMS,
 		.asciig = 0
 	};
 
@@ -140,8 +132,6 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Error: Could not read ini config, error code as return code.\n");
 		return res;
 	}
-
-	printf("Using %d RDS stream(s)\n", config.num_streams);
 
 	pthread_attr_init(&attr);
 
@@ -188,15 +178,15 @@ int main(int argc, char **argv) {
 		IPC_Client client;
 		if (ipc_connect(&client, "/etc/fm95/ctl.socket") < 0) goto exit;
 
-		uint8_t sent_num = config.num_streams; ipc_send_streams(&client, sent_num);
+		uint8_t sent_num = rdsEncoder.streams; ipc_send_streams(&client, sent_num);
 
 		while (!stop_rds) {
-			for (uint8_t s = 0; s < config.num_streams; s++) {
+			for (uint8_t s = 0; s < rdsEncoder.streams; s++) {
 				ipc_send_bits(&client, &rdsEncoder, s);
 			}
 			sleep_until_next_group(BITS_PER_GROUP, 1187.5);
-			if(config.num_streams != sent_num) {
-				sent_num = config.num_streams; ipc_send_streams(&client, sent_num);
+			if(rdsEncoder.streams != sent_num) {
+				sent_num = rdsEncoder.streams; ipc_send_streams(&client, sent_num);
 			}
 		}
 
@@ -211,7 +201,7 @@ int main(int argc, char **argv) {
 		while(!stop_rds) {
 			if (is_tcp_server_running()) accept_tcp_clients();
 
-			for(uint8_t i = 0; i < config.num_streams; i++) {
+			for(uint8_t i = 0; i < rdsEncoder.streams; i++) {
 				get_rds_group(&rdsEncoder, &group, i);
 
 				int offset = 0;

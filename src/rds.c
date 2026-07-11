@@ -242,6 +242,8 @@ void set_rds_defaults(RDSEncoder* enc, uint8_t program) {
 	enc->data[program].pi = 0xFFFF;
 	strcpy((char *)enc->data[program].ps, "* RDS * ");
 	enc->data[program].rt_enabled = 1;
+	
+	enc->streams = 1;
 
 	memset(enc->data[program].rt, ' ', 64);
 

@@ -15,9 +15,9 @@ void encoder_saveToFile(RDSEncoder *enc) {
 
     memcpy(tempEncoder.data, enc->data, sizeof(RDSData) * PROGRAMS);
 	tempEncoder.program = enc->program;
-	tempEncoder.enabled_streams = enc->enabled_streams;
+	tempEncoder.streams = enc->streams;
 
-	RDSEncoderFile rdsEncoderfile = {.file_starter = 225, .file_middle = 160, .file_ender = 95, .program = tempEncoder.program, .enabled_streams = tempEncoder.enabled_streams};
+	RDSEncoderFile rdsEncoderfile = {.file_starter = 225, .file_middle = 160, .file_ender = 95, .program = tempEncoder.program, .streams = tempEncoder.streams};
 	memcpy(&rdsEncoderfile.data, &tempEncoder.data, sizeof(RDSData)*PROGRAMS);
 
 	rdsEncoderfile.crc = crc16_ccitt((char *)&rdsEncoderfile, offsetof(RDSEncoderFile, crc));
@@ -57,6 +57,6 @@ int encoder_loadFromFile(RDSEncoder *enc) {
 
 	memcpy(&(enc->data), &(rdsEncoderfile.data), sizeof(RDSData)*PROGRAMS);
 	enc->program = rdsEncoderfile.program;
-	enc->enabled_streams = rdsEncoderfile.enabled_streams;
+	enc->streams = rdsEncoderfile.streams;
 	return 0;
 }

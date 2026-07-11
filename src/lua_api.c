@@ -125,12 +125,13 @@ int lua_get_rds_##name(lua_State *L) { \
 }
 
 int lua_set_rds_streams(lua_State *L) {
-	enc->enabled_streams = luaL_checkinteger(L, 1);
+    if(enc->streams > 4) return luaL_error(L, "more than 4");
+	enc->streams = luaL_checkinteger(L, 1);
     return 0;
 }
 
 int lua_get_rds_streams(lua_State *L) {
-	lua_pushinteger(L, enc->enabled_streams);
+	lua_pushinteger(L, enc->streams);
     return 1;
 }
 
