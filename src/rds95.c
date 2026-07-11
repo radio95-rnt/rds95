@@ -2,6 +2,7 @@
 #include <signal.h>
 #include <getopt.h>
 #include <pthread.h>
+#include <time.h>
 #include "../inih/ini.h"
 
 #include "rds.h"
@@ -15,7 +16,25 @@
 #define DEFAULT_STREAMS 1
 #define MAX_STREAMS 4
 
-#define NUM_MPX_FRAMES	128
+static struct timespec next_deadline;
+static int deadline_initialized = 0;
+
+static void sleep_until_next_group(double bits_per_group, double bit_rate) {
+	double interval_ns = 1e9 * bits_per_group / bit_rate;
+
+	if (!deadline_initialized) {
+		clock_gettime(CLOCK_MONOTONIC, &next_deadline);
+		deadline_initialized = 1;
+	}
+
+	next_deadline.tv_nsec += (long)interval_ns;
+	while (next_deadline.tv_nsec >= 1000000000L) {
+		next_deadline.tv_nsec -= 1000000000L;
+		next_deadline.tv_sec += 1;
+	}
+
+	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next_deadline, NULL);
+}
 
 static uint8_t stop_rds = 0;
 
@@ -173,7 +192,7 @@ int main(int argc, char **argv) {
 			for (uint8_t s = 0; s < config.num_streams; s++) {
 				ipc_send_bits(&client, &rdsEncoder, s);
 			}
-			msleep((int)(4096 / 1187.5 * 1000));
+			sleep_until_next_group(BITS_PER_GROUP, 1187.5);
 		}
 
 		ipc_close(&client);
