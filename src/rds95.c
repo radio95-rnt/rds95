@@ -40,7 +40,7 @@ static inline void show_help(char *name) {
 		"Usage: %s [options]\n"
 		"\n"
 		"\t-c,--config\tSet the config path [default: %s]\n"
-		"\t-a,--asciig\tEnable asciig mode where the RDS modulator will be disabled and encoded RDS ASCII G data will be sent from stderr\n"
+		"\t-a,--asciig\tEnable asciig mode where the RDS IPC will be disabled and encoded RDS ASCII G data will be sent from stderr\n"
 		"\n",
 		name,
 		DEFAULT_CONFIG_PATH
@@ -50,7 +50,6 @@ static inline void show_help(char *name) {
 typedef struct {
 	uint16_t udp_port;
 	uint16_t tcp_port;
-	char rds_device_name[48];
 	uint8_t num_streams : 3;
 	uint8_t asciig : 1;
 } RDS95_Config;
@@ -62,9 +61,6 @@ static int config_handler(void* user, const char* section, const char* name, con
 
     if (MATCH("rds95", "udp_port")) config->udp_port = (uint16_t)atoi(value);
     else if (MATCH("rds95", "tcp_port")) config->tcp_port = (uint16_t)atoi(value);
-    else if (MATCH("devices", "rds95")) {
-        strncpy(config->rds_device_name, value, sizeof(config->rds_device_name) - 1);
-        config->rds_device_name[sizeof(config->rds_device_name) - 1] = '\0';
     } else if (MATCH("rds95", "streams")) {
         int streams = atoi(value);
         if (streams > MAX_STREAMS || streams == 0) return 0;
@@ -84,14 +80,9 @@ int main(int argc, char **argv) {
 	RDS95_Config config = {
 		.udp_port = 0,
 		.tcp_port = 0,
-		.rds_device_name = "\0",
 		.num_streams = DEFAULT_STREAMS,
 		.asciig = 0
 	};
-
-	pa_simple *rds_device = NULL;
-	pa_sample_spec format = {0};
-	pa_buffer_attr buffer = {0};
 
 	pthread_attr_t attr;
 	pthread_t udp_server_thread;
@@ -131,11 +122,6 @@ int main(int argc, char **argv) {
 		return res;
 	}
 
-	if(_strnlen(config.rds_device_name, 48) == 0 && config.asciig == 0) {
-		printf("Error: No output device\n");
-		return 1;
-	}
-
 	printf("Using %d RDS stream(s)\n", config.num_streams);
 
 	pthread_attr_init(&attr);
@@ -147,23 +133,6 @@ int main(int argc, char **argv) {
 
 	sigaction(SIGINT, &sa_stop, NULL);
 	sigaction(SIGTERM, &sa_stop, NULL);
-
-	format.format = PA_SAMPLE_FLOAT32NE;
-	format.channels = config.num_streams;
-	format.rate = RDS_SAMPLE_RATE;
-
-	buffer.prebuf = 0;
-	buffer.tlength = buffer.maxlength = NUM_MPX_FRAMES * config.num_streams;
-
-	if(config.asciig == 0) {
-		rds_device = pa_simple_new(NULL, "rds95", PA_STREAM_PLAYBACK, config.rds_device_name, "RDS Generator", &format, NULL, &buffer, NULL);
-		if (rds_device == NULL) {
-			fprintf(stderr, "Error: cannot open sound device.\n");
-			goto exit;
-		}
-	}
-
-	RDSModulator rdsModulator = {0};
 	
 	RDSEncoder rdsEncoder = {0};
 	uint8_t err = init_lua(&rdsEncoder);
@@ -174,7 +143,6 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Could not load lua script file\n");
 		goto exit;
 	}
-	init_rds_modulator(&rdsModulator, &rdsEncoder, config.num_streams);
 	init_rds_encoder(&rdsEncoder);
 
 	if(open_udp_server(config.udp_port) == 0) {
@@ -249,10 +217,8 @@ exit:
 
 	encoder_saveToFile(&rdsEncoder);
 	printf("Saved to file\n");
-
-	cleanup_rds_modulator(&rdsModulator);
+	
 	pthread_attr_destroy(&attr);
-	if (rds_device != NULL && config.asciig == 0) pa_simple_free(rds_device);
 
 	return 0;
 }
