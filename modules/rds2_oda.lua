@@ -67,7 +67,7 @@ function rds2_oda.set_oda_handler_rds2(oda_id, func)
     _RDS2_ODAs[oda_id].handler = func
 end
 
-function rds2_oda.rds2_group(stream)
+function hooks.rds2_group(stream)
     if #_RDS2_ODAs == 0 then return false, 0, 0, 0, 0 end
 
     if _RDS2_ODA_pointer > #_RDS2_ODAs then _RDS2_ODA_pointer = 1 end
