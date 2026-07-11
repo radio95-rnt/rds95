@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
 			for (uint8_t s = 0; s < config.num_streams; s++) {
 				ipc_send_bits(&client, &rdsEncoder, s);
 			}
-			msleep((int)(3072 / 1187.5));
+			msleep((int)(4096 / 1187.5 * 1000));
 		}
 
 		ipc_close(&client);
