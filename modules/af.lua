@@ -1,7 +1,11 @@
-_Af_Oda_id = nil
-_Af_Oda_state = 0
-_Af_Oda_len = 0
-_Af_Oda_afs = {}
+local oda = require("oda")
+---@class AfModule
+local af = {}
+
+local _Af_Oda_id = nil
+local _Af_Oda_state = 0
+local _Af_Oda_len = 0
+local _Af_Oda_afs = {}
 
 local USERDATA_ODA_OFFSET = 274
 
@@ -55,8 +59,8 @@ end
 
 local function init_af_oda()
     if _Af_Oda_id == nil then
-        _Af_Oda_id = ext.register_oda(7, false, 0x6365, 0, false)
-        ext.set_oda_handler(_Af_Oda_id, function()
+        _Af_Oda_id = oda.register_oda(7, false, 0x6365, 0, false)
+        oda.set_oda_handler(_Af_Oda_id, function()
             local b, c, d = get_next_af_oda_group()
             return true, b, c, d
         end)
@@ -106,7 +110,7 @@ end
 
 ---Sets the AFs included in the ODA and saves them
 ---@param afs table List of numbers (e.g., {98.1, 102.5})
-function RDS.ext.set_af_oda(afs)
+function af.set_af_oda(afs)
     _process_af_list(afs)
     save_af_to_userdata(afs)
 end
@@ -115,3 +119,5 @@ table.insert(hooks.on_state, function ()
     load_af_from_userdata()
     if _Af_Oda_len ~= 0 then init_af_oda() end
 end)
+
+return af

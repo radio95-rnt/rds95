@@ -1,3 +1,8 @@
+local af = require("af")
+local ert = require("ert")
+local rtp = require("rtp")
+local uecp = require("uecp")
+
 ---@param data string
 function hooks.parse_ascii(data)
     if string.sub(data, 1, 4):lower() == "lua=" then
@@ -59,21 +64,21 @@ function hooks.parse_ascii(data)
         elseif data == "rdsgen" then return string.format("RDSGEN=%s\r\n", string.format("%d", RDS.get_streams()))
         elseif data == "link" then return string.format("LINK=%s\r\n", string.format("%d", (RDS.get_link() and 1 or 0)))
         elseif data == "rtp" then
-            local t1, s1, l1, t2, s2, l2 = RDS.ext.get_rtplus_tags(false)
+            local t1, s1, l1, t2, s2, l2 = rtp.get_rtplus_tags(false)
             return string.format("RTP=%d,%d,%d,%d,%d,%d\r\n", t1, s1, l1, t2, s2, l2)
         elseif data == "ertp" then
-            local t1, s1, l1, t2, s2, l2 = RDS.ext.get_rtplus_tags(true)
+            local t1, s1, l1, t2, s2, l2 = rtp.get_rtplus_tags(true)
             return string.format("ERTP=%d,%d,%d,%d,%d,%d\r\n", t1, s1, l1, t2, s2, l2)
         elseif data == "rtprun" then
-            local running = RDS.ext.get_rtp_meta(false)
+            local running = rtp.get_rtp_meta(false)
             local f1 = 2 or (running and 1 or 0)
             return string.format("RTPRUN=%d\r\n", f1)
         elseif data == "ertprun" then
-            local running = RDS.ext.get_rtp_meta(true)
+            local running = rtp.get_rtp_meta(true)
             local f1 = 2 or (running and 1 or 0)
             return string.format("ERTPRUN=%d\r\n", f1)
         elseif data == "lps" then return string.format("LPS=%s\r\n", RDS.get_lps())
-        elseif data == "ert" then return string.format("ERT=%s\r\n", RDS.ext.get_ert())
+        elseif data == "ert" then return string.format("ERT=%s\r\n", ert.get_ert())
         else
             local eon_cmd, eon_num = data:match("^eon(%d+)([a-z]+)$")
             if eon_cmd then
@@ -232,7 +237,7 @@ function hooks.parse_ascii(data)
         RDS.set_lps(value)
         return "+\r\n"
     elseif cmd == "ert" then
-        RDS.ext.set_ert(value)
+        ert.set_ert(value)
         return "+\r\n"
     elseif cmd == "link" then
         local link = tonumber(value)
@@ -252,7 +257,7 @@ function hooks.parse_ascii(data)
         local t1, s1, l1, t2, s2, l2 = value:match("(%d+),(%d+),(%d+),(%d+),(%d+),(%d+)")
 
         if not l2 then return "-\r\n" end
-        RDS.ext.set_rtplus_tags(
+        rtp.set_rtplus_tags(
             is_ertp,
 ---@diagnostic disable-next-line: param-type-mismatch
             tonumber(t1), tonumber(s1), tonumber(l1), tonumber(t2), tonumber(s2), tonumber(l2)
@@ -282,8 +287,8 @@ function hooks.parse_ascii(data)
         local f2 = tonumber(f2_str) or 0
         local running = (f1 & 1) ~= 0
 
-        RDS.ext.set_rtp_meta(is_ertp, running)
-        if f2 ~= 0 then RDS.ext.toggle_rtp(is_ertp) end
+        rtp.set_rtp_meta(is_ertp, running)
+        if f2 ~= 0 then rtp.toggle_rtp(is_ertp) end
         return "+\r\n"
     elseif cmd == "af" then
         local af_table = {}
@@ -307,7 +312,7 @@ function hooks.parse_ascii(data)
         local af_table = {}
 
         if value == "" or value == "0" then
-            RDS.ext.set_af_oda({})
+            af.set_af_oda({})
             return "+\r\n"
         end
 
@@ -319,7 +324,7 @@ function hooks.parse_ascii(data)
 
         if #af_table > 25 then return "-\r\n" end
 
-        RDS.ext.set_af_oda(af_table)
+        af.set_af_oda(af_table)
         return "+\r\n"
     else return "?\r\n" end
 end

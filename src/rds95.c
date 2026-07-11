@@ -2,13 +2,11 @@
 #include <signal.h>
 #include <getopt.h>
 #include <pthread.h>
-#include <pulse/simple.h>
-#include <pulse/error.h>
 #include "../inih/ini.h"
 
 #include "rds.h"
+#include "ipc_client.h"
 #include "fs.h"
-#include "modulator.h"
 #include "udp_server.h"
 #include "tcp_server.h"
 #include "lib.h"
@@ -49,8 +47,7 @@ static inline void show_help(char *name) {
 	);
 }
 
-typedef struct
-{
+typedef struct {
 	uint16_t udp_port;
 	uint16_t tcp_port;
 	char rds_device_name[48];
@@ -201,28 +198,17 @@ int main(int argc, char **argv) {
 	}
 
 	if(config.asciig == 0) {
-		int pulse_error;
+		IPC_Client client;
+		if (ipc_connect(&client, "/etc/fm95/ctl.socket") < 0) goto exit;
 
-		float *rds_buffer = (float*)malloc(NUM_MPX_FRAMES * config.num_streams * sizeof(float));
-		if (rds_buffer == NULL) {
-			fprintf(stderr, "Error: Could not allocate memory for RDS buffer\n");
-			goto exit;
+		while (!stop_rds) {
+			for (uint8_t s = 0; s < config.num_streams; s++) {
+				ipc_send_bits(&client, &rdsEncoder, s);
+			}
+			msleep((int)(1000.0 * BITS_PER_GROUP / 1187.5));
 		}
 
-		while(!stop_rds) {
-			for (uint16_t i = 0; i < NUM_MPX_FRAMES * config.num_streams; i++) {
-				uint8_t stream = i % config.num_streams;
-				if((rdsEncoder.enabled_streams > stream ? 1 : 0) == 0) rds_buffer[i] = 0.0f;
-				rds_buffer[i] = get_rds_sample(&rdsModulator, stream);
-			}
-
-			if (pa_simple_write(rds_device, rds_buffer, NUM_MPX_FRAMES * config.num_streams * sizeof(float), &pulse_error) != 0) {
-				fprintf(stderr, "Error: could not play audio. (%s : %d)\n", pa_strerror(pulse_error), pulse_error);
-				break;
-			}
-		}
-
-		free(rds_buffer);
+		ipc_close(&client);
 	} else {
 		RDSGroup group;
 		char output_buffer[1024];

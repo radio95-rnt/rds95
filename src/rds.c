@@ -1,6 +1,5 @@
 #include "rds.h"
 #include "fs.h"
-#include "modulator.h"
 #include "lib.h"
 #include "lua_rds.h"
 #include <time.h>
@@ -97,7 +96,7 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 	time(&now);
 	utc = gmtime(&now);
 
-	if(utc->tm_sec != enc->state[enc->program].last_second && stream == 0) {
+	if(utc->tm_sec != enc->state[enc->program].last_second) {
 		enc->state[enc->program].last_second = utc->tm_sec;
 		lua_call_tfunction("tick");
 	}
@@ -111,6 +110,8 @@ void get_rds_group(RDSEncoder* enc, RDSGroup *group, uint8_t stream) {
 			goto group_coded;
 		}
 	}
+
+	lua_call_tfunction("pre_tx");
 
 	uint8_t good_group = 0;
 	uint8_t grp_sqc_idx = 0;

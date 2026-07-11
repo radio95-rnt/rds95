@@ -3,7 +3,7 @@
         "debug": "disable",
         "os": "disable",
         "jit": "disable",
-        "ffi":"disable",
+        "ffi":"disable"
     },
     "workspace.library": ["context.lua"],
     "diagnostics.disable": [

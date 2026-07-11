@@ -63,7 +63,7 @@ hooks.on_start = {}
 ---@type function[]
 hooks.on_state = {}
 
----This function is called every second (or rather if the second has changed since the last stream 0 group)
+---This function is called every second
 ---It should be defined by the user in the script.
 ---This is a table of functions. Each will be called
 ---@type function[]
@@ -81,11 +81,17 @@ hooks.minute_tick = {}
 ---@type function[]
 hooks.rt_transmission = {}
 
----This function is calld every time a PS transmits start to end
+---This function is called every time a PS transmits start to end
 ---It should be defined by the user in the script.
 ---This is a table of functions. Each will be called
 ---@type function[]
 hooks.ps_transmission = {}
+
+---This function is called before the next group is determined
+---It should be defined by the user in the script.
+---This is a table of functions. Each will be called
+---@type function[]
+hooks.pre_tx = {}
 
 ---This function is called in order to handle UDP data. The string returned is sent back to the UDP peer as a response
 ---It should be defined by the user in the script.
@@ -273,78 +279,3 @@ function userdata.get() end
 ---@param size integer
 ---@return string
 function userdata.get_offset(offset, size) end
-
----@class ext
-ext = {}
----@class RDSext
-RDS.ext = {}
-
--- RT Plus Tags
----Sets RT+ tags: type1, start1, len1, type2, start2, len2
----@param ertp boolean
----@param t1 integer
----@param s1 integer
----@param l1 integer
----@param t2 integer
----@param s2 integer
----@param l2 integer
-function RDS.ext.set_rtplus_tags(ertp, t1, s1, l1, t2, s2, l2) end
-
----Gets RT+ tags: type1, start1, len1, type2, start2, len2
----@param ertp boolean
----@return integer type1, integer start1, integer len1, integer type2, integer start2, integer len2
-function RDS.ext.get_rtplus_tags(ertp) end
-
----Toggles RTP or ERTP's toggle switch
----@param ertp boolean
-function RDS.ext.toggle_rtp(ertp) end
-
----Sets the metadata of RTP or ERTP
----@param ertp boolean
----@param running boolean
-function RDS.ext.set_rtp_meta(ertp, running) end
----Gets the metadata of RTP and ERTP
----@param ertp boolean
----@return boolean running
-function RDS.ext.get_rtp_meta(ertp) end
-
----Sets the AFs included in the ODA
----@param afs table
-function RDS.ext.set_af_oda(afs) end
-
----Registers an ODA to be used in the 0x6 of the group sequence. ODAs are stored as state data, thus running reset_rds will clear it
----Groups 14, 15, 2, 0 cannot be registered either version, groups 10, 4, 1 can be only registered as B, any other is free to take
----Group 3A will mean that there will be no group handler for this ODA, meaning it can only be interacted with via the 3A AID group, handler set is not possible with such groups
----@param group integer
----@param group_version boolean
----@param aid integer
----@param data integer
----@param temp boolean Send AID once (no data) and destroy
----@return integer oda_id
-function ext.register_oda(group, group_version, aid, data, temp) end
-
----Unregisters an ODA, this stops the handler or AID being called/sent
----@param oda_id integer
-function ext.unregister_oda(oda_id) end
-
----Sets the data for a existing ODA group
----@param oda_id integer
----@param data integer
-function ext.set_oda_id_data(oda_id, data) end
-
----The callback function for an ODA handler
----@alias ODAHandler fun(): (boolean, integer, integer, integer)
-
----Sets a function to handle the ODA data generation. 
----The handler is called when the group sequence '0xff' slot is processed.
----The function must return 3 integers representing RDS Blocks B, C, and D.
----Please note that you do not need to compute the block B to indentify the group and group version, that will be done for you and EVERY SINGLE group has PTY and TP inserted (and also PI if its a B inside block C)
----You are asked to set groups B last 5 bits, leave rest 0
----@param oda_id integer The ID returned by register_oda
----@param fun ODAHandler
-function ext.set_oda_handler(oda_id, fun) end
-
----@param ert string
-function RDS.ext.set_ert(ert) end
----@return string
-function RDS.ext.get_ert() end

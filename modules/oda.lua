@@ -1,3 +1,5 @@
+---@class OdaModule
+local oda = {}
 local _ODA = { group = 0, group_version = false, aid = 0, data = 0, handler = false, temp = false }
 
 function _ODA.new(group, group_version, aid, data, handler, temp)
@@ -18,7 +20,7 @@ local _RDS_ODA_pointer = 1
 ---@param data integer
 ---@param temp boolean
 ---@return integer oda_id
-function ext.register_oda(group, group_version, aid, data, temp)
+function oda.register_oda(group, group_version, aid, data, temp)
     if group == 14 or group == 15 or group == 2 or group == 0 then error("Group is incorrect", 2) end
     if (group == 10 or group == 4 or group == 1) and group_version then error("Group is incorrect", 2) end
     local oda = _ODA.new(group, group_version, aid, data, false, temp)
@@ -34,7 +36,7 @@ end
 
 ---Unregisters an ODA, this stops the handler or AID being called/sent
 ---@param oda_id integer
-function ext.unregister_oda(oda_id)
+function oda.unregister_oda(oda_id)
     if oda_id < 1 or oda_id > #_RDS_ODAs or _RDS_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
 
     _RDS_ODAs[oda_id] = false
@@ -46,10 +48,12 @@ end
 ---Sets the id_data for a existing ODA group
 ---@param oda_id integer
 ---@param data integer
-function ext.set_oda_id_data(oda_id, data)
+function oda.set_oda_id_data(oda_id, data)
     if oda_id < 1 or oda_id > #_RDS_ODAs or _RDS_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     _RDS_ODAs[oda_id].data = data
 end
+
+---@alias ODAHandler fun(): (boolean, integer, integer, integer)
 
 ---Sets a function to handle the ODA data generation. 
 ---The handler is called when the group sequence '\xff' slot is processed.
@@ -58,7 +62,7 @@ end
 ---You are asked to set groups B last 5 bits, leave rest 0
 ---@param oda_id integer The ID returned by register_oda
 ---@param fun ODAHandler
-function ext.set_oda_handler(oda_id, fun)
+function oda.set_oda_handler(oda_id, fun)
     if oda_id < 1 or oda_id > #_RDS_ODAs or _RDS_ODAs[oda_id] == false then error("Invalid ODA ID: " .. tostring(oda_id), 2) end
     if _RDS_ODAs[oda_id].group == 3 then error("3A ODAs cannot have handlers.", 2) end
     _RDS_ODAs[oda_id].handler = fun
@@ -125,3 +129,5 @@ table.insert(hooks.on_state, function ()
     _RDS_ODAs = {}
     _RDS_ODA_pointer = 1
 end)
+
+return oda

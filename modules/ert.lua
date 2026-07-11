@@ -1,13 +1,17 @@
-_Ert_state = 0
-_Ert_oda_id = nil
+local oda = require("oda")
+---@class ErtModule
+local ert = {}
+
+local _Ert_state = 0
+local _Ert_oda_id = nil
 
 --- Size: 259 bytes
 local USERDATA_ERT_OFFSET = 0
 
 local function init_ert()
     if _Ert_oda_id == nil then
-        _Ert_oda_id = ext.register_oda(13, false, 0x6552, 1, false)
-        ext.set_oda_handler(_Ert_oda_id, function ()
+        _Ert_oda_id = oda.register_oda(13, false, 0x6552, 1, false)
+        oda.set_oda_handler(_Ert_oda_id, function ()
             if string.byte(userdata.get_offset(USERDATA_ERT_OFFSET+258, 1)) == 1 then
                 local new_data = userdata.get_offset(USERDATA_ERT_OFFSET, 128)
                 local new_segments = string.byte(userdata.get_offset(USERDATA_ERT_OFFSET+128, 1))
@@ -34,22 +38,22 @@ local function init_ert()
     end
 end
 
-function unregister_ert()
+function ert.unregister_ert()
     if _Ert_oda_id ~= nil then
-        ext.unregister_oda(_Ert_oda_id)
+        oda.unregister_oda(_Ert_oda_id)
         _Ert_oda_id = nil
     end
 end
 
-function RDS.ext.set_ert(ert)
-    if #ert == 0 then
+function ert.set_ert(text)
+    if #text == 0 then
         userdata.set_offset(USERDATA_ERT_OFFSET, 128, "")
         userdata.set_offset(USERDATA_ERT_OFFSET+128, 1, string.char(0))
         userdata.set_offset(USERDATA_ERT_OFFSET+258, 1, string.char(1))
         return
     end
 
-    local data = ert .. "\r"
+    local data = text .. "\r"
     data = string.sub(data, 1, 128)
 
     local padding = (4 - (#data % 4)) % 4
@@ -72,7 +76,7 @@ function RDS.ext.set_ert(ert)
     if _Ert_oda_id == nil then init_ert() end
 end
 
-function RDS.ext.get_ert()
+function ert.get_ert()
     local segments = string.byte(userdata.get_offset(USERDATA_ERT_OFFSET+128, 1))
     if segments == 0 then return "" end
 
@@ -83,3 +87,5 @@ end
 table.insert(hooks.on_state, function ()
     if string.byte(userdata.get_offset(USERDATA_ERT_OFFSET+257, 1)) ~= 0 then init_ert() end
 end)
+
+return ert

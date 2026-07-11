@@ -14,7 +14,7 @@ add_executable(rds95 ${SOURCES})
 find_package(Lua REQUIRED)
 
 target_include_directories(rds95 PRIVATE ${LUA_INCLUDE_DIR})
-target_link_libraries(rds95 PRIVATE m pthread pulse pulse-simple inih ${LUA_LIBRARIES})
+target_link_libraries(rds95 PRIVATE m pthread inih ${LUA_LIBRARIES})
 
 install(TARGETS rds95 DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
@@ -23,7 +23,9 @@ install(CODE
   # Define the paths for the source and destination files
   set(PREFIX_FILE \"${CMAKE_CURRENT_SOURCE_DIR}/.script.lua\")
   set(SCRIPTS_DIR \"${CMAKE_CURRENT_SOURCE_DIR}/scripts\")
+  set(MODULES_DIR \"${CMAKE_CURRENT_SOURCE_DIR}/modules\")
   set(DEST_FILE \"/etc/rds95.lua\")
+  set(DEST_MODULES_DIR \"/etc/rds95\")
 
   # Initialize content variable
   set(FINAL_CONTENT \"\")
@@ -62,11 +64,34 @@ install(CODE
   # Write the resulting content to the destination file
   message(STATUS \"Installing script file to \${DEST_FILE}\")
   file(WRITE \${DEST_FILE} \"\${FINAL_CONTENT}\")
+
+  if(EXISTS \${MODULES_DIR} AND IS_DIRECTORY \${MODULES_DIR})
+    file(MAKE_DIRECTORY \${DEST_MODULES_DIR})
+    file(GLOB LUA_MODULES \"\${MODULES_DIR}/*.lua\")
+    list(LENGTH LUA_MODULES MODULE_COUNT)
+
+    if(MODULE_COUNT GREATER 0)
+      message(STATUS \"Installing \${MODULE_COUNT} Lua module(s) to \${DEST_MODULES_DIR}.\")
+      foreach(LUA_MODULE \${LUA_MODULES})
+        get_filename_component(MODULE_NAME \${LUA_MODULE} NAME)
+        file(COPY \${LUA_MODULE} DESTINATION \${DEST_MODULES_DIR})
+        message(STATUS \"Installed module: \${MODULE_NAME}\")
+      endforeach()
+    else()
+      message(STATUS \"No Lua modules found in modules directory.\")
+    endif()
+  else()
+    message(STATUS \"Modules directory not found.\")
+  endif()
   
   # Change ownership to the user who invoked sudo (if applicable)
   if(DEFINED ENV{SUDO_USER})
     message(STATUS \"Changing ownership of \${DEST_FILE} to \$ENV{SUDO_USER}\")
     execute_process(COMMAND chown \$ENV{SUDO_USER}:\$ENV{SUDO_USER} \${DEST_FILE})
+    if(EXISTS \${DEST_MODULES_DIR})
+      message(STATUS \"Changing ownership of \${DEST_MODULES_DIR} to \$ENV{SUDO_USER}\")
+      execute_process(COMMAND chown -R \$ENV{SUDO_USER}:\$ENV{SUDO_USER} \${DEST_MODULES_DIR})
+    endif()
   else()
     message(STATUS \"No SUDO_USER detected, skipping chown\")
   endif()

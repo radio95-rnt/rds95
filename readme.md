@@ -33,12 +33,6 @@ Yet another unique feature, the Lua engine allows you to control the encoder, al
 
 Every RDS2 subcarrier is in full control of Lua (except tunneling - core fills in PTY and the rest)
 
-### RFT
-
-For a long time there was no RFT in RDS95, but on 28th December 2025 that changed when i implemented it in lua, just call the load function with the path and id 0, and see the your station's logo in the decoder
-
-And yes, it is implemented in only Lua and the ODA engine which is also in Lua
-
 ## Disclaimer
 
 RDS95 is "based" on [Anthony96922](https://github.com/Anthony96922/)'s [MiniRDS](https://github.com/Anthony96922/MiniRDS) licensed under GPLv3

@@ -1,13 +1,15 @@
-uecp = {}
+---@class UecpModule
+local uecp = {}
 uecp.site_addreses = {}
 uecp.encoder_addreses = {}
 uecp.rt_buffer = {}
 uecp.rt_buffer_index = 1
 uecp.rt_tx_remaining = 0
+uecp.freedata_buffer = {}
+uecp.freedata_buffer_index = 1
 
 hooks.rt_transmission[#hooks.rt_transmission + 1] = function ()
     if #uecp.rt_buffer == 0 then return end
-
     if #uecp.rt_buffer == 1 then return end
 
     if uecp.rt_tx_remaining > 1 then
@@ -23,7 +25,8 @@ hooks.rt_transmission[#hooks.rt_transmission + 1] = function ()
     if entry.toggle_ab then RDS.toggle_rt_ab() end
 end
 
-
+---@param dsn integer
+---@param write function
 local function dsn_helper(dsn, write)
     if dsn == 0 then write()
     elseif dsn == 254 then
@@ -47,7 +50,7 @@ local function dsn_helper(dsn, write)
 end
 
 local mec_handlers = {}
-mec_handlers[1] = function(data)
+mec_handlers[0x01] = function(data)
     -- PI
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
@@ -59,7 +62,7 @@ mec_handlers[1] = function(data)
     end)
     return 5
 end
-mec_handlers[2] = function(data)
+mec_handlers[0x02] = function(data)
     -- PS
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
@@ -84,7 +87,7 @@ mec_handlers[0x21] = function(data)
     end)
     return 4 + mel
 end
-mec_handlers[4] = function(data)
+mec_handlers[0x04] = function(data)
     -- PTYI
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
@@ -94,7 +97,7 @@ mec_handlers[4] = function(data)
     end)
     return 4
 end
-mec_handlers[3] = function(data)
+mec_handlers[0x03] = function(data)
     -- TP/TA
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
@@ -105,7 +108,7 @@ mec_handlers[3] = function(data)
     end)
     return 4
 end
-mec_handlers[7] = function(data)
+mec_handlers[0x07] = function(data)
     -- PTY
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
@@ -218,21 +221,57 @@ end
 mec_handlers[0x2E] = function (data)
     -- Linkage Information
     -- What? What is the main PSN? Does the server tell me that or am i to fucking guess?
+    -- (yes it does tell me that :) mec 0x28)
     return 5
 end
+
+hooks.pre_tx[#hooks.pre_tx+1] = function()
+    if #uecp.freedata_buffer == 0 then return end
+
+    local entry = uecp.freedata_buffer[uecp.freedata_buffer_index]
+
+    uecp.freedata_buffer_index = uecp.freedata_buffer_index + 1
+    if uecp.freedata_buffer_index > #uecp.freedata_buffer then
+        uecp.freedata_buffer_index = 1
+    end
+
+    RDS.put_custom_group(entry.b, entry.c, entry.d)
+end
+
 mec_handlers[0x24] = function (data)
     -- Free-format data in type A or B group
     local group = string.byte(data, 2)
     local bufferdata = string.byte(data, 3)
-    local buffer = (bufferdata >> 5) & 3 -- No clue
+    local buffer = (bufferdata >> 5) & 3
     local blockb = bufferdata & 31
     local blockc_msb = string.byte(data, 4)
     local blockc_lsb = string.byte(data, 5)
     local blockd_msb = string.byte(data, 6)
     local blockd_lsb = string.byte(data, 7)
-    RDS.put_custom_group((group << 11) | blockb, (blockc_msb << 8) | blockc_lsb, (blockd_msb << 8) | blockd_lsb)
+    local b, c, d = (group << 11) | blockb, (blockc_msb << 8) | blockc_lsb, (blockd_msb << 8) | blockd_lsb
+    if buffer == 0 then
+        RDS.put_custom_group(b, c, d)
+    elseif buffer == 2 then
+        uecp.freedata_buffer[#uecp.freedata_buffer + 1] = { b = b, c = c, d = d }
+    elseif buffer == 3 then
+        uecp.freedata_buffer = {}
+        uecp.freedata_buffer_index = 1
+    end
     return 7
 end
+
+mec_handlers[0x40] = function(data)
+    local group = string.byte(data, 2)
+    local aid_msb = string.byte(data, 3)
+    local aid_lsb = string.byte(data, 4)
+    local buffer = string.byte(data, 5) & 3
+    local msg_msb = string.byte(data, 6) -- 6
+    local msg_lsb = string.byte(data, 7) -- 7
+    local timeout = string.byte(data, 8)
+    -- TODO:
+    return 8
+end
+
 -- Fuck you mean, i have to implement some fucking "spinning wHELLs"? may the lord have mercy
 -- Also no time setting via UECP - this is linux, just install fucking chrony
 mec_handlers[0x19] = function (data)
@@ -385,7 +424,9 @@ function uecp.parse_uecp(packet)
             break
         end
         local advance = handler(string.sub(data, consumed))
-        consumed = consumed + advance
         Data.set_writing_program(Data.get_output_program())
+        consumed = consumed + advance
     end
 end
+
+return uecp
