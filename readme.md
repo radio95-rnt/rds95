@@ -8,8 +8,6 @@ RDS95 also embeds Lua to implement some things
 
 RDS95 follows the IEC 62106 standard (available at the RDS Forum website)
 
-Also, yes i would like to license this under the unlicese but the tyranny of the GPL license restricts me from doing that, this is a message to you, anthony (see the [disclaimer](#disclaimer))
-
 ## Diffrences between IEC 62106 and EN 50067
 
 The newer standard which is the IEC one, removes these features:
@@ -32,7 +30,3 @@ RDS95 is the only (as far as i can tell) encoder to transmit the 9-bit AF codes
 Yet another unique feature, the Lua engine allows you to control the encoder, almost entirely.
 
 Every RDS2 subcarrier is in full control of Lua (except tunneling - core fills in PTY and the rest)
-
-## Disclaimer
-
-RDS95 is "based" on [Anthony96922](https://github.com/Anthony96922/)'s [MiniRDS](https://github.com/Anthony96922/MiniRDS) licensed under GPLv3
