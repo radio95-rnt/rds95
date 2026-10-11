@@ -5,6 +5,16 @@
 #include <string.h>
 #include <stdio.h>
 
+static int recv_all(int fd, void *buf, size_t n) {
+    uint8_t *p = buf;
+    while (n) {
+        ssize_t r = recv(fd, p, n, 0);
+        if (r <= 0) return -1;
+        p += r; n -= (size_t)r;
+    }
+    return 0;
+}
+
 int ipc_connect(IPC_Client *client, const char *socket_path) {
 	client->fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (client->fd < 0) { perror("fm95 ipc: socket"); return -1; }
@@ -41,10 +51,8 @@ int ipc_send_streams(IPC_Client *client, uint8_t streams) {
 	}
 
 	uint8_t resp[2];
-	if (recv(client->fd, &resp, 2, 0) <= 0) {
-		fprintf(stderr, "fm95 ipc: no reply / disconnected\n");
-		return -1;
-	}
+	if (recv_all(client->fd, resp, 2) < 0) { /* disconnected */ return -1; }
+	if (resp[0] != 112) { fprintf(stderr, "fm95 ipc: desync\n"); return -1; }
 	if (resp[1] == 1) fprintf(stderr, "fm95 rejected message (unknown opcode?)\n");
 
 	return 0;
@@ -81,10 +89,8 @@ int ipc_send_bits(IPC_Client *client, RDSEncoder *enc, uint8_t stream) {
 	}
 
 	uint8_t resp[2];
-	if (recv(client->fd, &resp, 2, 0) <= 0) {
-		fprintf(stderr, "fm95 ipc: no reply / disconnected\n");
-		return -1;
-	}
+	if (recv_all(client->fd, resp, 2) < 0) { /* disconnected */ return -1; }
+	if (resp[0] != 112) { fprintf(stderr, "fm95 ipc: desync\n"); return -1; }
 	if (resp[1] == 2) fprintf(stderr, "fm95 reported bitring overrun on stream %d\n", stream);
 	else if (resp[1] == 1) fprintf(stderr, "fm95 rejected message (unknown opcode?)\n");
 
