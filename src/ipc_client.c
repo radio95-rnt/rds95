@@ -40,13 +40,12 @@ int ipc_send_streams(IPC_Client *client, uint8_t streams) {
 		return -1;
 	}
 
-	uint16_t reply;
-	if (recv(client->fd, &reply, 2, 0) <= 0) {
+	uint8_t resp[2];
+	if (recv(client->fd, &resp, 2, 0) <= 0) {
 		fprintf(stderr, "fm95 ipc: no reply / disconnected\n");
 		return -1;
 	}
-	reply &= 0xff;
-	if (reply == 1) fprintf(stderr, "fm95 rejected message (unknown opcode?)\n");
+	if (resp[1] == 1) fprintf(stderr, "fm95 rejected message (unknown opcode?)\n");
 
 	return 0;
 }
@@ -81,14 +80,13 @@ int ipc_send_bits(IPC_Client *client, RDSEncoder *enc, uint8_t stream) {
 		return -1;
 	}
 
-	uint16_t reply;
-	if (recv(client->fd, &reply, 2, 0) <= 0) {
+	uint8_t resp[2];
+	if (recv(client->fd, &resp, 2, 0) <= 0) {
 		fprintf(stderr, "fm95 ipc: no reply / disconnected\n");
 		return -1;
 	}
-	reply &= 0xff;
-	if (reply == 2) fprintf(stderr, "fm95 reported bitring overrun on stream %d\n", stream);
-	else if (reply == 1) fprintf(stderr, "fm95 rejected message (unknown opcode?)\n");
+	if (resp[1] == 2) fprintf(stderr, "fm95 reported bitring overrun on stream %d\n", stream);
+	else if (resp[1] == 1) fprintf(stderr, "fm95 rejected message (unknown opcode?)\n");
 
 	return 0;
 }
