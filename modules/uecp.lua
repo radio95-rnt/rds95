@@ -77,7 +77,7 @@ mec_handlers[0x21] = function(data)
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
     local mel = string.byte(data, 4)
-    local lps = string.sub(data, 5, 5+mel)
+    local lps = string.sub(data, 5, 4+mel)
 
     local cut = string.find(lps, "\r", 1, true)
     if cut then lps = string.sub(lps, 1, cut - 1) end
@@ -184,7 +184,8 @@ mec_handlers[0x13] = function (data)
     -- AF
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
-    local mel = string.sub(data, 4)
+    local mel = string.byte(data, 4)
+    local af_bytes = string.sub(data, 5, 4 + mel)
 
     -- TODO: decode - i have zero clue what the hell is the meaning of the docs, it might as well be in chinese (traditional)
 
@@ -194,7 +195,8 @@ mec_handlers[0x14] = function (data)
     -- EON-AF
     local dsn = string.byte(data, 2)
     local psn = string.byte(data, 3)
-    local mel = string.sub(data, 4)
+    local mel = string.byte(data, 4)
+    local af_bytes = string.sub(data, 5, 4 + mel)
 
     -- TODO: decode - haven't read this one
 
@@ -204,13 +206,12 @@ mec_handlers[0x1A] = function (data)
     -- ECC / SLS
     local dsn = string.byte(data, 2)
     -- No PSN
-    local data = string.sub(data, 3)
-    local data_lsb = string.sub(data, 4)
+    local msb = string.byte(data, 3)
+    local lsb = string.byte(data, 4)
+    local full_data = ((msb & 0x0F) << 8) | lsb
+    local variant = (msb >> 4) & 7
 
-    local full_data = ((data & 15) << 8) | data_lsb
-    local variant = (data >> 4) & 3
     if variant == 0 then
-        -- TODO: maybe make it more than just ecc? idk why but would be cool
         dsn_helper(dsn, function ()
             RDS.ecc = full_data
         end)
@@ -330,7 +331,7 @@ mec_handlers[0x2D] = function (data)
     local mel = string.byte(data, 2)
     local designation = string.sub(data, 3, 4)
     if string.byte(designation, 1) == 0x39 and string.byte(designation, 2) == 0x35 and mel > 2 then
-        pcall(hooks.parse_ascii, string.sub(data, 5, 4+mel))
+        pcall(hooks.parse_ascii, string.sub(data, 5, 2+mel))
     end
     return 2+mel
 end
