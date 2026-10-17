@@ -13,6 +13,7 @@
 #include "lib.h"
 
 #define DEFAULT_CONFIG_PATH "/etc/rds95.conf"
+#define DEFAULT_FM95_SOCKET_PATH "/etc/fm95/ctl.socket"
 
 static struct timespec next_deadline;
 static int deadline_initialized = 0;
@@ -56,10 +57,12 @@ static inline void show_help(char *name) {
 		"\n"
 		"Usage: %s [options]\n"
 		"\n"
+		"\t-s,--socket\tSet the socket path [default: %s]\n"
 		"\t-c,--config\tSet the config path [default: %s]\n"
 		"\t-a,--asciig\tEnable asciig mode where the RDS IPC will be disabled and encoded RDS ASCII G data will be sent from stderr\n"
 		"\n",
 		name,
+		DEFAULT_FM95_SOCKET_PATH,
 		DEFAULT_CONFIG_PATH
 	);
 }
@@ -89,6 +92,7 @@ int main(int argc, char **argv) {
 	printf("rds95 (a RDS encoder by radio95) version %s\n", VERSION);
 
 	char config_path[64] = DEFAULT_CONFIG_PATH;
+	char socket_path[64] = DEFAULT_FM95_SOCKET_PATH;
 	RDS95_Config config = {
 		.udp_port = 0,
 		.tcp_port = 0,
@@ -98,11 +102,12 @@ int main(int argc, char **argv) {
 	pthread_attr_t attr;
 	pthread_t udp_server_thread;
 
-	const char	*short_opt = "c:ah";
+	const char	*short_opt = "c:s:ah";
 
 	struct option long_opt[] =
 	{
 		{"config", required_argument, NULL, 'c'},
+		{"socket", required_argument, NULL, 's'},
 		{"asciig", no_argument, NULL, 'a'},
 		{"help", no_argument, NULL, 'h'},
 		{0, 0, 0, 0}
@@ -112,8 +117,12 @@ int main(int argc, char **argv) {
 	while((opt = getopt_long(argc, argv, short_opt, long_opt, NULL)) != -1) {
 		switch (opt) {
 			case 'c':
-				memcpy(config_path, optarg, 62);
-				config_path[48] = '\0';
+				memcpy(config_path, optarg, 63);
+				config_path[63] = '\0';
+				break;
+			case 's':
+				memcpy(socket_path, optarg, 63);
+				socket_path[63] = '\0';
 				break;
 			case 'a':
 				config.asciig = 1;
@@ -176,7 +185,7 @@ int main(int argc, char **argv) {
 
 	if(config.asciig == 0) {
 		IPC_Client client;
-		if (ipc_connect(&client, "/etc/fm95/ctl.socket") < 0) goto exit;
+		if (ipc_connect(&client, socket_path) < 0) goto exit;
 
 		uint8_t sent_num = rdsEncoder.streams; ipc_send_streams(&client, sent_num);
 
